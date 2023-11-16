@@ -1,50 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
+import DetailsPanel from "./components/details_panel";
+import Header from "./components/header";
+import HelpDialog from "./components/help_dialog";
+import PopupProvider from "./components/popup_context";
+import TreeView from "./components/tree_view";
+
 const Popup = () => {
   const [count, setCount] = useState(0);
-  const [currentURL, setCurrentURL] = useState<string>();
+  const [tabid, settabid] = useState<number>();
+  const [message, setMessage] = useState<TreeNode>();
 
   useEffect(() => {
-    chrome.action.setBadgeText({ text: count.toString() });
-  }, [count]);
-
-  useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      setCurrentURL(tabs[0].url);
-    });
+    async function tabQuery() {
+      // @ts-ignore
+      await chrome.tabs.query(
+        {
+          active: true,
+          lastFocusedWindow: true,
+        },
+        function (tab) {
+          console.log("tab", tab);
+          settabid(tab[0].id);
+        }
+      );
+    }
+    tabQuery();
   }, []);
 
-  const changeBackground = () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      const tab = tabs[0];
-      if (tab.id) {
-        chrome.tabs.sendMessage(
-          tab.id,
-          {
-            color: "#555555",
-          },
-          (msg) => {
-            console.log("result message:", msg);
-          }
-        );
+  useEffect(() => {
+    console.log("popuptabid", tabid);
+    async function scanActiveTabHTML(text) {
+      const response = await chrome.tabs.sendMessage(tabid as number, text);
+      console.log("sendmessagetoactivei", response);
+      // @ts-ignore
+      if (response.data) {
+        // @ts-ignore
+        setMessage(response.data);
       }
-    });
-  };
+      // @ts-ignore
+      //   setMessage(response.data as TreeNode);
+    }
+    if (!isNaN(tabid as number)) scanActiveTabHTML("hello?");
+  }, [tabid]);
 
   return (
     <>
-      <ul style={{ minWidth: "700px" }}>
-        <li>Current URL: {currentURL}</li>
-        <li>Current Time: {new Date().toLocaleTimeString()}</li>
-      </ul>
-      <button
-        onClick={() => setCount(count + 1)}
-        style={{ marginRight: "5px" }}
-      >
-        count up
-      </button>
-      <button onClick={changeBackground}>change background</button>
+      <Header />
+      <DetailsPanel />
+      {message && <TreeView nodes={message} />}
+      <HelpDialog />
     </>
   );
 };
@@ -53,6 +59,8 @@ const root = createRoot(document.getElementById("root")!);
 
 root.render(
   <React.StrictMode>
-    <Popup />
+    <PopupProvider>
+      <Popup />
+    </PopupProvider>
   </React.StrictMode>
 );

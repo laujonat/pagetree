@@ -19,11 +19,11 @@ Chrome Extension, TypeScript and Visual Studio Code
 * React
 * Jest
 * Example Code
-    * Chrome Storage
-    * Options Version 2
-    * content script
-    * count up badge number
-    * background
+  * Chrome Storage
+  * Options Version 2
+  * content script
+  * count up badge number
+  * background
 
 ## Project Structure
 
@@ -34,7 +34,7 @@ Chrome Extension, TypeScript and Visual Studio Code
 
 ## Setup
 
-```
+```bash
 npm install
 ```
 
@@ -44,7 +44,7 @@ npm install
 
 ## Build
 
-```
+```bash
 npm run build
 ```
 
@@ -67,4 +67,5 @@ type `Ctrl + Shift + B`
 Load `dist` directory
 
 ## Test
+
 `npx jest` or `npm run test`

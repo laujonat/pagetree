@@ -1,14 +1,21 @@
 const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
-const srcDir = path.join(__dirname, "..", "src");
 
+const srcDir = path.join(__dirname, "..", "src");
+const _resolve = {
+    extensions: [".ts", ".tsx", ".js"],
+    modules: [
+        path.resolve(__dirname, 'node_modules'),
+        'node_modules'
+    ]
+}
 module.exports = {
     entry: {
-      popup: path.join(srcDir, 'popup.tsx'),
-      options: path.join(srcDir, 'options.tsx'),
-      background: path.join(srcDir, 'background.ts'),
-      content_script: path.join(srcDir, 'content_script.tsx'),
+        popup: path.join(srcDir, "popup.tsx"),
+        options: path.join(srcDir, "options.tsx"),
+        background: path.join(srcDir, "background.ts"),
+        content_script: path.join(srcDir, "content_script.tsx"),
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
@@ -18,8 +25,8 @@ module.exports = {
         splitChunks: {
             name: "vendor",
             chunks(chunk) {
-              return chunk.name !== 'background';
-            }
+                return chunk.name !== "background";
+            },
         },
     },
     module: {
@@ -29,14 +36,23 @@ module.exports = {
                 use: "ts-loader",
                 exclude: /node_modules/,
             },
+            {
+                test: /\.css$/i,
+                use: [{
+                    loader: "style-loader",
+                    options: { injectType: "singletonStyleTag" },
+                }, , "css-loader"]
+            },
         ],
     },
-    resolve: {
-        extensions: [".ts", ".tsx", ".js"],
-    },
+    resolve: _resolve,
     plugins: [
         new CopyPlugin({
-            patterns: [{ from: ".", to: "../", context: "public" }],
+            patterns: [
+                { from: ".", to: "../", context: "public" },
+                { from: "styles/*.css", to: "../", context: srcDir },
+                { from: "icons/*.{png,svg}", to: "../", context: srcDir },
+            ],
             options: {},
         }),
     ],
