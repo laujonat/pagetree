@@ -9,5 +9,8 @@
             "url": "http://json.schemastore.org/chrome-manifest"
         }
     ],
-    "editor.find.seedSearchStringFromSelection": "never"
+    "editor.find.seedSearchStringFromSelection": "always",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "autoimport.showNotifications": true,
+    "editor.formatOnSave": true
 }

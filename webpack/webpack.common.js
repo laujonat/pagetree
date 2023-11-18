@@ -38,10 +38,7 @@ module.exports = {
             },
             {
                 test: /\.css$/i,
-                use: [{
-                    loader: "style-loader",
-                    options: { injectType: "singletonStyleTag" },
-                }, , "css-loader"]
+                use: ["style-loader", "css-loader"],
             },
         ],
     },

@@ -3,6 +3,7 @@
     "name": "Chrome Extension TypeScript Starter",
     "description": "Chrome Extension, TypeScript, Visual Studio Code",
     "version": "1.0",
+    "minimum_chrome_version": "116",
     "options_ui": {
         "page": "options.html"
     },
@@ -14,6 +15,9 @@
             "48": "icons/icon48.png",
             "128": "icons/icon128.png"
         }
+    },
+    "side_panel": {
+        "default_path": "sidepanel.html"
     },
     "content_scripts": [
         {
@@ -36,10 +40,12 @@
     },
     "permissions": [
         "tabs",
-        "activetab",
+        "activeTab",
         "scripting",
         "storage",
-        "<all_urls>"
+        "sidePanel",
+        "contextMenus",
+        "offscreen"
     ],
     "host_permissions": [
         "<all_urls>"

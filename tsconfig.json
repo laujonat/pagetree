@@ -1,20 +1,31 @@
 {
+    "compileOnSave": true,
     "compilerOptions": {
+        "allowJs": true,
+        "declaration": true,
         "strict": true,
         "target": "es6",
         "noImplicitAny": false,
-        "moduleResolution": "bundler",
+        "noFallthroughCasesInSwitch": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
         "module": "ES6",
         "esModuleInterop": true,
         "sourceMap": false,
-        "rootDir": "src",
+        "rootDir": "./src",
         "outDir": "dist/js",
         "noEmitOnError": true,
         "jsx": "react-jsx",
         "typeRoots": [
             "node_modules/@types",
-            "types.d.ts"
-        ]
+            "src/types.d.ts"
+        ],
+        "declarationMap": true
     },
-    "compileOnSave": true
+    "exclude": [
+        "**/*.test.ts",
+        "dist",
+        "webpack",
+        "jest.config.js" // Exclude the Jest config file
+    ]
 }

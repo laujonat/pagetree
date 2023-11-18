@@ -1,30 +1,64 @@
-import { scanPage } from "./sum";
+import { scanPage } from "./parser";
 
-console.log("Script run on web page");
+interface IMessage {
+  target: "sidepanel" | "popup";
+  action: string;
+}
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  console.log("sender", sender, request);
-  console.log(
-    sender.tab
-      ? "from a content script:" + sender.tab.url
-      : "from the extension"
-  );
-  console.log(document.documentElement);
-  sendResponse({
-    action: "scanPage",
-    data: scanPage(document.documentElement),
+// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+//   console.log("sender", sender, request);
+//   console.log(
+//     sender.tab
+//       ? "from a content script:" + sender.tab.url
+//       : "from the extension"
+//   );
+//   console.log(document.documentElement);
+//   sendResponse({
+//     action: "scanPage",
+//     data: scanPage(document.documentElement),
+//   });
+// });
+
+chrome.runtime.onMessage.addListener(handleMessages);
+
+async function handleMessages(
+  message: IMessage,
+  sender: chrome.runtime.MessageSender,
+  sendResponse
+) {
+  console.log("messag", message, sender);
+  // Return early if this message isn't meant for the offscreen document.
+  if (message.target !== "popup") {
+    return false;
+  }
+
+  // Dispatch the message to an appropriate handler.
+  console.log("message.action", message.action);
+  switch (message.action) {
+    case "test-action":
+      sendToBackground(
+        "add-exclamationmarks-result",
+        document.documentElement.outerHTML
+      );
+      break;
+    case "toggle-dark-mode":
+      chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
+        document.body.classList.add("dark-mode");
+      });
+      break;
+    case "extension-scan-element":
+      sendResponse({ data: scanPage(document.documentElement) });
+      break;
+    default:
+      console.warn(`Unexpected message type received: '${message.action}'.`);
+      return false;
+  }
+}
+
+function sendToBackground(type, data) {
+  chrome.runtime.sendMessage({
+    type,
+    target: "background",
+    data,
   });
-});
-
-chrome.runtime.onConnect.addListener(function (port) {
-  console.log("onconnect content-script", port);
-  console.assert(port.name === "knockknock");
-  port.onMessage.addListener(function (msg) {
-    if (msg.joke === "Knock knock")
-      port.postMessage({ question: "Who's there?" });
-    else if (msg.answer === "Madame")
-      port.postMessage({ question: "Madame who?" });
-    else if (msg.answer === "Madame... Bovary")
-      port.postMessage({ question: "I don't get it." });
-  });
-});
+}
