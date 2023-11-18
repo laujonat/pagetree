@@ -63,8 +63,8 @@ function HelpDialog() {
           style={{
             background: "var(--bg-0)",
             position: "fixed",
-            bottom: "1rem",
-            right: "1rem",
+            bottom: "3rem",
+            right: "2rem",
             width: "200px",
             cursor: "pointer",
             padding: "10px",

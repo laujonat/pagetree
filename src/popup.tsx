@@ -5,53 +5,87 @@ import DetailsPanel from "./components/details_panel";
 import Header from "./components/header";
 import HelpDialog from "./components/help_dialog";
 import PopupProvider from "./components/popup_context";
-import TreeView from "./components/tree_view";
+import TreeView from "./components/tree/tree_view";
+import { useCenteredTree } from "./hooks/tree";
+import { TreeNode } from "./types";
 
 const Popup = () => {
-  const [count, setCount] = useState(0);
-  const [tabid, settabid] = useState<number>();
+  const [tabId, setTabId] = useState<number>();
   const [message, setMessage] = useState<TreeNode>();
+  const [loaded, setLoaded] = useState<boolean>(false);
+  const [translate, containerRef] = useCenteredTree();
+  const [dimension, setDimension] = useState<{
+    width: number;
+    height: number;
+  }>();
 
   useEffect(() => {
-    async function tabQuery() {
-      // @ts-ignore
-      await chrome.tabs.query(
+    console.log("TRANSLATE", translate);
+  }, [translate]);
+
+  useEffect(() => {
+    async function scanActiveTabHTML(message) {
+      chrome.tabs.query(
         {
           active: true,
           lastFocusedWindow: true,
         },
-        function (tab) {
+        async function (tab) {
           console.log("tab", tab);
-          settabid(tab[0].id);
+          setTabId(tab[0].id);
+          if (tab[0].id as number) {
+            const response = await chrome.tabs.sendMessage(
+              tab[0].id as number,
+              message
+            );
+            console.log("sendmessagetoactivei", response);
+            // @ts-ignore
+            if (response.data) {
+              // @ts-ignore
+              setMessage(response.data);
+              setLoaded(true);
+            }
+          }
         }
       );
     }
-    tabQuery();
+    scanActiveTabHTML({ target: "popup", action: "extension-scan-element" });
+    console.log("popuptabid", tabId);
   }, []);
 
-  useEffect(() => {
-    console.log("popuptabid", tabid);
-    async function scanActiveTabHTML(text) {
-      const response = await chrome.tabs.sendMessage(tabid as number, text);
-      console.log("sendmessagetoactivei", response);
+  const handleSidePanelClick = async (event) => {
+    console.log(event);
+    if (tabId) {
       // @ts-ignore
-      if (response.data) {
-        // @ts-ignore
-        setMessage(response.data);
-      }
+      await chrome.sidePanel.open({ tabId });
       // @ts-ignore
-      //   setMessage(response.data as TreeNode);
+      await chrome.sidePanel.setOptions({
+        tabId,
+        path: "sidepanel-tab.html",
+        enabled: true,
+      });
     }
-    if (!isNaN(tabid as number)) scanActiveTabHTML("hello?");
-  }, [tabid]);
+  };
 
   return (
-    <>
+    <PopupProvider>
       <Header />
       <DetailsPanel />
-      {message && <TreeView nodes={message} />}
+      {/* <button onClick={handleSidePanelClick} style={{ marginRight: "5px" }}>
+        Side Panel
+    </button> */}
+      <div
+        style={{ width: "100%", height: "80vh" }}
+        id="treeWrapper"
+        className="tree-container"
+        ref={containerRef}
+      >
+        {loaded && (
+          <TreeView nodes={message} w={translate.x || 0} h={translate.y || 0} />
+        )}
+      </div>
       <HelpDialog />
-    </>
+    </PopupProvider>
   );
 };
 
@@ -59,8 +93,6 @@ const root = createRoot(document.getElementById("root")!);
 
 root.render(
   <React.StrictMode>
-    <PopupProvider>
-      <Popup />
-    </PopupProvider>
+    <Popup />
   </React.StrictMode>
 );

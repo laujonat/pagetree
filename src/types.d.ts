@@ -1,3 +1,5 @@
+import { MutableRefObject } from "react";
+
 interface TreeNode {
   tag: string;
   id: string;
@@ -7,4 +9,11 @@ interface TreeNode {
   parentClass: string;
   parentTag: string;
   children: Array<TreeNode>;
+}
+
+type TreeOrientation = "vertical" | "horizontal";
+
+interface RefHandler {
+  ref: MutableRefObject<HTMLElement>;
+  handler: (event: MouseEvent) => void;
 }

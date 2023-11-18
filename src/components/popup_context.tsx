@@ -3,11 +3,13 @@ import React, {
   MutableRefObject,
   ReactNode,
   useCallback,
-  useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { useClickOutside } from "use-events";
+
+import { RefHandler } from "../types";
 
 export const WrapperContext = createContext<any>(null);
 
@@ -16,20 +18,20 @@ interface PopupProviderProps {
 }
 
 type CursorOptions =
-  | "move"
   | ""
+  | "default"
+  | "move"
   | "none"
   | "n-resize"
   | "s-resize"
   | "e-resize"
   | "w-resize";
 
-interface RefHandler {
-  ref: MutableRefObject<HTMLElement>;
-  handler: (event: MouseEvent) => void;
-}
-
 const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
+  const dragStartX = useRef<number>(0);
+  const dragStartY = useRef<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isAutoScrolling, setIsAutoScrolling] = useState<boolean>(false);
   const [cursor, setCursor] = useState<CursorOptions>(
     document.body.style.cursor as CursorOptions
   );
@@ -60,110 +62,89 @@ const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
     (event: MouseEvent) => {
       refsHandlers.current.forEach((rh) => {
         if (rh.ref.current && !rh.ref.current.contains(event.target as Node)) {
+          console.log(event);
           rh.handler(event);
         }
       });
     }
   );
 
-  useEffect(() => {
-    // Setup event listeners
-    const cleanupDrag = setupWrapperDrag();
-    const cleanupAutoScroll = setupWrapperAutoScroll();
+  const onVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      console.log("Tab reopened, refetch the data!");
+    }
+  };
+
+  useLayoutEffect(() => {
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      cleanupDrag();
-      cleanupAutoScroll();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
-  useEffect(() => {
-    document.body.style.cursor = cursor;
-    document.body.style.userSelect = userSelect;
-  }, [cursor, userSelect]);
+  //   useEffect(() => {
+  //     const wrapper = document.querySelector("section.wrapper") as HTMLElement;
 
-  function setupWrapperDrag() {
-    let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    const wrapper = document.querySelector("#root");
+  //     const onMouseDown = (event) => {
+  //       console.log("mousedown");
+  //       if (event.button === 0) {
+  //         // Update refs with the current mouse position
+  //         dragStartX.current = event.clientX;
+  //         dragStartY.current = event.clientY;
+  //         setIsDragging(true);
+  //         setCursor("move");
+  //         setUserSelect("none");
+  //       } else if (event.button === 1) {
+  //         setIsAutoScrolling(!isAutoScrolling);
+  //         setCursor(isAutoScrolling ? "move" : "");
+  //       }
+  //     };
 
-    const onMouseDown = (event: MouseEvent) => {
-      if (event.button === 0) {
-        // Use left mouse button for dragging
-        isDragging = true;
-        dragStartX = event.clientX;
-        dragStartY = event.clientY;
-        setUserSelect("none");
-        setCursor("move");
-        event.preventDefault();
-      }
-    };
+  //     const onMouseMove = (event) => {
+  //       if (isDragging) {
+  //         console.log("dragging");
+  //         const deltaX = event.clientX - dragStartX.current;
+  //         const deltaY = event.clientY - dragStartY.current;
+  //         if (wrapper) {
+  //           wrapper.scrollLeft -= deltaX;
+  //           wrapper.scrollTop -= deltaY;
+  //           // Update the current position in the refs
+  //           dragStartX.current = event.clientX;
+  //           dragStartY.current = event.clientY;
+  //         }
+  //       } else if (isAutoScrolling) {
+  //         console.log("auto scrolling");
+  //         autoScroll(wrapper, event.clientX, event.clientY);
+  //       }
+  //     };
+  //     const onMouseUp = (event) => {
+  //       if (event.button === 0 && isDragging) {
+  //         setIsDragging(false);
+  //         setCursor("default");
+  //         setUserSelect("auto");
+  //       } else if (event.button === 1 && isAutoScrolling) {
+  //         setIsAutoScrolling(false);
+  //         setCursor("default");
+  //       }
+  //     };
 
-    const onMouseMove = (event: MouseEvent) => {
-      if (isDragging) {
-        const deltaX = event.clientX - dragStartX;
-        const deltaY = event.clientY - dragStartY;
-        (wrapper as HTMLElement).scrollLeft -= deltaX;
-        (wrapper as HTMLElement).scrollTop -= deltaY;
-        dragStartX = event.clientX;
-        dragStartY = event.clientY;
-      }
-    };
+  //     window.addEventListener("mousedown", onMouseDown);
+  //     window.addEventListener("mouseup", onMouseUp);
+  //     wrapper && wrapper.addEventListener("mousemove", onMouseMove);
 
-    const onMouseUp = () => {
-      if (isDragging) {
-        isDragging = false;
-        setUserSelect("");
-        setCursor("");
-      }
-    };
+  //     return () => {
+  //       // Cleanup
+  //       window.removeEventListener("mousedown", onMouseDown);
+  //       window.removeEventListener("mouseup", onMouseUp);
+  //       wrapper && wrapper.removeEventListener("mousemove", onMouseMove);
+  //     };
+  //   }, [isDragging, isAutoScrolling, cursor]);
 
-    (wrapper as HTMLElement).addEventListener("mousedown", onMouseDown);
-    (wrapper as HTMLElement).addEventListener("mousemove", onMouseMove);
-    (wrapper as HTMLElement).addEventListener("mouseup", onMouseUp);
-
-    return () => {
-      (wrapper as HTMLElement).removeEventListener("mousedown", onMouseDown);
-      (wrapper as HTMLElement).removeEventListener("mousemove", onMouseMove);
-      (wrapper as HTMLElement).removeEventListener("mouseup", onMouseUp);
-    };
-  }
-
-  function setupWrapperAutoScroll() {
-    const wrapper = document.querySelector("#root");
-    let autoScrolling = false;
-
-    const onMouseDown = (event: MouseEvent) => {
-      if (event.button === 0) {
-        // Use left mouse button for auto-scroll
-        autoScrolling = !autoScrolling;
-        (wrapper as HTMLElement).style.cursor = autoScrolling ? cursor : "";
-        event.preventDefault();
-      }
-    };
-
-    const onMouseMove = (event: MouseEvent) => {
-      if (autoScrolling) {
-        autoScroll(wrapper, event.clientX, event.clientY);
-      }
-    };
-
-    const onMouseUp = () => {
-      autoScrolling = false;
-      (wrapper as HTMLElement).style.cursor = "";
-    };
-
-    (wrapper as HTMLElement).addEventListener("mousedown", onMouseDown);
-    (wrapper as HTMLElement).addEventListener("mousemove", onMouseMove);
-    (wrapper as HTMLElement).addEventListener("mouseup", onMouseUp);
-
-    return () => {
-      (wrapper as HTMLElement).removeEventListener("mousedown", onMouseDown);
-      (wrapper as HTMLElement).removeEventListener("mousemove", onMouseMove);
-      (wrapper as HTMLElement).removeEventListener("mouseup", onMouseUp);
-    };
-  }
+  //   useEffect(() => {
+  //     document.body.style.cursor = cursor;
+  //     document.body.style.userSelect = userSelect;
+  //   }, [cursor, userSelect]);
 
   function autoScroll(wrapper, clientX, clientY) {
     const rect = wrapper.getBoundingClientRect();

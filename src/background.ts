@@ -1,33 +1,38 @@
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.action.setBadgeText({ text: "OFF" });
+  chrome.action.setBadgeText({ text: "0" });
 });
 
-chrome.runtime.onMessage.addListener(async (tab) => {
-  console.log("background-tab message", tab);
-  // Retrieve the action badge to check if the extension is 'ON' or 'OFF'
-  const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
-  // Next state will always be the opposite
-  const nextState = prevState === "ON" ? "OFF" : "ON";
-  console.log(nextState, prevState);
-
-  // Set the action badge to the next state
-  await chrome.action.setBadgeText({
-    tabId: tab.id,
-    text: nextState,
-  });
-  if (nextState === "ON") {
-    // Insert the CSS file when the user turns the extension on
-    await chrome.scripting.insertCSS({
-      files: ["./styles/styles.css"],
-      target: { tabId: tab.id },
-    });
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+    console.log(
+      `Storage key "${key}" in namespace "${namespace}" changed.`,
+      `Old value was "${oldValue}", new value is "${newValue}".`
+    );
   }
 });
 
-chrome.action.onClicked.addListener(() => {
-  showReadme();
+chrome.action.onClicked.addListener(async () => {
+  handleBackgroundResultTest("add-exclamationmarks-to-headings");
 });
 
-function showReadme() {
-  chrome.tabs.create({ url: "/index.html" });
+chrome.runtime.onMessage.addListener(handleBackgroundMessages);
+
+async function handleBackgroundMessages(message) {
+  // Return early if this message isn't meant for the background script
+  if (message.target !== "background") {
+    return;
+  }
+
+  // Dispatch the message to an appropriate handler.
+  switch (message.type) {
+    case "add-exclamationmarks-result":
+      handleBackgroundResultTest(message.data);
+      break;
+    default:
+      console.warn(`Unexpected message type received: '${message.type}'.`);
+  }
+}
+
+async function handleBackgroundResultTest(dom) {
+  console.log("Received dom in background", dom);
 }

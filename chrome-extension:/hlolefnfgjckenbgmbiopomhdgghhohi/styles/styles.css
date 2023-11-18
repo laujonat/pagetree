@@ -193,16 +193,10 @@ ul {
   stroke: var(--path-to-branch);
 }
 
-.tree__root,
-.tree__branch,
-.tree__leaf {
-  cursor: pointer;
-}
-
 g > foreignObject > div > p.tree__text {
   white-space: nowrap;
-  overflow: visible;
-  text-overflow: visible;
+  /* overflow: visible; */
+  text-overflow: initial;
   text-align: center;
   font-size: 0.8em;
   user-select: none;

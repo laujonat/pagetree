@@ -1,6 +1,4 @@
-export function sum(x: number, y: number) {
-  return x + y;
-}
+import { TreeNode } from "./types";
 
 export function scanPage(root: Element): TreeNode {
   return _scanElement(root);
@@ -54,7 +52,7 @@ export function scanPage(root: Element): TreeNode {
 
 // Define buildTree and getSelectorFromNode inside or outside the component
 export async function buildTree(root: TreeNode) {
-  return new Promise((resolve) =>
+  const tree = new Promise((resolve) =>
     resolve("<ul>" + _buildNode(root, "", "", "") + "</ul>")
   );
 
@@ -119,13 +117,16 @@ export async function buildTree(root: TreeNode) {
     nodeString += "</li>";
     return nodeString;
   }
+  console.log(tree);
+  return tree;
 }
+
 /**
  * Generates a CSS selector for a node based on its tag, id, and classes.
  * @param {TreeNode} node - The node object.
  * @return {string} The CSS selector for the node.
  */
-function getSelectorFromNode(node: {
+export function getSelectorFromNode(node: {
   tag: string;
   id?: string;
   classes?: Array<string>;
@@ -155,3 +156,25 @@ function getSelectorFromNode(node: {
 
   return selector;
 }
+
+export const convertToD3Format = (node: TreeNode) => {
+  const nodeSvgShape = {
+    shape: "circle", // or any other shape you prefer
+    shapeProps: {
+      r: 10,
+    },
+  };
+  return {
+    name: node.tag,
+    attributes: {
+      id: node.id,
+      classes: node.classes,
+      parentId: node.parentId,
+      parentClass: node.parentClass,
+      parentTag: node.parentTag,
+      childIndex: node.childIndex, // Use the childIndex from the node
+    },
+    nodeSvgShape: nodeSvgShape,
+    children: node.children ? node.children.map(convertToD3Format) : [],
+  };
+};
