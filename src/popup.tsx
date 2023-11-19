@@ -1,57 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
-import DetailsPanel from "./components/details_panel";
-import Header from "./components/header";
-import HelpDialog from "./components/help_dialog";
-import PopupProvider from "./components/popup_context";
+import PopupProvider from "./components/context/popup_provider";
+import { TreeProvider } from "./components/context/tree_provider";
+import DetailsPanel from "./components/popup/details_panel";
+import PopupFooter from "./components/popup/footer";
+import Header from "./components/popup/header";
 import TreeView from "./components/tree/tree_view";
-import { useCenteredTree } from "./hooks/tree";
-import { TreeNode } from "./types";
+import { useCenteredTree } from "./hooks/useCenteredTree";
 
 const Popup = () => {
   const [tabId, setTabId] = useState<number>();
-  const [message, setMessage] = useState<TreeNode>();
-  const [loaded, setLoaded] = useState<boolean>(false);
-  const [translate, containerRef] = useCenteredTree();
-  const [dimension, setDimension] = useState<{
-    width: number;
-    height: number;
-  }>();
+  const [orientation, setOrientation] = useState<Orientation>("horizontal");
+  const [translate, containerRef] = useCenteredTree(orientation);
 
-  useEffect(() => {
-    console.log("TRANSLATE", translate);
-  }, [translate]);
-
-  useEffect(() => {
-    async function scanActiveTabHTML(message) {
-      chrome.tabs.query(
-        {
-          active: true,
-          lastFocusedWindow: true,
-        },
-        async function (tab) {
-          console.log("tab", tab);
-          setTabId(tab[0].id);
-          if (tab[0].id as number) {
-            const response = await chrome.tabs.sendMessage(
-              tab[0].id as number,
-              message
-            );
-            console.log("sendmessagetoactivei", response);
-            // @ts-ignore
-            if (response.data) {
-              // @ts-ignore
-              setMessage(response.data);
-              setLoaded(true);
-            }
-          }
-        }
-      );
-    }
-    scanActiveTabHTML({ target: "popup", action: "extension-scan-element" });
-    console.log("popuptabid", tabId);
-  }, []);
+  const setTreeOrientation = () => {};
 
   const handleSidePanelClick = async (event) => {
     console.log(event);
@@ -66,26 +30,37 @@ const Popup = () => {
       });
     }
   };
+  const updateOrientation = (newOrientation) => setOrientation(newOrientation);
 
   return (
-    <PopupProvider>
+    <TreeProvider
+      width={translate.x}
+      height={translate.y}
+      orientation={orientation}
+    >
       <Header />
-      <DetailsPanel />
-      {/* <button onClick={handleSidePanelClick} style={{ marginRight: "5px" }}>
-        Side Panel
-    </button> */}
-      <div
-        style={{ width: "100%", height: "80vh" }}
-        id="treeWrapper"
-        className="tree-container"
-        ref={containerRef}
-      >
-        {loaded && (
-          <TreeView nodes={message} w={translate.x || 0} h={translate.y || 0} />
-        )}
-      </div>
-      <HelpDialog />
-    </PopupProvider>
+      <section className="inspector__container">
+        <div className="inspector">
+          <DetailsPanel />
+          <div
+            style={{ width: "100%", height: "80vh" }}
+            id="treeWrapper"
+            className="tree-container"
+            ref={containerRef}
+          >
+            <TreeView
+              orientation={orientation}
+              updateOrientation={updateOrientation}
+              // nodes={message}
+              // w={translate.x || 0}
+              // h={translate.y || 0}
+            />
+          </div>
+        </div>
+      </section>
+      <PopupFooter onToggleOrientation={setTreeOrientation} />
+      {/* <HelpDialog /> */}
+    </TreeProvider>
   );
 };
 
@@ -93,6 +68,8 @@ const root = createRoot(document.getElementById("root")!);
 
 root.render(
   <React.StrictMode>
-    <Popup />
+    <PopupProvider>
+      <Popup />
+    </PopupProvider>
   </React.StrictMode>
 );

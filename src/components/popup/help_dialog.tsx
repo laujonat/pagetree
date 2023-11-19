@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
-import { WrapperContext } from "./popup_context";
+import { WrapperContext } from "../context/popup_provider";
 
 function HelpDialog() {
   const [visible, setVisible] = useState<boolean>(false);

@@ -1,84 +1,39 @@
-import { useEffect, useState } from "react";
-import { Tree, TreeProps } from "react-d3-tree";
+import React, { useEffect, useRef } from "react";
+import { Tree } from "react-d3-tree";
 
-import { convertToD3Format } from "../../parser";
+import { useTree } from "../../hooks/useTree";
 
-function TreeView(props) {
-  const [loaded, setLoaded] = useState<boolean>(false);
-  const [state, setState] = useState<TreeProps>({
-    centeringTransitionDuration: 800,
-    collapsible: true,
-    data: [],
-    depthFactor: undefined,
-    dimensions: { width: props.w, height: props.h },
-    draggable: true,
-    enableLegacyTransitions: false,
-    hasInteractiveNodes: true,
-    initialDepth: 1,
-    nodeSize: { x: 100, y: 100 },
-    orientation: "horizontal",
-    rootNodeClassName: "tree__root",
-    branchNodeClassName: "tree__branch",
-    leafNodeClassName: "tree__leaf",
-    scaleExtent: { min: 0.25, max: 2 },
-    separation: { siblings: 0.5, nonSiblings: 0 },
-    shouldCollapseNeighborNodes: true,
-    transitionDuration: 500,
-    translate: { x: props.w, y: props.h },
-    zoom: 1,
-    zoomable: true,
-  });
-
+const TreeView = ({ orientation, updateOrientation }) => {
+  const { treeState, loaded, updateTreeState } = useTree();
   const foreignObjectProps = { width: 50, height: 50, x: -25, y: -30 };
-  const handleNodeClick = (evt, nodeDatum) => {
-    evt.stopPropagation(); // Prevent event from bubbling up
-
+  const handleNodeClick = (nodeDatum) => {
     console.log(nodeDatum);
-    // window.alert(
-    //   nodeDatum.children ? "Clicked a branch node" : "Clicked a leaf node."
-    // );
+
+    window.alert(
+      nodeDatum.children ? "Clicked a branch node" : "Clicked a leaf node."
+    );
   };
-  useEffect(() => {
-    // if (containerRef.current) {
-    console.log("dimensions", state.dimensions);
-    console.log("translate", state.translate);
-    // }
-  }, []);
+  const currentNode = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    console.log("tree view effect", props);
-    async function generateAndSendMessage() {
-      try {
-        console.log(props.nodes);
-        const r3dtNodes = await convertToD3Format(props.nodes);
-        setState((prevState) => ({
-          ...prevState,
-          data: r3dtNodes,
-        }));
-        setLoaded(true);
-      } catch (error) {
-        console.error("Error generating tree:", error);
-      }
-    }
-    generateAndSendMessage();
-  }, [props.nodes]);
+    console.log(orientation);
+    updateTreeState({ orientation });
+  }, [orientation]);
+
   const renderForeignObjectNode = (rd3tProps) => {
     const { nodeDatum, toggleNode, foreignObjectProps, handleNodeClick } =
       rd3tProps;
-    // console.log(rd3tProps);
 
     return (
-      <g
-        onClick={toggleNode}
-        onScroll={(e) => {
-          console.log("e", e);
-          e.stopPropagation();
-        }}
-      >
+      <>
         <circle
-          onClick={(evt) => handleNodeClick(evt, nodeDatum)}
-          onMouseOver={() => rd3tProps.onNodeMouseOver(nodeDatum)}
-          onMouseOut={() => rd3tProps.onNodeMouseOut(nodeDatum)}
+          onClick={(e) => {
+            e.preventDefault();
+          }}
+          onMouseOver={(e) => {
+            e.preventDefault();
+          }}
+          //   onClick={() => handleNodeClick(nodeDatum)}
           r={5}
           stroke={
             nodeDatum.children.length > 0
@@ -87,15 +42,60 @@ function TreeView(props) {
           }
           fill={nodeDatum.children.length > 0 ? "var(--node)" : "var(--leaf)"}
         ></circle>
-        <foreignObject {...foreignObjectProps} style={{ overflow: "visible" }}>
+        <foreignObject
+          {...foreignObjectProps}
+          style={{ overflow: "hidden", margin: "0 auto" }}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleNode(nodeDatum);
+            rd3tProps.onNodeClick(e);
+          }}
+          onMouseOver={(e) => {
+            e.preventDefault();
+            rd3tProps.onNodeMouseOver(e);
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+          }}
+        >
           <div>
             <p className="tree__text">{`<${nodeDatum.name}>`}</p>
           </div>
         </foreignObject>
-      </g>
+      </>
     );
   };
+
+  const updateCurrentNode = (source, target) => {
+    // console.log("source", source);
+    // console.log("target", target);
+
+    const previouslySelected = document.querySelectorAll(".link__selected");
+    previouslySelected.forEach((el) => el.classList.remove("link__selected"));
+
+    // Function to add class to a node element
+    const addClassToNodeElement = (node) => {
+      if (node && !node.data.__rd3t.collapsed) {
+        const element = document.getElementById(
+          node.data.__rd3t.id
+        )?.firstElementChild;
+        if (element instanceof SVGElement) {
+          element.classList.add("link__selected");
+        }
+      }
+    };
+
+    // Add 'link__selected' class to source and target nodes
+    addClassToNodeElement(source);
+    addClassToNodeElement(target);
+  };
+
   const getDynamicPathClass = ({ source, target }, orientation) => {
+    // console.info("I am the source", source);
+    // console.info("I am the target", target);
+
+    updateCurrentNode(source, target);
+
     if (!target.children) {
       // Target node has no children -> this link leads to a leaf node.
       return "link__to-leaf";
@@ -107,6 +107,27 @@ function TreeView(props) {
 
   return (
     <section className="wrapper">
+      <div className="tree-toolbar">
+        <div className="tree-toolbar__left">
+          <div className="tree-toolbar__label">Orientation</div>
+          <div className="tree-toolbar__selector">
+            <div
+              onClick={() => updateOrientation("horizontal")}
+              role="button"
+              className="button"
+            >
+              Horizontal
+            </div>
+            <div
+              onClick={() => updateOrientation("vertical")}
+              role="button"
+              className="button"
+            >
+              Vertical
+            </div>
+          </div>
+        </div>
+      </div>
       {!loaded ? (
         <h1 className="loading">Loading..</h1>
       ) : (
@@ -116,7 +137,7 @@ function TreeView(props) {
           className="tree-container"
         >
           <Tree
-            {...state}
+            {...treeState}
             renderCustomNodeElement={(rd3tProps) =>
               renderForeignObjectNode({
                 ...rd3tProps,
@@ -137,10 +158,10 @@ function TreeView(props) {
               console.log("onLinkClick", e);
             }}
             onLinkMouseOver={(...args) => {
-              console.log("onLinkMouseOver", args);
+              //   console.log("onLinkMouseOver", args);
             }}
             onLinkMouseOut={(...args) => {
-              console.log("onLinkMouseOut", args);
+              //   console.log("onLinkMouseOut", args);
             }}
             pathFunc="step"
             pathClassFunc={getDynamicPathClass}
@@ -149,6 +170,6 @@ function TreeView(props) {
       )}
     </section>
   );
-}
+};
 
 export default TreeView;

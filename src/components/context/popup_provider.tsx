@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { useClickOutside } from "use-events";
 
-import { RefHandler } from "../types";
+import { RefHandler } from "../../types";
 
 export const WrapperContext = createContext<any>(null);
 
