@@ -11,8 +11,6 @@ interface TreeNode {
   children: Array<TreeNode>;
 }
 
-type TreeOrientation = "vertical" | "horizontal";
-
 interface RefHandler {
   ref: MutableRefObject<HTMLElement>;
   handler: (event: MouseEvent) => void;

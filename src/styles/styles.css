@@ -3,6 +3,7 @@
   --background-light: #fff;
   --background-dark: #121212;
   --background-dark-accent: #222;
+  --border: rgba(190, 190, 190, 0.2);
   --text-color-light: #333;
   --text-color-dark: #e0e0e0;
   --link-color: #005fcc;
@@ -10,6 +11,7 @@
   --icon-fill-light: #282828;
   --box-shadow: rgba(0, 0, 0, 0.05) 0 6px 24px 0px,
     rgba(0, 0, 0, 0.08) 0 0 0 1px;
+  --box-shadow-active: 0 0 0 3px rgb(7 56 68);
   --border-radius: 1.5em;
   --node-dark: rgb(229, 251, 234);
   --node-dark-border: rgb(143, 255, 169);
@@ -26,6 +28,7 @@
 * {
   box-sizing: border-box;
 }
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;
@@ -49,6 +52,10 @@ body {
 
 h1 {
   font-size: 0.75rem !important;
+}
+
+ul {
+  list-style-type: none;
 }
 
 body a {
@@ -100,6 +107,22 @@ body.dark-mode a:hover {
   font-weight: 500;
 }
 
+/* Popup body styles */
+section.inspector__container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-flow: column;
+}
+
+.inspector__container > div.inspector {
+  flex-grow: 1;
+  display: flex;
+  flex-flow: row nowrap;
+}
+/* End popup body styles */
+
+/* Help dialog styles */
 div#help-icon {
   z-index: 1000;
   will-change: transform;
@@ -118,17 +141,15 @@ div#help-icon:hover {
   color: var(--text-color-light);
 }
 
-ul {
-  list-style-type: none;
-}
-
 .loading {
   position: fixed;
   display: block;
   text-align: center;
   color: #8cc152;
 }
+/* End help dialog styles */
 
+/* Header styles */
 .header {
   display: flex;
   align-items: center;
@@ -180,6 +201,64 @@ ul {
   color: #a0a0a0;
 }
 
+/* End header styles */
+
+.tree-toolbar {
+  flex: 0 0 30px;
+  padding: 5px 10px;
+  align-items: center;
+  border-bottom-color: var(--border);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  font-family: "Source Sans Pro", sans-serif;
+}
+.tree-toolbar__left {
+  flex: 0 0 30px;
+  display: flex;
+  align-items: center;
+}
+
+.tree-toolbar__left > div.tree-toolbar__label {
+  flex-basis: 40%;
+  border-bottom: none;
+}
+.tree-toolbar__left > div.tree-toolbar__selector {
+  float: right;
+  gap: 1em;
+  display: inline-flex;
+  position: relative;
+}
+
+.tree-toolbar__left > div.tree-toolbar__selector > .button {
+  cursor: pointer;
+}
+/* .tree-toolbar__left > div {
+  display: flex;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  font-size: 12px;
+  line-height: 16px;
+  padding: 5px;
+  text-align: center;
+  position: relative;
+} */
+
+/* Footer styles */
+.footer__container {
+  display: flex;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
+
+  font-size: 12px;
+  line-height: 16px;
+  padding: 5px;
+  background-color: rgb(60, 68, 79);
+  text-align: center;
+  position: relative;
+  border-top: 1px solid rgb(79, 90, 101);
+}
+
 /* Tree Styling */
 .tree {
   display: block;
@@ -191,6 +270,11 @@ ul {
 
 #treeWrapper path.link__to-branch {
   stroke: var(--path-to-branch);
+}
+
+circle.link__selected {
+  stroke: var(--node-light);
+  box-shadow: var(--box-shadow-active);
 }
 
 .tree__root,
@@ -280,11 +364,27 @@ g > foreignObject > div > p.tree__text {
 
 .details__wrapper {
   position: relative;
-  border-radius: 5px;
   background: var(--background-light);
   padding: 5px;
   margin: 4px 0;
-  box-shadow: var(--box-shadow);
+  /* box-shadow: var(--box-shadow); */
+
+  border-bottom-color: rgb(255, 255, 255);
+  border-bottom-style: none;
+  border-bottom-width: 0px;
+  border-left-color: rgba(190, 190, 190, 0.5);
+  border-right-color: rgba(190, 190, 190, 0.5);
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-top-color: rgba(190, 190, 190, 0.5);
+  color: rgb(255, 255, 255);
+  display: flex;
+  flex-basis: 40%;
+  flex-direction: column;
+  flex-shrink: 0;
+  line-height: 18px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body.dark-mode .details__wrapper {
@@ -348,7 +448,6 @@ body.dark-mode .lbl-toggle:hover {
   font-size: 0.9em;
   max-height: 100px;
   /* Adjust as needed */
-  overflow-y: auto;
   /* Enables vertical scrolling */
   font-family: monospace, ui-monospace, ui-rounded;
   height: 40px;
@@ -449,8 +548,8 @@ body.dark-mode #tagContainer {
 /* Additional styles... */
 section.wrapper {
   height: 100%;
-  width: 96vw;
-  margin: -2px 6px;
+  /* width: 96vw; */
+  /* margin: -2px 6px; */
   white-space: nowrap;
   position: relative;
   width: 100%;
