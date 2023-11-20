@@ -2,9 +2,16 @@ import React, { useEffect, useRef } from "react";
 import { Tree } from "react-d3-tree";
 
 import { useTree } from "../../hooks/useTree";
+import { DevToolsElement } from "../popup/details_panel";
 
 const TreeView = ({ orientation, updateOrientation }) => {
-  const { treeState, loaded, updateTreeState } = useTree();
+  const {
+    treeState,
+    loaded,
+    updateTreeState,
+    updateSelectedNode,
+    selectedNode,
+  } = useTree();
   const foreignObjectProps = { width: 50, height: 50, x: -25, y: -30 };
   const handleNodeClick = (nodeDatum) => {
     console.log(nodeDatum);
@@ -45,10 +52,10 @@ const TreeView = ({ orientation, updateOrientation }) => {
         <foreignObject
           {...foreignObjectProps}
           style={{ overflow: "hidden", margin: "0 auto" }}
-          onClick={(e) => {
-            e.preventDefault();
+          onClick={(evt) => {
+            evt.preventDefault();
             toggleNode(nodeDatum);
-            rd3tProps.onNodeClick(e);
+            rd3tProps.onNodeClick(evt);
           }}
           onMouseOver={(e) => {
             e.preventDefault();
@@ -76,9 +83,8 @@ const TreeView = ({ orientation, updateOrientation }) => {
     // Function to add class to a node element
     const addClassToNodeElement = (node) => {
       if (node && !node.data.__rd3t.collapsed) {
-        const element = document.getElementById(
-          node.data.__rd3t.id
-        )?.firstElementChild;
+        // updateSelectedNode({ ...node.data });
+        const element = document.getElementById(node.data.__rd3t.id);
         if (element instanceof SVGElement) {
           element.classList.add("link__selected");
         }
@@ -107,66 +113,76 @@ const TreeView = ({ orientation, updateOrientation }) => {
 
   return (
     <section className="wrapper">
+      <div className="tree-selector">
+        <div className="tree-selector__left">
+          <div className="tree-selector__label">Element</div>
+        </div>
+        <div className="tree-selector__right">
+          {selectedNode.data && <DevToolsElement {...selectedNode.data} />}
+        </div>
+      </div>
       <div className="tree-toolbar">
         <div className="tree-toolbar__left">
           <div className="tree-toolbar__label">Orientation</div>
-          <div className="tree-toolbar__selector">
-            <div
-              onClick={() => updateOrientation("horizontal")}
-              role="button"
-              className="button"
-            >
-              Horizontal
-            </div>
-            <div
-              onClick={() => updateOrientation("vertical")}
-              role="button"
-              className="button"
-            >
-              Vertical
-            </div>
+        </div>
+        <div className="tree-toolbar__right">
+          <div
+            onClick={() => updateOrientation("horizontal")}
+            role="button"
+            className="button"
+          >
+            Horizontal
+          </div>
+          <div
+            onClick={() => updateOrientation("vertical")}
+            role="button"
+            className="button"
+          >
+            Vertical
           </div>
         </div>
       </div>
       {!loaded ? (
         <h1 className="loading">Loading..</h1>
       ) : (
-        <div
-          style={{ width: "100%", height: "80vh" }}
-          id="treeWrapper"
-          className="tree-container"
-        >
-          <Tree
-            {...treeState}
-            renderCustomNodeElement={(rd3tProps) =>
-              renderForeignObjectNode({
-                ...rd3tProps,
-                foreignObjectProps,
-                handleNodeClick,
-              })
-            }
-            onNodeClick={(...args) => {
-              console.log("onnodeclick", args);
-            }}
-            onNodeMouseOver={(...args) => {
-              console.log("onNodeMouseOver", args);
-            }}
-            onNodeMouseOut={(...args) => {
-              console.log("onNodeMouseOut", args);
-            }}
-            onLinkClick={(e) => {
-              console.log("onLinkClick", e);
-            }}
-            onLinkMouseOver={(...args) => {
-              //   console.log("onLinkMouseOver", args);
-            }}
-            onLinkMouseOut={(...args) => {
-              //   console.log("onLinkMouseOut", args);
-            }}
-            pathFunc="step"
-            pathClassFunc={getDynamicPathClass}
-          />
-        </div>
+        // <div
+        //   style={{ width: "100%", height: "80vh" }}
+        //   id="treeWrapper"
+        //   className="tree-container"
+        // >
+        <Tree
+          {...treeState}
+          renderCustomNodeElement={(rd3tProps) =>
+            renderForeignObjectNode({
+              ...rd3tProps,
+              foreignObjectProps,
+              handleNodeClick,
+            })
+          }
+          onNodeClick={(...args) => {
+            const [node, evt] = args;
+            console.info("node click", node);
+            updateSelectedNode(node);
+          }}
+          onNodeMouseOver={(...args) => {
+            console.log("onNodeMouseOver", args);
+          }}
+          onNodeMouseOut={(...args) => {
+            console.log("onNodeMouseOut", args);
+          }}
+          onLinkClick={(e) => {
+            console.log("onLinkClick", e);
+          }}
+          onLinkMouseOver={(...args) => {
+            //   console.log("onLinkMouseOver", args);
+          }}
+          onLinkMouseOut={(...args) => {
+            //   console.log("onLinkMouseOut", args);
+          }}
+          pathFunc="step"
+          pathClassFunc={getDynamicPathClass}
+        />
+        // </div>
       )}
     </section>
   );

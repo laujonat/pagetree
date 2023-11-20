@@ -69,6 +69,18 @@ const PopupProvider: React.FC<PopupProviderProps> = ({ children }) => {
     }
   );
 
+  //   useEffect(() => {
+  //     chrome.idle.onStateChanged.addListener((browserActivityState) => {
+  //       console.log("browserActivityState changed");
+  //       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  //         console.log("idle onstatechanged", tabs[0].id);
+  //         chrome.tabs.sendMessage(tabs[0].id as number, {
+  //           browserActivityState: browserActivityState,
+  //         });
+  //       });
+  //     });
+  //   }, []);
+
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
       console.log("Tab reopened, refetch the data!");

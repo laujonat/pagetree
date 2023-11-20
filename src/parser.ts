@@ -19,9 +19,11 @@ export function scanPage(root: Element): TreeNode {
     const id = domElement.id;
     const classes = Array.from(domElement.classList);
     const tagName = domElement.tagName;
+    const attributes = createAttributesObject(domElement);
     const children = Array.from(domElement.children); // Convert HTMLCollection to Array
     const scannedChildren: TreeNode[] = [];
 
+    // for (const attr of Object.values)
     for (let i = 0; i < children.length; i++) {
       scannedChildren.push(
         _scanElement(
@@ -36,10 +38,11 @@ export function scanPage(root: Element): TreeNode {
         )
       );
     }
-
+    //   attributes,
     return {
       tag: tagName.toLowerCase(),
       id: id,
+      attrs: attributes,
       classes: classes,
       childIndex: childIndex,
       parentId: parentInfo.parentId,
@@ -47,6 +50,15 @@ export function scanPage(root: Element): TreeNode {
       parentTag: parentInfo.parentTag,
       children: scannedChildren,
     };
+  }
+
+  function createAttributesObject(element) {
+    const attributesObj = {};
+    Array.from(element.attributes).forEach((attr) => {
+      // @ts-ignore
+      attributesObj[attr.name] = attr.value;
+    });
+    return attributesObj;
   }
 }
 
@@ -117,7 +129,6 @@ export async function buildTree(root: TreeNode) {
     nodeString += "</li>";
     return nodeString;
   }
-  console.log(tree);
   return tree;
 }
 
@@ -166,6 +177,7 @@ export const convertToD3Format = (node: TreeNode) => {
   };
   return {
     name: node.tag,
+    attrs: node.attrs,
     attributes: {
       id: node.id,
       classes: node.classes,

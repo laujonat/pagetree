@@ -27,7 +27,8 @@
             "js": [
                 "js/vendor.js",
                 "js/content_script.js"
-            ]
+            ],
+            "run_at": "document_idle"
         }
     ],
     "icons": {
