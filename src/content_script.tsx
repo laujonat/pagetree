@@ -5,20 +5,6 @@ interface IMessage {
   action: string;
 }
 
-// chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-//   console.log("sender", sender, request);
-//   console.log(
-//     sender.tab
-//       ? "from a content script:" + sender.tab.url
-//       : "from the extension"
-//   );
-//   console.log(document.documentElement);
-//   sendResponse({
-//     action: "scanPage",
-//     data: scanPage(document.documentElement),
-//   });
-// });
-
 chrome.runtime.onMessage.addListener(handleMessages);
 
 async function handleMessages(

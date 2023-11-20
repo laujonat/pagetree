@@ -6,6 +6,7 @@ interface TreeNode {
   classes: Array<string>;
   childIndex: number;
   parentId: string;
+  attrs?: Object;
   parentClass: string;
   parentTag: string;
   children: Array<TreeNode>;

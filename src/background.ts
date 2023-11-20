@@ -1,6 +1,10 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.action.setBadgeText({ text: "0" });
 });
+chrome.runtime.onStartup.addListener(() => {
+  console.log("startup!");
+  chrome.action.setBadgeText({ text: "!" });
+});
 
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
@@ -11,7 +15,13 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
+chrome.tabs.onUpdated.addListener(function (tabid, changeinfo, tab) {
+  console.log("background task");
+  console.warn(arguments);
+});
+
 chrome.action.onClicked.addListener(async () => {
+  console.warn("action onclicked background");
   handleBackgroundResultTest("add-exclamationmarks-to-headings");
 });
 

@@ -4,11 +4,14 @@ import { Orientation, TreeProps } from "react-d3-tree";
 import { convertToD3Format } from "../../parser";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
+type UpdateNodeFunction = (a: Partial<TreeProps>) => void;
 
 export type ProviderValue = {
   treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
+  selectedNode: any;
   loaded: boolean;
   updateTreeState: UpdateTreeFunction;
+  updateSelectedNode: UpdateNodeFunction;
 };
 
 export type DefaultValue = undefined;
@@ -31,6 +34,7 @@ export const TreeProvider = ({
   orientation,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<any>({});
   const [treeState, setTreeState] = useState<TreeProps>({
     centeringTransitionDuration: 800,
     collapsible: true,
@@ -80,6 +84,7 @@ export const TreeProvider = ({
       chrome.tabs.query(
         { active: true, lastFocusedWindow: true },
         async (tabs) => {
+          debugger;
           if (tabs[0]?.id) {
             const response = await chrome.tabs.sendMessage(tabs[0].id, message);
             // @ts-ignore
@@ -98,17 +103,23 @@ export const TreeProvider = ({
         }
       );
     }
+    console.log("scanActiveTabHTML", chrome.tabs.onUpdated);
     scanActiveTabHTML({ target: "popup", action: "extension-scan-element" });
   }, [width, height]);
 
   const updateTreeState = (newState: Partial<TreeProps>) => {
     setTreeState((prevState) => ({ ...prevState, ...newState }));
   };
+  const updateSelectedNode = (newState: any) => {
+    setSelectedNode((prevState) => ({ ...prevState, ...newState }));
+  };
 
   const value = {
     loaded,
     treeState,
     updateTreeState,
+    selectedNode,
+    updateSelectedNode,
   };
 
   return <TreeContext.Provider value={value}>{children}</TreeContext.Provider>;
