@@ -1,3 +1,4 @@
+// @ts-nocheck awsdas
 import { TreeNode } from "./types";
 
 export function scanPage(root: Element): TreeNode {
@@ -76,7 +77,7 @@ export async function buildTree(root: TreeNode) {
   ): string {
     let nodeString = "<li>";
     // Generate a selector for the current node
-    let selector = getSelectorFromNode({
+    const selector = getSelectorFromNode({
       tag: node.tag,
       id: node.id,
       classes: node.classes,

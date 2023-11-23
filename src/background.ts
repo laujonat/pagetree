@@ -15,14 +15,39 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-chrome.tabs.onUpdated.addListener(function (tabid, changeinfo, tab) {
+chrome.tabs.onUpdated.addListener(async function (tabid, changeinfo, tab) {
   console.log("background task");
   console.warn(arguments);
+  await new Promise<void>((resolve) => {
+    handleBackgroundReady(tabid);
+    chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+      if (changeinfo.status === "complete") {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve();
+      }
+    });
+  });
+  //   console.info("chrome.tabs.onUpdated.addListenerid", tabid);
+  //   handleBackgroundReady(tabid);
 });
 
-chrome.action.onClicked.addListener(async () => {
+chrome.action.onClicked.addListener(async (tab) => {
   console.warn("action onclicked background");
-  handleBackgroundResultTest("add-exclamationmarks-to-headings");
+  //   const tabs = await chrome.tabs.query({
+  //     url: chrome.runtime.getURL("popup.html"),
+  //   });
+  // Wait for the receiver tab to load
+  //   await new Promise<void>((resolve) => {
+  //     chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+  //       if (info.status === "complete") {
+  //         chrome.tabs.onUpdated.removeListener(listener);
+  //         resolve();
+  //       }
+  //     });
+  //   });
+  //   const receiverTabId = tabs[0].id;
+  //   console.info("chrome.action.onClickedd", receiverTabId);
+  //   handleBackgroundReady(receiverTabId);
 });
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
@@ -32,7 +57,6 @@ async function handleBackgroundMessages(message) {
   if (message.target !== "background") {
     return;
   }
-
   // Dispatch the message to an appropriate handler.
   switch (message.type) {
     case "add-exclamationmarks-result":
@@ -45,4 +69,14 @@ async function handleBackgroundMessages(message) {
 
 async function handleBackgroundResultTest(dom) {
   console.log("Received dom in background", dom);
+}
+async function handleBackgroundReady(receiverTabId) {
+  // Send a message to the receiver tab
+  chrome.tabs.sendMessage(receiverTabId, {
+    target: "popup",
+    action: "notify-client-ready",
+    data: {
+      ready: true,
+    },
+  });
 }

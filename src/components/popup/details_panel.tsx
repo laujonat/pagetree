@@ -1,18 +1,17 @@
-import { useRef } from "react";
+import { useId } from "react";
 
-import useDraggable from "../../hooks/useDraggable";
 import { useTree } from "../../hooks/useTree";
+import { TreeNode } from "../../types";
 
-export const DevToolsElement = ({ name, attrs, children }) => {
+export const DevToolsElement = (props: TreeNode) => {
+  const { attrs, children, name } = props;
   const elementStyle = {
     color: "var(--webkit-tag-name)",
   };
-  const elementContainer = useRef(null);
-  useDraggable(elementContainer);
-
+  const key = useId();
   const renderAttributes = () => {
-    return Object.entries(attrs)?.map(([attrName, attrValue]) => (
-      <span key={attrName}>
+    return Object.entries(attrs)?.map(([attrName, attrValue], idx) => (
+      <span key={idx}>
         <span style={{ color: "var(--webkit-tag-attribute-key)" }}>
           &nbsp;
           {attrName}
@@ -24,7 +23,7 @@ export const DevToolsElement = ({ name, attrs, children }) => {
     ));
   };
 
-  const expandElement = () => {
+  const expandElement = (): JSX.Element => {
     return (
       <span className="expand-button">
         <span className="dot"></span>
@@ -35,44 +34,50 @@ export const DevToolsElement = ({ name, attrs, children }) => {
   };
 
   return (
-    <div style={elementStyle} className="webkit-element">
-      <div className="webkit-element__scrollable" ref={elementContainer}>
-        <span style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</span>
-        {renderAttributes()}
-        <span style={{ color: "var(--webkit-tag-name)" }}>
-          {`>`}
-          <span className="children-placeholder">
-            {children.length ? expandElement() : ""}
-          </span>
-          {`</${name}>`}
+    <div style={elementStyle} className="webkit-element" key={key}>
+      <span style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</span>
+      {renderAttributes()}
+      <span style={{ color: "var(--webkit-tag-name)" }}>
+        {`>`}
+        <span className="children-placeholder">
+          {children?.length ? expandElement() : ""}
         </span>
-      </div>
+        {`</${name}>`}
+      </span>
     </div>
   );
 };
 
+function DetailsItem(props) {
+  const { highlightPathToNode, removeHighlightPathToNode } = useTree();
+  return (
+    <li
+      className="details__item"
+      onMouseEnter={(evt) => highlightPathToNode(props, evt)}
+      onMouseLeave={removeHighlightPathToNode}
+    >
+      <DevToolsElement {...props} />
+    </li>
+  );
+}
+
 function DetailsPanel() {
   const { selectedNode } = useTree();
-  const children = selectedNode.data?.children.length;
-  const elementContainer = useRef(null);
-  useDraggable(elementContainer);
+
+  const renderChildren = (children) => {
+    return children.map((child, idx) => <DetailsItem {...child} key={idx} />);
+  };
+
   return (
     <div className="details__wrapper">
-      {/* {JSON.stringify(selectedNode.data)} */}
-      <section id="details" ref={elementContainer}>
-        {selectedNode.data?.attributes && (
-          <DevToolsElement
-            {...selectedNode.data}
-            // node={selectedNode.data}
-            // name={selectedNode.data.name}
-          />
-        )}
-        {/* {children && (
-          <sub id="details__children-count">
-            <span>Number of Children: </span>
-            <span id="childrenCount">{selectedNode.data.children.length}</span>
-          </sub>
-        )} */}
+      <div className="details__header">
+        <div className="details__article">Children</div>
+      </div>
+      <section id="details">
+        <ul className="details__list">
+          {selectedNode?.data?.children &&
+            renderChildren(selectedNode.data?.children)}
+        </ul>
       </section>
     </div>
   );

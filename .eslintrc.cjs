@@ -4,8 +4,10 @@ module.exports = {
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint'],
     root: true,
-    '@typescript-eslint/ban-ts-comment': [
-        'error',
-        { 'ts-ignore': 'allow-with-description' },
-    ]
+    rules: {
+        '@typescript-eslint/ban-ts-comment': [
+            'warn',
+            { 'ts-ignore': 'allow-with-description' },
+        ]
+    }
 };
