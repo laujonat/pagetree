@@ -1,9 +1,11 @@
 /* General Styling */
 :root {
   --background-dark-accent: #222;
+  --background-dark-item: #282828;
   --background-dark: #121212;
   --background-light: #fff;
   --background-light-accent: #fafafae6;
+  --background-light-item: #616161;
   --border: rgba(190, 190, 190, 0.2);
   --icon-fill-dark: #fff;
   --icon-fill-light: #282828;
@@ -18,12 +20,13 @@
   --node-dark: rgb(229, 251, 234);
   --node-leaf-dark: #333;
   --node-leaf-light: #e0e0e0;
-  --node-light-border: rgb(129, 212, 231);
-  --node-light: rgb(8, 149, 180);
-  --node-path-to-branch-dark: rgb(60, 177, 121);
+  --node-light-border: rgb(8, 149, 180);
+  --node-light: rgb(129, 212, 231);
+  --node-path-to-branch-dark: rgb(0, 233, 120);
   --node-path-to-branch-light: rgb(0, 145, 255);
   --node-path-to-leaf-dark: #929292;
-  --node-path-to-leaf-light: #cbcbcb;
+  --node-path-to-leaf-light: #2d3748;
+  --node-select: rgb(255, 97, 102);
 
   --webkit-tag-name: rgb(73 166 210);
   --webkit-tag-attribute-key: rgb(124, 172, 248);
@@ -69,20 +72,33 @@ h1 {
 
 ul {
   list-style-type: none;
+  padding: 0;
 }
 
-body a {
-  color: var(--link-color);
+/* body {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  min-width: 350px;
+  min-height: 400px;
+  margin: 0;
+} */
+
+body > #root {
+  height: 400px;
+  width: 100%;
 }
 
 body.dark-mode {
   --icon-fill: var(--icon-fill-dark);
   --bg-0: var(--background-dark-accent);
   --bg-1: var(--background-dark);
+  --bg-2: var(--background-dark-item);
   --node: var(--node-dark);
   --node-border: var(--node-dark-border);
   --leaf: var(--node-leaf-dark);
   --path-to-leaf: var(--node-path-to-leaf-dark);
+  --path-to-current-leaf: var(--node-path-to-branch-dark);
   --path-to-branch: var(--node-path-to-branch-dark);
 }
 
@@ -90,10 +106,12 @@ body:not(.dark-mode) {
   --icon-fill: var(--icon-fill-light);
   --bg-0: var(--background-light-accent);
   --bg-1: var(--background-light);
+  --bg-2: var(--background-light-item);
   --node: var(--node-light);
   --node-border: var(--node-light-border);
-  --leaf: var(--node-leaf-dark);
+  --leaf: var(--node-leaf-light);
   --path-to-leaf: var(--node-path-to-leaf-light);
+  --path-to-current-leaf: var(--node-path-to-branch-light);
   --path-to-branch: var(--node-path-to-branch-light);
 }
 
@@ -125,7 +143,7 @@ section.inspector__container {
   display: flex;
   height: 100%;
   width: 100%;
-  flex-flow: column;
+  flex-flow: row;
 }
 
 .inspector__container > div.inspector {
@@ -149,7 +167,6 @@ div#help-icon:hover {
 
 #help-dialog {
   z-index: 1000;
-  /* Ensures the dialog is above other elements */
   box-shadow: var(--box-shadow);
   color: var(--text-color-light);
 }
@@ -188,7 +205,6 @@ div#help-icon:hover {
   align-items: center;
   justify-content: space-between;
   margin: 0 10px;
-  /* padding: 10px 0 0; */
 }
 
 .header__heading-events {
@@ -250,6 +266,8 @@ div#help-icon:hover {
 .tree-selector > div.tree-selector__right {
   float: left;
   margin: auto;
+  overflow: hidden;
+  max-width: 45vw;
 }
 
 .tree-toolbar > div.tree-toolbar__right {
@@ -260,8 +278,12 @@ div#help-icon:hover {
   justify-content: flex-end;
 }
 
-.tree-toolbar__left > div.tree-toolbar__right > .button {
-  cursor: pointer;
+.tree-selector__right,
+.tree-toolbar__right {
+  flex-grow: 1; /* Adjust as needed */
+  display: flex;
+  justify-content: flex-end; /* or 'space-between', as required */
+  overflow: hidden; /* Prevent overflow */
 }
 
 .webkit-element {
@@ -278,15 +300,18 @@ div#help-icon:hover {
   white-space: pre;
   user-select: none;
 }
-.webkit-element div.webkit-element__scrollable {
-  max-width: 50vw;
-  scrollbar-gutter: stable both-edges;
-  height: 3em;
-  display: flex;
-  align-items: center;
-  overflow: scroll;
-}
 
+div.webkit-element__scrollable {
+  align-items: center;
+  display: flex;
+  height: 3em;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-gutter: stable both-edges;
+  white-space: nowrap;
+}
+/* Expanding dots placeholder if element has children */
 .webkit-element span.children-placeholder span.expand-button {
   display: inline-flex;
   justify-content: center;
@@ -294,11 +319,12 @@ div#help-icon:hover {
   box-sizing: border-box;
   width: 14px;
   height: 10px;
+  vertical-align: middle;
   gap: 1px;
   margin: 0px 2px;
   border: 1px solid rgb(117, 117, 117);
   border-radius: 10px;
-  background: #282828;
+  background: var(--bg-2);
 }
 .webkit-element span.children-placeholder span.expand-button > .dot {
   height: 2px;
@@ -306,16 +332,7 @@ div#help-icon:hover {
   background: #e3e3e3;
   border-radius: 50%;
 }
-/* .tree-toolbar__left > div {
-  display: flex;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  font-size: 12px;
-  line-height: 16px;
-  padding: 5px;
-  text-align: center;
-  position: relative;
-} */
+/* End expanding dots */
 
 /* Footer styles */
 .footer__container {
@@ -328,18 +345,27 @@ div#help-icon:hover {
   padding: 5px;
   background-color: rgb(60, 68, 79);
   text-align: center;
-  position: fixed;
-  bottom: 0;
+  position: relative;
   border-top: 1px solid rgb(79, 90, 101);
 }
 
 /* Tree Styling */
-/* .tree {
-  display: block;
-} */
 
 #treeWrapper path.link__to-leaf {
   stroke: var(--path-to-leaf);
+}
+#treeWrapper path {
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+#treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
+  stroke-opacity: 0.9 !important;
+}
+
+#treeWrapper path.link__to-leaf.highlight {
+  stroke: var(--path-to-current-leaf);
+  stroke-opacity: 1;
 }
 
 #treeWrapper path.link__to-branch {
@@ -347,13 +373,14 @@ div#help-icon:hover {
 }
 
 .link__selected > circle {
-  stroke: var(--node-light);
+  stroke: var(--node-select);
+  stroke-width: 0.25em;
   box-shadow: var(--box-shadow-active);
 }
 
 .link__selected > foreignObject > div > p {
   text-decoration: underline !important;
-  /* background-color: var(--bg-1) !important; */
+  color: var(--webkit-tag-name);
 }
 
 .tree__root,
@@ -373,62 +400,7 @@ g > foreignObject > div > p.tree__text {
   user-select: none;
 }
 
-/* .tree > ul ul {
-  padding-top: 5px;
-  padding-left: 35px;
-  margin-left: 5px;
-}
-
-.tree li {
-  margin: 0 -5px 15px;
-  padding: 0 3px 3px;
-  position: relative;
-}
-
-.tree .node {
-  border-radius: 4px;
-  padding: 3px 11px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.tree a.node {
-  display: inline-block;
-  transform: translate(-30px, -6px);
-}
-
-.tree > ul ul li:not(:last-of-type):after {
-  position: absolute;
-  content: "";
-  border-left: solid 1px #ccc;
-  height: calc(100% + 15px);
-  left: -50px;
-  top: -11px;
-}
-
-.tree > a {
-  display: inline-block;
-  transform: translate(-29px, -3px);
-}
-
-.tree > ul ul li:last-of-type:after {
-  position: absolute;
-  content: "";
-  border-left: solid 1px #ccc;
-  height: 17px;
-  left: -50px;
-  top: -11px;
-}
-
-.tree > ul ul li:before {
-  position: absolute;
-  content: "";
-  border-bottom: solid 1px #ccc;
-  height: 0;
-  width: 30px;
-  left: -50px;
-  top: 5px;
-} */
+/* End rd3tree styles */
 
 /* Node Hover */
 .node:hover + ul li:not(:last-of-type):after {
@@ -446,10 +418,7 @@ g > foreignObject > div > p.tree__text {
 .details__wrapper {
   position: relative;
   background: var(--background-light);
-  padding: 5px;
   margin: 0;
-  /* box-shadow: var(--box-shadow); */
-
   border-bottom-color: rgb(255, 255, 255);
   border-bottom-style: none;
   border-bottom-width: 0px;
@@ -464,8 +433,8 @@ g > foreignObject > div > p.tree__text {
   flex-direction: column;
   flex-shrink: 0;
   line-height: 18px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  /* overflow-x: hidden; */
+  overflow: hidden;
 }
 
 body.dark-mode .details__wrapper {
@@ -475,37 +444,6 @@ body.dark-mode .details__wrapper {
 body.dark-mode #details .details__wrapper {
   background-color: var(--background-dark-accent);
 }
-
-/* .collapsible {
-  list-style: none;
-  padding-left: 20px;
-}
-
-.lbl-toggle {
-  cursor: pointer;
-  position: relative;
-  display: inline-block;
-  transform: translate(-30px, -4px);
-} */
-
-/* .lbl-toggle:hover {
-  color: #52a9ff;
-}
-
-body.dark-mode .lbl-toggle:hover {
-  color: #e1f8fa;
-}
-
-.lbl-toggle::before {
-  content: " ";
-  display: inline-block;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 5px solid currentColor;
-  vertical-align: middle;
-  margin-right: 0.7rem;
-  transition: transform 0.2s ease-in-out;
-} */
 
 .toggle:checked + .lbl-toggle::before {
   transform: rotate(-90deg);
@@ -523,34 +461,25 @@ body.dark-mode .lbl-toggle:hover {
 
 .class-tag__container {
   display: flex;
-  /* flex-wrap: wrap; */
   justify-content: flex-start;
   font-size: 0.9em;
   max-height: 100px;
-  /* Adjust as needed */
-  /* Enables vertical scrolling */
   font-family: monospace, ui-monospace, ui-rounded;
   height: 40px;
-  /* width: 90%; */
 }
 
 .class-tag {
-  /* background-color: rgb(73, 71, 71); */
   font-style: italic;
-  /* font-weight: bold; */
-  /* color: rgb(216, 213, 213); */
   color: rgb(102, 199, 186);
   padding: 3px 2px;
   white-space: nowrap;
   word-break: break-word;
   overflow-wrap: break-word;
-  /* font-size: 0.8em; */
 }
 
 .id-tag {
   color: rgb(248 126 131);
   font-style: italic;
-  /* font-weight: bold; */
 }
 
 div#details__children-count {
@@ -564,14 +493,13 @@ div#details__children-count {
 #details {
   align-items: center;
   background-color: var(--background-light);
-  border-radius: 5px;
+  height: calc(100% - 18px);
   display: grid;
   grid-template-columns: auto;
   min-width: 101%;
-  padding: 5px 10px;
+  /* padding: 5px 10px; */
   position: relative;
-  position: relative;
-  z-index: 2;
+  /* z-index: 2; */
   /* user-select: none; */
 }
 
@@ -599,19 +527,14 @@ div::-webkit-scrollbar {
   border-radius: 8px;
 }
 
-/* #details::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #a8a8a8, #a8a8a8 1px, #8b8b8b 0, #9c9c9c);
-  border-radius: 16px;
-  box-shadow: inset 2px 2px 2px hsla(0, 0%, 100%, 0.15),
-    inset -2px -2px 2px rgb(0 0 0 / 13%);
-} */
-
 body.dark-mode #details {
   background-color: #141313;
 }
-
-#details {
-  overflow-x: scroll;
+main.container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-flow: column;
 }
 
 #details p {
@@ -620,25 +543,67 @@ body.dark-mode #details {
   margin: 5px 0;
 }
 
-#details strong {
+/* #details strong {
   color: #0091ff;
   font-weight: bolder;
   margin-right: 5px;
   font-family: monospace, ui-monospace, ui-rounded;
   padding: 2px;
   white-space: nowrap;
+} */
+
+#details > ul.details__list {
+  height: calc(100% - 18px);
+  width: 100%;
+  margin: 0 auto auto;
+  list-style: none;
+  padding: 0;
+  overflow: auto;
+}
+
+#details > div.details__article {
+  display: flex;
+  flex-basis: 40%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex-shrink: 0;
+  border-color: rgba(190, 190, 190, 0.5);
+  flex-direction: column;
+  background-color: #2a2f3a;
+}
+#details > div.details__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  border-color: rgba(190, 190, 190, 0.5);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+li.details__item {
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  padding: 5px 10px;
+  user-select: none;
+  justify-content: space-between;
+  border-bottom-color: rgba(190, 190, 190, 0.5);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
 }
 
 /* Additional styles... */
 section.wrapper {
   height: 100%;
-  /* width: 96vw; */
-  /* margin: -2px 6px; */
   white-space: nowrap;
   position: relative;
   width: 100%;
   float: none;
-  /* overflow: scroll; */
+}
+
+#details > ul.details__list::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* make scrollbar transparent */
 }
 
 body .wrapper::-webkit-scrollbar {
@@ -656,20 +621,3 @@ body .wrapper::-webkit-scrollbar-thumb {
   box-shadow: inset 2px 2px 2px hsla(0, 0%, 100%, 0.15),
     inset -2px -2px 2px rgb(0 0 0 / 13%);
 }
-
-/* body.dark-mode .wrapper::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    90deg,
-    #c0c0c0,
-    #969696 1px,
-    rgb(129, 129, 129) 0,
-    rgb(159, 160, 163)
-  );
-  border-radius: 16px;
-  box-shadow: inset 2px 2px 2px hsla(0, 0%, 100%, 0.15),
-    inset -2px -2px 2px rgb(0 0 0 / 50%);
-} */
-
-/* .wrapper::-webkit-scrollbar-corner {
-  background: transparent;
-} */

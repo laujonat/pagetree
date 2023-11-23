@@ -12,5 +12,7 @@
     "editor.find.seedSearchStringFromSelection": "always",
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "autoimport.showNotifications": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "autoimport.doubleQuotes": false,
+    "importSorter.importStringConfiguration.quoteMark": "double"
 }

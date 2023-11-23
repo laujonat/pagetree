@@ -32,6 +32,10 @@ async function handleMessages(
         document.body.classList.add("dark-mode");
       });
       break;
+    case "notify-client-ready":
+      console.log("notify-client-ready", message, sender);
+      sendResponse({ data: { ready: true } });
+      break;
     case "extension-scan-element":
       sendResponse({ data: scanPage(document.documentElement) });
       break;

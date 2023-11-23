@@ -1,13 +1,13 @@
-const PopupFooter = ({ onToggleOrientation }) => {
+const PopupFooter = () => {
   return (
     <footer className="footer__container">
       <div className="footer__left">
-        <button onClick={() => onToggleOrientation("vertical")}>
+        {/* <button onClick={() => onToggleOrientation("vertical")}>
           Vertical View
         </button>
         <button onClick={() => onToggleOrientation("horizontal")}>
           Horizontal View
-        </button>
+        </button> */}
       </div>
       <div className="footer__right">
         <button>Placeholder 1</button>

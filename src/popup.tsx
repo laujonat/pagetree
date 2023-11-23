@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
@@ -9,56 +9,41 @@ import PopupFooter from "./components/popup/footer";
 import Header from "./components/popup/header";
 import TreeView from "./components/tree/tree_view";
 import { useCenteredTree } from "./hooks/useCenteredTree";
+import useOrientation from "./hooks/useOrientation";
 
 const Popup = () => {
-  const [tabId, setTabId] = useState<number>();
-  const [orientation, setOrientation] = useState<Orientation>("horizontal");
-  const [translate, containerRef] = useCenteredTree(orientation);
-
-  const setTreeOrientation = () => {};
-
-  const handleSidePanelClick = async (event) => {
-    console.log(event);
-    if (tabId) {
-      // @ts-ignore
-      await chrome.sidePanel.open({ tabId });
-      // @ts-ignore
-      await chrome.sidePanel.setOptions({
-        tabId,
-        path: "sidepanel-tab.html",
-        enabled: true,
-      });
-    }
-  };
-  const updateOrientation = (newOrientation) => setOrientation(newOrientation);
+  //   const [orientation, setOrientation] = useState<Orientation>("horizontal");
+  const [orientation, updateOrientation] = useOrientation();
+  const [translate, containerRef, setTranslate] = useCenteredTree(
+    orientation as Orientation
+  );
 
   return (
     <TreeProvider
-      width={translate.x}
-      height={translate.y}
-      orientation={orientation}
+      translate={translate}
+      setTranslate={setTranslate}
+      orientation={orientation as Orientation}
     >
       <Header />
-      <section className="inspector__container">
-        <div className="inspector">
+      <main className="container">
+        <section className="inspector__container">
           <DetailsPanel />
-          <div
-            style={{ width: "100%", height: "80vh" }}
-            id="treeWrapper"
-            className="tree-container"
-            ref={containerRef}
-          >
-            <TreeView
-              orientation={orientation}
-              updateOrientation={updateOrientation}
-              // nodes={message}
-              // w={translate.x || 0}
-              // h={translate.y || 0}
-            />
+          <div className="inspector">
+            <div
+              style={{ width: "100%", height: "80vh" }}
+              id="treeWrapper"
+              className="tree-container"
+              ref={containerRef}
+            >
+              <TreeView
+                orientation={orientation}
+                updateOrientation={updateOrientation}
+              />
+            </div>
           </div>
-        </div>
-      </section>
-      <PopupFooter onToggleOrientation={setTreeOrientation} />
+        </section>
+        <PopupFooter />
+      </main>
       {/* <HelpDialog /> */}
     </TreeProvider>
   );
@@ -73,3 +58,17 @@ root.render(
     </PopupProvider>
   </React.StrictMode>
 );
+
+// const handleSidePanelClick = async (event) => {
+//   console.log(event);
+//   if (tabId) {
+//     // @ts-ignore
+//     await chrome.sidePanel.open({ tabId });
+//     // @ts-ignore
+//     await chrome.sidePanel.setOptions({
+//       tabId,
+//       path: "sidepanel-tab.html",
+//       enabled: true,
+//     });
+//   }
+// };
