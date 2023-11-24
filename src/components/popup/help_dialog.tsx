@@ -22,6 +22,7 @@ function HelpDialog() {
     };
   }, [visible, registerClickOutside]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClick = (e: React.MouseEvent) =>
     setVisible((prevVisible) => !prevVisible);
 

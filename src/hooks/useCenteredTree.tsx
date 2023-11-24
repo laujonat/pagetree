@@ -19,15 +19,14 @@ export const useCenteredTree = (
       if (containerElem) {
         const { width, height } = containerElem.getBoundingClientRect();
         setTranslate({
-          x: orientation === "vertical" ? width : width,
-          y: orientation === "vertical" ? 100 : height,
+          x: orientation === "vertical" ? width : width / 2,
+          y: orientation === "vertical" ? 100 : height / 2,
         });
       }
     },
     [orientation]
   );
 
-  // Return the state and the containerRef
-  // @ts-ignore
-  return [translate, containerRef, setTranslate]; // Include setTranslate in the return value
+  // @ts-ignore Callback ref element
+  return [translate, containerRef, setTranslate];
 };

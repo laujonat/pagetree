@@ -1,4 +1,3 @@
-import { selectAll } from "d3";
 import React, { LegacyRef, useEffect, useRef, useState } from "react";
 import { Tree } from "react-d3-tree";
 
@@ -12,6 +11,7 @@ const TreeView = ({ orientation, updateOrientation }) => {
     selectedNode,
     treeRef,
     treeState,
+    setOnNodeClick,
     updateSelectedNode,
     updateTreeState,
   } = useTree();
@@ -21,45 +21,32 @@ const TreeView = ({ orientation, updateOrientation }) => {
     setRef(treeRef);
   }, []);
 
-  const handleNodeClick = (nodeDatum) => {
-    console.log(nodeDatum);
-
-    window.alert(
-      nodeDatum.children ? "Clicked a branch node" : "Clicked a leaf node."
-    );
-  };
   const elementContainer = useRef(null);
   useDraggable(elementContainer);
 
   useEffect(() => {
-    console.log(orientation);
     updateTreeState({ orientation });
   }, [orientation]);
 
-  useEffect(() => {
-    console.log("treestate", treeState);
-    selectAll("path.rd3t-link").on("mouseover", (el) => {
-      console.log("mouiseover");
-      el.parentNode.appendChild(el);
-    });
-  }, [treeState]);
   /**
    * TODO
    * Clicking node on a previous level selects the parent instead of the target node
    */
   const renderForeignObjectNode = (rd3tProps) => {
-    const { nodeDatum, toggleNode, foreignObjectProps } = rd3tProps;
+    const { nodeDatum, toggleNode, foreignObjectProps, onNodeClick } =
+      rd3tProps;
+    const handleClick = (evt) => {
+      evt.preventDefault();
+      onNodeClick(evt); // Pass nodeDatum to the onNodeClick
+      toggleNode(nodeDatum); // Toggle the node
+    };
 
     return (
       <>
         <circle
-          onClick={(e) => {
-            e.preventDefault();
-          }}
           onMouseOver={(e) => {
             e.preventDefault();
           }}
-          //   onClick={() => handleNodeClick(nodeDatum)}
           r={5}
           stroke={
             nodeDatum.children.length > 0
@@ -69,13 +56,10 @@ const TreeView = ({ orientation, updateOrientation }) => {
           fill={nodeDatum.children.length > 0 ? "var(--node)" : "var(--leaf)"}
         ></circle>
         <foreignObject
+          cursor="pointer"
           {...foreignObjectProps}
           style={{ overflow: "hidden", margin: "0 auto" }}
-          onClick={(evt) => {
-            evt.preventDefault();
-            rd3tProps.onNodeClick(evt);
-            toggleNode(nodeDatum);
-          }}
+          onClick={handleClick}
           onMouseEnter={(e) => {
             e.preventDefault();
             rd3tProps.onNodeMouseOver(e);
@@ -95,7 +79,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
   const updateCurrentNode = (source, target) => {
     const previouslySelected = document.querySelectorAll(".link__selected");
     previouslySelected.forEach((el) => el.classList.remove("link__selected"));
-
     const addClassToNodeElement = (node) => {
       if (node && !node.data.__rd3t.collapsed) {
         const element = document.getElementById(node.data.__rd3t.id);
@@ -104,8 +87,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
         }
       }
     };
-
-    // Add 'link__selected' class to source and target nodes
     addClassToNodeElement(source);
     addClassToNodeElement(target);
   };
@@ -123,9 +104,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
   };
 
   const getDynamicPathClass = ({ source, target }) => {
-    // console.info("I am the source", source);
-    // console.info("I am the target", target);
-
     updateCurrentNode(source, target);
 
     if (!target.children) {
@@ -175,11 +153,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
       {!loaded ? (
         <h1 className="loading">Loading..</h1>
       ) : (
-        // <div
-        //   style={{ width: "100%", height: "80vh" }}
-        //   id="treeWrapper"
-        //   className="tree-container"
-        // >
         <Tree
           ref={ref}
           {...treeState}
@@ -187,13 +160,17 @@ const TreeView = ({ orientation, updateOrientation }) => {
             renderForeignObjectNode({
               ...rd3tProps,
               foreignObjectProps,
-              handleNodeClick,
             })
           }
           onNodeClick={(...args) => {
             const [node, evt] = args;
             console.info("node click", node, evt);
             updateSelectedNode(node);
+            setOnNodeClick(() => (nodeDatum, event) => {
+              // Logic that was previously in handleNodeClick
+              console.log("Node clicked from setOnNodeClick:", nodeDatum);
+              updateSelectedNode(node);
+            });
           }}
           onNodeMouseOver={(...args) => {
             console.log("onNodeMouseOver", args);
@@ -215,7 +192,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
         />
         // </div>
       )}
-      <use xlinkHref="#current-path" />
     </section>
   );
 };
