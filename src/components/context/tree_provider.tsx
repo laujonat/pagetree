@@ -1,6 +1,5 @@
 /* eslint-disable no-inner-declarations */
 import { HierarchyPointNode } from "d3";
-// @ts-nocheck asjdlksa
 import React, {
   createContext,
   LegacyRef,
@@ -18,15 +17,21 @@ import Tree, {
 import { getErrorMessage } from "../../logger";
 import { convertToD3Format } from "../../parser";
 import { TreeHierarchyNode, TreeNode } from "../../types";
-import { isElementInViewportWithZoom } from "../../utils/viewport";
+import { sortPaths } from "../../utils/paths";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
 type HighlightPathFunction = (
   rd3tNode: TreeNode,
-  evt: React.MouseEvent
+  evt: React.MouseEvent,
+  orientation: Orientation
 ) => void;
 type RemoveHighlightPathFunction = (evt: React.MouseEvent) => void;
+type OnNodeClickFunction = (
+  a: HierarchyPointNode<TreeNodeDatum>,
+  event: React.MouseEvent
+) => void;
+type SetNodeClickFunction = (func: OnNodeClickFunction) => void;
 
 export type ProviderValue = {
   treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
@@ -35,6 +40,8 @@ export type ProviderValue = {
   treeRef: LegacyRef<Tree> | undefined;
   highlightPathToNode: HighlightPathFunction;
   removeHighlightPathToNode: RemoveHighlightPathFunction;
+  onNodeClick: OnNodeClickFunction;
+  setOnNodeClick: SetNodeClickFunction;
   updateTreeState: UpdateTreeFunction;
   updateSelectedNode: UpdateNodeFunction;
 };
@@ -61,6 +68,12 @@ export const TreeProvider = ({
   const [loaded, setLoaded] = useState(false);
   const [selectedNode, setSelectedNode] = useState<TreeHierarchyNode>();
   const treeRef = useRef<Element>();
+  const [onNodeClick, setOnNodeClick] = useState<OnNodeClickFunction>(
+    () => () => {
+      // No operation
+    }
+  );
+
   const [treeElement, setTreeElement] = useState<Element>();
   const [treeState, setTreeState] = useState<TreeProps>({
     centeringTransitionDuration: 800,
@@ -167,43 +180,7 @@ export const TreeProvider = ({
     }
   }, [translate, loaded]);
 
-  function sanitizeId(id) {
-    // Check if the first character is a digit
-    if (/^\d/.test(id)) {
-      // If it starts with a digit, add a backslash before it
-      return `\\${id}`;
-    } else {
-      // Otherwise, return the original ID
-      return id;
-    }
-  }
-
-  function swapElements(el1, el2) {
-    // Ensure both elements exist
-    if (!el1 || !el2) {
-      console.error("Both elements must exist to perform a swap.");
-      return;
-    }
-
-    // Create a placeholder for the swap
-    const placeholder = document.createElement("div");
-    console.log("parentnode", el1.parentNode);
-    el1.parentNode.insertBefore(placeholder, el1);
-
-    // Move el2 to the position of el1
-    el1.parentNode.insertBefore(el2, el1);
-    // Move el1 to the original position of el2
-    if (placeholder.parentNode) {
-      placeholder.parentNode.insertBefore(el1, placeholder);
-    }
-
-    // Remove the placeholder
-    if (placeholder.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
-  }
-
-  const highlightPathToNode = (rd3tNode, evt) => {
+  const highlightPathToNode = (rd3tNode, evt, orientation) => {
     // Ensure treeElement is an SVGElement before proceeding
     if (treeElement instanceof SVGElement) {
       //@ts-ignore asd
@@ -227,36 +204,28 @@ export const TreeProvider = ({
         path.classList.add("current-paths");
         path.removeAttribute("id");
       });
+      const sortedPaths = sortPaths(relevantPaths, orientation).filter(
+        (el) => el.id !== "current-path"
+      );
 
       // Highlight the specific path for the selected child node
+      //   console.log(rd3tNode.attributes, rd3tNode.attributes.childIndex);
       const selectedChildIdx = rd3tNode.attributes.childIndex - 1;
-      const selectedPath = relevantPaths[selectedChildIdx];
+      const selectedPath = sortedPaths[selectedChildIdx];
 
       if (selectedPath) {
         selectedPath.id = "current-path";
-        selectedPath.classList.remove("current-paths");
+        // selectedPath.classList.remove("current-paths");
         selectedPath.classList.add("highlight");
 
-        // Sort the paths based on the d attribute
-        const sortedPaths = relevantPaths.sort((a, b) => {
-          const aD = a.getAttribute("d");
-          const bD = b.getAttribute("d");
-
-          const aValueMatch = aD ? aD.match(/H(-?\d+)/) : null;
-          const bValueMatch = bD ? bD.match(/H(-?\d+)/) : null;
-
-          const aValue = aValueMatch ? parseInt(aValueMatch[1], 10) : 0;
-          const bValue = bValueMatch ? parseInt(bValueMatch[1], 10) : 0;
-
-          return aValue - bValue;
-        });
+        // Use the sorting function based on orientation
 
         sortedPaths.forEach((path) => path.remove());
 
         // Find the first <g> element within treeElement
         const firstGElement = treeElement.querySelector("g");
 
-        // Append sorted paths before the first <g> element, or append at the end if no <g> element is found
+        // Append sorted paths before the first <g> element
         sortedPaths.forEach((path) => {
           if (firstGElement) {
             treeElement.insertBefore(path, firstGElement);
@@ -275,32 +244,6 @@ export const TreeProvider = ({
           }
         }
       }
-      const nodeId = rd3tNode.__rd3t.id;
-      const sanitizedNodeId = sanitizeId(nodeId);
-
-      const node = treeElement.querySelector(`g#${sanitizedNodeId}`);
-
-      if (node instanceof SVGElement) {
-        // Get the container element for zoom calculations
-
-        // Specify the zoom factor (1 for no zoom, greater than 1 for zoom-in, less than 1 for zoom-out)
-        const zoomFactor = treeState.zoom as number; // Adjust this value as needed
-
-        // Check if the element is in the viewport and calculate translations
-        const viewportInfo = isElementInViewportWithZoom(
-          node,
-          treeElement,
-          zoomFactor
-        );
-        console.log("viewportinfo", viewportInfo);
-        if (viewportInfo) {
-          // Element is in the viewport, set the translations to center it
-          //   setTranslate({
-          //     x: viewportInfo.translateX / 2,
-          //     y: viewportInfo.translateY / 2,
-          //   });
-        }
-      }
     }
 
     // Stop the event from bubbling up to avoid unintended effects
@@ -308,16 +251,16 @@ export const TreeProvider = ({
   };
 
   const removeHighlightPathToNode = (evt) => {
-    // if (treeElement instanceof SVGElement) {
-    //   const linkPaths = Array.from(
-    //     treeElement.querySelectorAll("path.rd3t-link")
-    //   );
-    //   linkPaths.forEach((path) => {
-    //     path.classList.remove("highlight");
-    //     path.classList.remove("current-paths");
-    //     path.removeAttribute("id");
-    //   });
-    // }
+    //   if (treeElement instanceof SVGElement) {
+    //     const linkPaths = Array.from(
+    //       treeElement.querySelectorAll("path.rd3t-link")
+    //     );
+    //     linkPaths.forEach((path) => {
+    //       path.classList.remove("highlight");
+    //       path.classList.remove("current-paths");
+    //       path.removeAttribute("id");
+    //     });
+    //   }
     evt.stopPropagation();
   };
 
@@ -333,6 +276,8 @@ export const TreeProvider = ({
     loaded,
     treeState,
     selectedNode,
+    onNodeClick,
+    setOnNodeClick,
     treeRef,
     highlightPathToNode,
     removeHighlightPathToNode,
@@ -346,6 +291,8 @@ export const TreeProvider = ({
         loaded: value.loaded,
         treeState: value.treeState,
         selectedNode: value.selectedNode,
+        onNodeClick: value.onNodeClick,
+        setOnNodeClick: value.setOnNodeClick,
         treeRef: value.treeRef as unknown as React.LegacyRef<Tree> | undefined,
         highlightPathToNode: value.highlightPathToNode,
         removeHighlightPathToNode: value.removeHighlightPathToNode,

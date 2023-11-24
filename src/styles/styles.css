@@ -1,11 +1,10 @@
-/* General Styling */
 :root {
   --background-dark-accent: #222;
   --background-dark-item: #282828;
   --background-dark: #121212;
   --background-light: #fff;
   --background-light-accent: #fafafae6;
-  --background-light-item: #616161;
+  --background-light-item: #f7f7f7;
   --border: rgba(190, 190, 190, 0.2);
   --icon-fill-dark: #fff;
   --icon-fill-light: #282828;
@@ -53,7 +52,6 @@ html {
   width: 100%;
 }
 
-/* Default Light Theme Styles */
 body {
   color: var(--text-color-light);
   background-color: var(--background-light);
@@ -74,15 +72,6 @@ ul {
   list-style-type: none;
   padding: 0;
 }
-
-/* body {
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
-  min-width: 350px;
-  min-height: 400px;
-  margin: 0;
-} */
 
 body > #root {
   height: 400px;
@@ -115,7 +104,6 @@ body:not(.dark-mode) {
   --path-to-branch: var(--node-path-to-branch-light);
 }
 
-/* Dark Mode Styles Controlled by JavaScript */
 body.dark-mode {
   color: var(--text-color-dark);
   background-color: var(--background-dark);
@@ -123,7 +111,6 @@ body.dark-mode {
 
 body.dark-mode a {
   color: #05a2c2;
-  /* box-shadow: 0 0.1rem 0.67rem rgb(205 205 205 / 5%); */
 }
 
 body:not(.dark-mode) a:hover {
@@ -131,14 +118,11 @@ body:not(.dark-mode) a:hover {
   font-weight: 500;
 }
 
-/* Dark Mode Link Hover */
 body.dark-mode a:hover {
-  /* border: solid 1px #ccc; */
   color: #4db8ff;
   font-weight: 500;
 }
 
-/* Popup body styles */
 section.inspector__container {
   display: flex;
   height: 100%;
@@ -151,9 +135,7 @@ section.inspector__container {
   display: flex;
   flex-flow: row nowrap;
 }
-/* End popup body styles */
 
-/* Help dialog styles */
 div#help-icon {
   z-index: 1000;
   will-change: transform;
@@ -177,9 +159,7 @@ div#help-icon:hover {
   text-align: center;
   color: #8cc152;
 }
-/* End help dialog styles */
 
-/* Header styles */
 .header {
   display: flex;
   align-items: center;
@@ -230,7 +210,6 @@ div#help-icon:hover {
   color: #a0a0a0;
 }
 
-/* End header styles */
 .tree-selector,
 .tree-toolbar {
   display: flex;
@@ -280,10 +259,10 @@ div#help-icon:hover {
 
 .tree-selector__right,
 .tree-toolbar__right {
-  flex-grow: 1; /* Adjust as needed */
+  flex-grow: 1;
   display: flex;
-  justify-content: flex-end; /* or 'space-between', as required */
-  overflow: hidden; /* Prevent overflow */
+  justify-content: flex-end;
+  overflow: hidden;
 }
 
 .webkit-element {
@@ -291,8 +270,6 @@ div#help-icon:hover {
   display: block;
   flex-grow: 2;
   flex-shrink: 0;
-  font-size: 11px;
-  font-family: var(--monospace-font-family);
   margin: 0px;
   outline: none;
   overflow-wrap: normal;
@@ -311,8 +288,8 @@ div.webkit-element__scrollable {
   scrollbar-gutter: stable both-edges;
   white-space: nowrap;
 }
-/* Expanding dots placeholder if element has children */
-.webkit-element span.children-placeholder span.expand-button {
+
+div.webkit-element span.children-placeholder span.expand-button {
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -326,15 +303,13 @@ div.webkit-element__scrollable {
   border-radius: 10px;
   background: var(--bg-2);
 }
-.webkit-element span.children-placeholder span.expand-button > .dot {
+div.webkit-element span.children-placeholder span.expand-button > .dot {
   height: 2px;
   width: 2px;
-  background: #e3e3e3;
+  background: var(--icon-fill);
   border-radius: 50%;
 }
-/* End expanding dots */
 
-/* Footer styles */
 .footer__container {
   display: flex;
   flex-shrink: 0;
@@ -349,8 +324,6 @@ div.webkit-element__scrollable {
   border-top: 1px solid rgb(79, 90, 101);
 }
 
-/* Tree Styling */
-
 #treeWrapper path.link__to-leaf {
   stroke: var(--path-to-leaf);
 }
@@ -360,16 +333,18 @@ div.webkit-element__scrollable {
 }
 
 #treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
-  stroke-opacity: 0.9 !important;
+  stroke-opacity: 0.45 !important;
 }
 
 #treeWrapper path.link__to-leaf.highlight {
   stroke: var(--path-to-current-leaf);
   stroke-opacity: 1;
+  stroke-width: 1.25 !important;
 }
 
 #treeWrapper path.link__to-branch {
   stroke: var(--path-to-branch);
+  stroke-width: 1.25 !important;
 }
 
 .link__selected > circle {
@@ -400,9 +375,6 @@ g > foreignObject > div > p.tree__text {
   user-select: none;
 }
 
-/* End rd3tree styles */
-
-/* Node Hover */
 .node:hover + ul li:not(:last-of-type):after {
   border-left: solid 2px #12bcdf;
 }
@@ -424,16 +396,16 @@ g > foreignObject > div > p.tree__text {
   border-bottom-width: 0px;
   border-left-color: rgba(190, 190, 190, 0.5);
   border-right-color: rgba(190, 190, 190, 0.5);
-  border-right-style: solid;
-  border-right-width: 1px;
+  border-right-style: double;
+  border-right-width: 3px;
   border-top-color: rgba(190, 190, 190, 0.5);
-  color: rgb(255, 255, 255);
+  color: var(--icon-fill);
   display: flex;
   flex-basis: 40%;
   flex-direction: column;
   flex-shrink: 0;
   line-height: 18px;
-  /* overflow-x: hidden; */
+
   overflow: hidden;
 }
 
@@ -453,7 +425,6 @@ body.dark-mode #details .details__wrapper {
   display: none;
 }
 
-/* Optional: Add some space around the toggles for easier clicking */
 .toggle {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
@@ -489,7 +460,6 @@ div#details__children-count {
   font-size: 10px;
 }
 
-/* Add any additional styling as needed */
 #details {
   align-items: center;
   background-color: var(--background-light);
@@ -497,10 +467,8 @@ div#details__children-count {
   display: grid;
   grid-template-columns: auto;
   min-width: 101%;
-  /* padding: 5px 10px; */
+
   position: relative;
-  /* z-index: 2; */
-  /* user-select: none; */
 }
 
 div::-webkit-scrollbar {
@@ -543,15 +511,6 @@ main.container {
   margin: 5px 0;
 }
 
-/* #details strong {
-  color: #0091ff;
-  font-weight: bolder;
-  margin-right: 5px;
-  font-family: monospace, ui-monospace, ui-rounded;
-  padding: 2px;
-  white-space: nowrap;
-} */
-
 #details > ul.details__list {
   height: calc(100% - 18px);
   width: 100%;
@@ -559,6 +518,39 @@ main.container {
   list-style: none;
   padding: 0;
   overflow: auto;
+  font-size: 11px;
+  font-family: var(--monospace-font-family);
+}
+
+.slider-rotate {
+  transform: rotateX(90deg);
+  transition: transform 0.2s ease-in-out 0.08s;
+  position: absolute;
+  right: 0;
+}
+
+.slider-rotate__shown {
+  overflow: hidden;
+  position: relative;
+}
+
+li.details__item:hover .slider-rotate {
+  transform: rotateX(0deg);
+  transition: transform 0.2s ease-in-out 0.18s;
+}
+
+.slider-rotate__selector {
+  display: inline-flex;
+  margin: auto 1em;
+  line-height: 24px;
+  border-radius: var(--border-radius);
+}
+.slider-rotate__button {
+  padding: 0px 8px;
+  font-size: 0.8em;
+  color: var(--icon-fill);
+  background-color: var(--bg-2);
+  border-bottom: 1px solid var(--border);
 }
 
 #details > div.details__article {
@@ -575,24 +567,23 @@ main.container {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  border-color: rgba(190, 190, 190, 0.5);
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
+  border-bottom: 1px solid rgba(190, 190, 190, 0.5);
 }
 
 li.details__item {
-  padding: 5px 10px;
   cursor: pointer;
   display: flex;
+  position: relative;
   padding: 5px 10px;
   user-select: none;
   justify-content: space-between;
-  border-bottom-color: rgba(190, 190, 190, 0.5);
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
+  border-bottom: 1px solid rgba(190, 190, 190, 0.5);
 }
 
-/* Additional styles... */
+li.details__item:hover {
+  background-color: var(--bg-2);
+}
+
 section.wrapper {
   height: 100%;
   white-space: nowrap;
@@ -603,7 +594,7 @@ section.wrapper {
 
 #details > ul.details__list::-webkit-scrollbar {
   width: 0px;
-  background: transparent; /* make scrollbar transparent */
+  background: transparent;
 }
 
 body .wrapper::-webkit-scrollbar {
