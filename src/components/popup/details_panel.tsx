@@ -58,22 +58,8 @@ function DetailsItem(props) {
   const handleClick = () => {
     if (props.__rd3t.id) {
       // Find the foreignObject by its ID and trigger a click event
-      console.log("selectedNode", props);
       const selector = `#${sanitizeId(props.__rd3t.id)} foreignObject`;
-      console.log(props.__rd3t.id, typeof selector, selector);
-      debugger;
       const foreignObject = document.querySelector(String(selector));
-
-      console.log(
-        "🚀 -------------------------------------------------------------------------------🚀"
-      );
-      console.log(
-        "🚀 ⚛︎ file: details_panel.tsx:69 ⚛︎ handleClick ⚛︎ foreignObject:",
-        foreignObject
-      );
-      console.log(
-        "🚀 -------------------------------------------------------------------------------🚀"
-      );
       const clickEvent = new MouseEvent("click", {
         view: window,
         bubbles: true,
@@ -95,7 +81,6 @@ function DetailsItem(props) {
       role="button"
       tabIndex={0}
       className="details__item"
-      onClick={handleClick}
       onMouseEnter={(evt) =>
         throttledHighlightPathToNode(props, evt, orientation as Orientation)
       }
@@ -104,7 +89,9 @@ function DetailsItem(props) {
       <DevToolsElement {...props} />
       <div className="slider-rotate">
         <div className="slider-rotate__selector">
-          <div className="slider-rotate__button">Jump</div>
+          <div className="slider-rotate__button" onClick={handleClick}>
+            Jump
+          </div>
           <div className="slider-rotate__button">Skip</div>
         </div>
       </div>

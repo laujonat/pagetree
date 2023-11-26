@@ -63,7 +63,6 @@ export const TreeProvider = ({
   children,
   orientation,
   translate,
-  setTranslate,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
   const [selectedNode, setSelectedNode] = useState<TreeHierarchyNode>();
@@ -100,7 +99,6 @@ export const TreeProvider = ({
   });
 
   useEffect(() => {
-    console.log("TREEREF", treeRef);
     if (treeRef.current instanceof Tree) {
       const element = document.getElementsByClassName(
         treeRef.current.gInstanceRef
@@ -146,7 +144,7 @@ export const TreeProvider = ({
           chrome.tabs.query(
             { active: true, lastFocusedWindow: true },
             async (tabs) => {
-              console.log("tabs", tabs, message);
+              //   console.log("tabs", tabs, message);
               if (tabs[0]?.id) {
                 const response = await chrome.tabs.sendMessage(
                   tabs[0].id,
@@ -207,26 +205,19 @@ export const TreeProvider = ({
       const sortedPaths = sortPaths(relevantPaths, orientation).filter(
         (el) => el.id !== "current-path"
       );
-
       // Highlight the specific path for the selected child node
-      //   console.log(rd3tNode.attributes, rd3tNode.attributes.childIndex);
       const selectedChildIdx = rd3tNode.attributes.childIndex - 1;
       const selectedPath = sortedPaths[selectedChildIdx];
-
       if (selectedPath) {
         selectedPath.id = "current-path";
-        // selectedPath.classList.remove("current-paths");
         selectedPath.classList.add("highlight");
-
         // Use the sorting function based on orientation
-
-        sortedPaths.forEach((path) => path.remove());
-
+        // sortedPaths.forEach((path) => );
         // Find the first <g> element within treeElement
         const firstGElement = treeElement.querySelector("g");
-
         // Append sorted paths before the first <g> element
         sortedPaths.forEach((path) => {
+          path.remove();
           if (firstGElement) {
             treeElement.insertBefore(path, firstGElement);
           } else {
@@ -251,16 +242,17 @@ export const TreeProvider = ({
   };
 
   const removeHighlightPathToNode = (evt) => {
-    //   if (treeElement instanceof SVGElement) {
-    //     const linkPaths = Array.from(
-    //       treeElement.querySelectorAll("path.rd3t-link")
-    //     );
-    //     linkPaths.forEach((path) => {
-    //       path.classList.remove("highlight");
-    //       path.classList.remove("current-paths");
-    //       path.removeAttribute("id");
-    //     });
-    //   }
+    if (treeElement instanceof SVGElement) {
+      const linkPaths = Array.from(
+        treeElement.querySelectorAll("path.rd3t-link")
+      );
+      console.log("removehighlight,", linkPaths);
+      linkPaths.forEach((path) => {
+        path.classList.remove("highlight");
+        path.classList.remove("current-paths");
+        path.removeAttribute("id");
+      });
+    }
     evt.stopPropagation();
   };
 
