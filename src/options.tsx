@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const Options = () => {
@@ -42,7 +42,8 @@ const Options = () => {
   return (
     <>
       <div>
-        Favorite color: <select
+        Favorite color:{" "}
+        <select
           value={color}
           onChange={(event) => setColor(event.target.value)}
         >
@@ -71,7 +72,7 @@ const Options = () => {
 const root = createRoot(document.getElementById("root")!);
 
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <Options />
-  </React.StrictMode>
+  </StrictMode>
 );

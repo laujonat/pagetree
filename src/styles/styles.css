@@ -127,7 +127,7 @@ section.inspector__container {
   display: flex;
   height: 100%;
   width: 100%;
-  flex-flow: row;
+  flex-flow: column;
 }
 
 .inspector__container > div.inspector {

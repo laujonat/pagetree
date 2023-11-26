@@ -1,4 +1,4 @@
-import React from "react";
+import { StrictMode } from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
@@ -41,8 +41,8 @@ const Popup = () => {
               />
             </div>
           </div>
+          <PopupFooter />
         </section>
-        <PopupFooter />
       </main>
       {/* <HelpDialog /> */}
     </TreeProvider>
@@ -52,23 +52,9 @@ const Popup = () => {
 const root = createRoot(document.getElementById("root")!);
 
 root.render(
-  <React.StrictMode>
+  <StrictMode>
     <PopupProvider>
       <Popup />
     </PopupProvider>
-  </React.StrictMode>
+  </StrictMode>
 );
-
-// const handleSidePanelClick = async (event) => {
-//   console.log(event);
-//   if (tabId) {
-//     // @ts-ignore
-//     await chrome.sidePanel.open({ tabId });
-//     // @ts-ignore
-//     await chrome.sidePanel.setOptions({
-//       tabId,
-//       path: "sidepanel-tab.html",
-//       enabled: true,
-//     });
-//   }
-// };

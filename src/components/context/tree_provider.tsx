@@ -1,15 +1,10 @@
 /* eslint-disable no-inner-declarations */
 import { HierarchyPointNode } from "d3";
-import React, {
-  createContext,
-  LegacyRef,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import Tree, {
+import { createContext, LegacyRef, useEffect, useRef, useState } from "react";
+import {
   Orientation,
   Point,
+  Tree,
   TreeNodeDatum,
   TreeProps,
 } from "react-d3-tree";
@@ -108,7 +103,6 @@ export const TreeProvider = ({
   }, [treeRef.current]);
 
   useEffect(() => {
-    console.log("tree-provider- orientation", orientation);
     const { x: width, y: height } = translate;
     if (orientation === "vertical") {
       updateTreeState({
@@ -130,6 +124,51 @@ export const TreeProvider = ({
   }, [orientation, translate]);
 
   useEffect(() => {
+    // Function to add message listener
+    function addMessageListener() {
+      chrome.runtime.onMessage.addListener(handleMessageFromContentScript);
+    }
+
+    // Function to remove message listener
+    function removeMessageListener() {
+      chrome.runtime.onMessage.removeListener(handleMessageFromContentScript);
+    }
+
+    // Add listener when component mounts
+    addMessageListener();
+
+    // Remove listener when component unmounts
+    return () => removeMessageListener();
+
+    // The empty dependency array ensures this runs only on mount and unmount
+  }, []);
+
+  function handleMessageFromContentScript(message) {
+    console.log(
+      "🚀 ---------------------------------------------------------------------------------------🚀"
+    );
+    console.log(
+      "🚀 ⚛︎ file: tree_provider.tsx:148 ⚛︎ handleMessageFromContentScript ⚛︎ message:",
+      message
+    );
+    console.log(
+      "🚀 ---------------------------------------------------------------------------------------🚀"
+    );
+
+    if (message.action === "process-selected-element") {
+      console.log("PROCESSING SELECTED", message.data);
+      // Process the received data and update the state
+      const newData = convertToD3Format(message.data); // Adjust this as needed
+      updateTreeState({
+        data: newData,
+        dimensions: { width: translate.x, height: translate.y },
+        translate: { x: translate.x / 2, y: translate.y / 2 },
+      });
+    }
+    // Handle other actions as needed
+  }
+
+  useEffect(() => {
     if (!loaded) {
       try {
         // @ts-ignore ajhlksdjlksa
@@ -138,7 +177,7 @@ export const TreeProvider = ({
           action: string;
         }) {
           if (!chrome.tabs) {
-            console.log(chrome.tabs);
+            // console.log(chrome.tabs);
             throw new Error("no tabs");
           }
           chrome.tabs.query(
@@ -150,12 +189,10 @@ export const TreeProvider = ({
                   tabs[0].id,
                   message
                 );
-                console.log("response", response);
                 // @ts-ignore asdsad
                 if (response?.data) {
                   // @ts-ignore asdsad
                   const r3dtNodes = await convertToD3Format(response.data);
-                  console.log(r3dtNodes);
                   updateTreeState({
                     data: r3dtNodes,
                     dimensions: { width: translate.x, height: translate.y },
@@ -167,7 +204,6 @@ export const TreeProvider = ({
             }
           );
         }
-        console.log("scanActiveTabHTML", chrome.tabs.onUpdated);
         scanActiveTabHTML({
           target: "popup",
           action: "extension-scan-element",
@@ -236,7 +272,6 @@ export const TreeProvider = ({
         }
       }
     }
-
     // Stop the event from bubbling up to avoid unintended effects
     evt.stopPropagation();
   };
@@ -246,7 +281,6 @@ export const TreeProvider = ({
       const linkPaths = Array.from(
         treeElement.querySelectorAll("path.rd3t-link")
       );
-      console.log("removehighlight,", linkPaths);
       linkPaths.forEach((path) => {
         path.classList.remove("highlight");
         path.classList.remove("current-paths");
