@@ -1,10 +1,10 @@
 :root {
-  --background-dark-accent: #222;
-  --background-dark-item: #282828;
   --background-dark: #121212;
   --background-light: #fff;
+  --background-dark-accent: #222;
+  --background-dark-item: #282828;
+  --background-light-item: rgb(230, 230, 230);
   --background-light-accent: #fafafae6;
-  --background-light-item: #f7f7f7;
   --border: rgba(190, 190, 190, 0.2);
   --icon-fill-dark: #fff;
   --icon-fill-light: #282828;
@@ -265,6 +265,10 @@ div#help-icon:hover {
   overflow: hidden;
 }
 
+.tree-toolbar__right > div.button {
+  cursor: pointer;
+}
+
 .webkit-element {
   box-sizing: border-box;
   display: block;
@@ -333,7 +337,7 @@ div.webkit-element span.children-placeholder span.expand-button > .dot {
 }
 
 #treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
-  stroke-opacity: 0.45 !important;
+  stroke-opacity: 1 !important;
 }
 
 #treeWrapper path.link__to-leaf.highlight {
@@ -404,6 +408,7 @@ g > foreignObject > div > p.tree__text {
   flex-basis: 40%;
   flex-direction: column;
   flex-shrink: 0;
+  font-size: var(--source-code-font-size);
   line-height: 18px;
 
   overflow: hidden;
@@ -550,7 +555,10 @@ li.details__item:hover .slider-rotate {
   font-size: 0.8em;
   color: var(--icon-fill);
   background-color: var(--bg-2);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+}
+.slider-rotate__button:hover {
+  background-color: var(--bg-1);
 }
 
 #details > div.details__article {

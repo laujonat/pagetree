@@ -1,5 +1,5 @@
-import React, { LegacyRef, useEffect, useRef, useState } from "react";
-import { Tree } from "react-d3-tree";
+import { LegacyRef, useEffect, useRef, useState } from "react";
+import { Tree, TreeNodeDatum } from "react-d3-tree";
 
 import useDraggable from "../../hooks/useDraggable";
 import { useTree } from "../../hooks/useTree";
@@ -27,18 +27,44 @@ const TreeView = ({ orientation, updateOrientation }) => {
   useEffect(() => {
     updateTreeState({ orientation });
   }, [orientation]);
+  useEffect(() => {
+    console.log("treestate", treeState);
+  }, [treeState]);
 
-  /**
-   * TODO
-   * Clicking node on a previous level selects the parent instead of the target node
-   */
   const renderForeignObjectNode = (rd3tProps) => {
     const { nodeDatum, toggleNode, foreignObjectProps, onNodeClick } =
       rd3tProps;
+
+    function collapseNode(node: TreeNodeDatum) {
+      console.log("collapse", node);
+      node.__rd3t.collapsed = true;
+      //   node.__rd3t.collapsed = false;
+      if (node.children && node.children.length > 0) {
+        node.children.forEach((child) => {
+          // If the child is not already collapsed, collapse it
+          if (!child.__rd3t.collapsed) {
+            console.log("child collapse", child);
+            Tree.collapseNode(child);
+
+            // child.__rd3t.collapsed = true; // Collapse this child
+            // toggleNode(child);
+            collapseNode(child); // Recursively collapse its children
+            // toggleNode(child);
+          }
+        });
+      }
+    }
+
     const handleClick = (evt) => {
       evt.preventDefault();
+      if (!nodeDatum.__rd3t.collapsed) {
+        Tree.expandNode(nodeDatum);
+      } else {
+        toggleNode(nodeDatum);
+      }
+      collapseNode(nodeDatum);
       onNodeClick(evt); // Pass nodeDatum to the onNodeClick
-      toggleNode(nodeDatum); // Toggle the node
+      Tree.expandNode(nodeDatum);
     };
 
     return (
@@ -47,6 +73,7 @@ const TreeView = ({ orientation, updateOrientation }) => {
           onMouseOver={(e) => {
             e.preventDefault();
           }}
+          cursor="pointer"
           r={5}
           stroke={
             nodeDatum.children.length > 0
@@ -56,7 +83,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
           fill={nodeDatum.children.length > 0 ? "var(--node)" : "var(--leaf)"}
         ></circle>
         <foreignObject
-          cursor="pointer"
           {...foreignObjectProps}
           style={{ overflow: "hidden", margin: "0 auto" }}
           onClick={handleClick}
@@ -163,12 +189,9 @@ const TreeView = ({ orientation, updateOrientation }) => {
             })
           }
           onNodeClick={(...args) => {
-            const [node, evt] = args;
-            console.info("node click", node, evt);
+            const [node] = args;
             updateSelectedNode(node);
-            setOnNodeClick(() => (nodeDatum, event) => {
-              // Logic that was previously in handleNodeClick
-              console.log("Node clicked from setOnNodeClick:", nodeDatum);
+            setOnNodeClick(() => () => {
               updateSelectedNode(node);
             });
           }}
