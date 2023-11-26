@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { Orientation } from "react-d3-tree";
 
-import useThrottle from "../../hooks/useThrottle";
+import { useThrottle } from "../../hooks/useThrottle";
 import { useTree } from "../../hooks/useTree";
 import { TreeNode } from "../../types";
 import { sanitizeId } from "../../utils/paths";
@@ -38,15 +38,15 @@ export const DevToolsElement = (props: TreeNode) => {
 
   return (
     <div style={elementStyle} className="webkit-element" key={key}>
-      <span style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</span>
+      <code style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</code>
       {renderAttributes()}
-      <span style={{ color: "var(--webkit-tag-name)" }}>
+      <code style={{ color: "var(--webkit-tag-name)" }}>
         {`>`}
         <span className="children-placeholder">
           {children?.length ? expandElement() : ""}
         </span>
         {`</${name}>`}
-      </span>
+      </code>
     </div>
   );
 };

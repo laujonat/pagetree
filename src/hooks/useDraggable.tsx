@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const useDraggable = (ref) => {
+export const useDraggable = (ref) => {
   const [isDragging, setIsDragging] = useState(false);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
 

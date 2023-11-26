@@ -27,29 +27,21 @@ const TreeView = ({ orientation, updateOrientation }) => {
   useEffect(() => {
     updateTreeState({ orientation });
   }, [orientation]);
-  useEffect(() => {
-    console.log("treestate", treeState);
-  }, [treeState]);
 
   const renderForeignObjectNode = (rd3tProps) => {
     const { nodeDatum, toggleNode, foreignObjectProps, onNodeClick } =
       rd3tProps;
 
     function collapseNode(node: TreeNodeDatum) {
-      console.log("collapse", node);
+      //   console.log("collapse", node);
       node.__rd3t.collapsed = true;
       //   node.__rd3t.collapsed = false;
       if (node.children && node.children.length > 0) {
         node.children.forEach((child) => {
           // If the child is not already collapsed, collapse it
           if (!child.__rd3t.collapsed) {
-            console.log("child collapse", child);
             Tree.collapseNode(child);
-
-            // child.__rd3t.collapsed = true; // Collapse this child
-            // toggleNode(child);
             collapseNode(child); // Recursively collapse its children
-            // toggleNode(child);
           }
         });
       }
@@ -57,13 +49,19 @@ const TreeView = ({ orientation, updateOrientation }) => {
 
     const handleClick = (evt) => {
       evt.preventDefault();
+      // If the node is not collapsed, expand it
       if (!nodeDatum.__rd3t.collapsed) {
         Tree.expandNode(nodeDatum);
       } else {
+        // If the node is collapsed, toggle it
+        // This also triggers collapse of nodes on the same depth as the selected node
         toggleNode(nodeDatum);
       }
+      // Collapse all children of the node
       collapseNode(nodeDatum);
-      onNodeClick(evt); // Pass nodeDatum to the onNodeClick
+      // Notify about the node click
+      onNodeClick(evt);
+      // Expand the node again
       Tree.expandNode(nodeDatum);
     };
 
@@ -195,21 +193,21 @@ const TreeView = ({ orientation, updateOrientation }) => {
               updateSelectedNode(node);
             });
           }}
-          onNodeMouseOver={(...args) => {
-            console.log("onNodeMouseOver", args);
-          }}
-          onNodeMouseOut={(...args) => {
-            console.log("onNodeMouseOut", args);
-          }}
-          onLinkClick={(e) => {
-            console.log("onLinkClick", e);
-          }}
-          onLinkMouseOver={(...args) => {
-            console.log("onLinkMouseOver", args);
-          }}
-          onLinkMouseOut={(...args) => {
-            console.log("onLinkMouseOut", args);
-          }}
+          //   onNodeMouseOver={(...args) => {
+          //     console.log("onNodeMouseOver", args);
+          //   }}
+          //   onNodeMouseOut={(...args) => {
+          //     console.log("onNodeMouseOut", args);
+          //   }}
+          //   onLinkClick={(e) => {
+          //     console.log("onLinkClick", e);
+          //   }}
+          //   onLinkMouseOver={(...args) => {
+          //     console.log("onLinkMouseOver", args);
+          //   }}
+          //   onLinkMouseOut={(...args) => {
+          //     console.log("onLinkMouseOut", args);
+          //   }}
           pathFunc={stepPathFunc}
           pathClassFunc={getDynamicPathClass}
         />
