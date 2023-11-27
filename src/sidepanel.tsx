@@ -2,17 +2,16 @@ import { StrictMode } from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
-import PopupProvider from "./components/context/popup_provider";
-import { TreeProvider } from "./components/context/tree_provider";
-import DetailsPanel from "./components/popup/details_panel";
-import PopupFooter from "./components/popup/footer";
-import Header from "./components/popup/header";
-import TreeView from "./components/tree/tree_view";
+import { Header } from "./components/common/header";
+import DetailsPanel from "./components/common/info";
+import Tabs from "./components/common/tabs";
+import { TreeProvider } from "./components/providers/TreeContextProvider";
+import WindowProvider from "./components/providers/WindowContextProvider";
+import TreeView from "./components/tree/TreeView";
 import { useCenteredTree } from "./hooks/useCenteredTree";
 import useOrientation from "./hooks/useOrientation";
 
-const Popup = () => {
-  //   const [orientation, setOrientation] = useState<Orientation>("horizontal");
+const Sidepanel = () => {
   const [orientation, updateOrientation] = useOrientation();
   const [translate, containerRef, setTranslate] = useCenteredTree(
     orientation as Orientation
@@ -24,16 +23,15 @@ const Popup = () => {
       setTranslate={setTranslate}
       orientation={orientation as Orientation}
     >
+      <Tabs />
       <Header />
       <main className="container">
         <section className="inspector__container">
-          <DetailsPanel />
-          <div className="inspector">
+          <div className="inspector" ref={containerRef}>
             <div
-              style={{ width: "100%", height: "80vh" }}
+              style={{ width: "100%", height: "65vh" }}
               id="treeWrapper"
               className="tree-container"
-              ref={containerRef}
             >
               <TreeView
                 orientation={orientation}
@@ -41,10 +39,9 @@ const Popup = () => {
               />
             </div>
           </div>
-          <PopupFooter />
+          <DetailsPanel />
         </section>
       </main>
-      {/* <HelpDialog /> */}
     </TreeProvider>
   );
 };
@@ -53,8 +50,8 @@ const root = createRoot(document.getElementById("root")!);
 
 root.render(
   <StrictMode>
-    <PopupProvider>
-      <Popup />
-    </PopupProvider>
+    <WindowProvider>
+      <Sidepanel />
+    </WindowProvider>
   </StrictMode>
 );

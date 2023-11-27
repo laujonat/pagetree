@@ -1,10 +1,10 @@
 import { useContext, useEffect, useRef, useState } from "react";
 
-import { WrapperContext } from "../context/popup_provider";
+import { WindowContext } from "../providers/WindowContextProvider";
 
 function HelpDialog() {
   const [visible, setVisible] = useState<boolean>(false);
-  const { registerClickOutside } = useContext(WrapperContext);
+  const { registerClickOutside } = useContext(WindowContext);
   const ref1 = useRef(null);
   const ref2 = useRef(null);
   const handleClickOutside = (event: MouseEvent) => {

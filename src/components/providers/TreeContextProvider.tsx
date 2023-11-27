@@ -10,8 +10,8 @@ import {
 } from "react-d3-tree";
 
 import { getErrorMessage } from "../../logger";
-import { convertToD3Format } from "../../parser";
 import { TreeHierarchyNode, TreeNode } from "../../types";
+import { convertToD3Format } from "../../utils/parser";
 import { sortPaths } from "../../utils/paths";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
@@ -74,7 +74,7 @@ export const TreeProvider = ({
     collapsible: true,
     data: [],
     depthFactor: undefined,
-    dimensions: undefined,
+    dimensions: { width: translate.x / 2, height: translate.y / 2 },
     draggable: true,
     enableLegacyTransitions: false,
     hasInteractiveNodes: true,
@@ -88,7 +88,7 @@ export const TreeProvider = ({
     separation: { siblings: 0.5, nonSiblings: 0 },
     shouldCollapseNeighborNodes: true,
     transitionDuration: 500,
-    translate: { x: 0, y: 0 },
+    translate: translate,
     zoom: 1,
     zoomable: true,
   });
@@ -103,70 +103,17 @@ export const TreeProvider = ({
   }, [treeRef.current]);
 
   useEffect(() => {
-    const { x: width, y: height } = translate;
-    if (orientation === "vertical") {
-      updateTreeState({
-        orientation: orientation,
-        separation: { siblings: 1, nonSiblings: 2 },
-        dimensions: { width, height },
-        translate: { x: width / 2, y: height },
-        zoom: 1,
-      });
-    } else {
-      updateTreeState({
-        orientation: orientation,
-        separation: { siblings: 0.5, nonSiblings: 0 },
-        dimensions: { width, height },
-        translate: { x: width, y: height },
-        zoom: 1,
-      });
-    }
+    updateTreeState({
+      orientation: orientation,
+      separation:
+        orientation === "vertical"
+          ? { siblings: 1, nonSiblings: 1 }
+          : { siblings: 0.5, nonSiblings: 0 },
+      dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
+      translate: translate, // Use calculated translate
+      zoom: 1,
+    });
   }, [orientation, translate]);
-
-  useEffect(() => {
-    // Function to add message listener
-    function addMessageListener() {
-      chrome.runtime.onMessage.addListener(handleMessageFromContentScript);
-    }
-
-    // Function to remove message listener
-    function removeMessageListener() {
-      chrome.runtime.onMessage.removeListener(handleMessageFromContentScript);
-    }
-
-    // Add listener when component mounts
-    addMessageListener();
-
-    // Remove listener when component unmounts
-    return () => removeMessageListener();
-
-    // The empty dependency array ensures this runs only on mount and unmount
-  }, []);
-
-  function handleMessageFromContentScript(message) {
-    console.log(
-      "🚀 ---------------------------------------------------------------------------------------🚀"
-    );
-    console.log(
-      "🚀 ⚛︎ file: tree_provider.tsx:148 ⚛︎ handleMessageFromContentScript ⚛︎ message:",
-      message
-    );
-    console.log(
-      "🚀 ---------------------------------------------------------------------------------------🚀"
-    );
-
-    if (message.action === "process-selected-element") {
-      console.log("PROCESSING SELECTED", message.data);
-      // Process the received data and update the state
-      const newData = convertToD3Format(message.data); // Adjust this as needed
-      updateTreeState({
-        data: newData,
-        dimensions: { width: translate.x, height: translate.y },
-        translate: { x: translate.x / 2, y: translate.y / 2 },
-      });
-    }
-    // Handle other actions as needed
-  }
 
   useEffect(() => {
     if (!loaded) {
@@ -195,7 +142,7 @@ export const TreeProvider = ({
                   const r3dtNodes = await convertToD3Format(response.data);
                   updateTreeState({
                     data: r3dtNodes,
-                    dimensions: { width: translate.x, height: translate.y },
+                    dimensions: { width: translate.x / 2, height: translate.y },
                     translate: { x: translate.x / 2, y: translate.y / 2 },
                   });
                   setLoaded(true);
@@ -205,7 +152,7 @@ export const TreeProvider = ({
           );
         }
         scanActiveTabHTML({
-          target: "popup",
+          target: "sidepanel",
           action: "extension-scan-element",
         });
       } catch (error) {

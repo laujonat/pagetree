@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Chrome Extension TypeScript Starter",
-    "description": "Generate Tree View",
+    "name": "Tree",
+    "description": "Chrome extension to create interactive tree graphs",
     "version": "1.0",
     "minimum_chrome_version": "116",
     "options_ui": {
@@ -28,8 +28,8 @@
         "service_worker": "js/background.js"
     },
     "action": {
-        "default_title": "Click to view a popup",
-        "default_popup": "popup.html",
+        "default_title": "WebDOM Visualizer",
+        "default_sidepanel": "sidepanel.html",
         "default_icon": {
             "16": "icons/icon-inactive.png",
             "48": "icons/icon48.png",
@@ -46,6 +46,7 @@
         "activeTab",
         "scripting",
         "storage",
+        "sidePanel",
         "contextMenus"
     ],
     "host_permissions": [

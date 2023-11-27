@@ -47,7 +47,6 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   min-height: 400px;
-  min-width: 760px;
   height: 100%;
   width: 100%;
 }
@@ -59,6 +58,7 @@ body {
   margin: 1px;
   position: fixed;
   min-height: 400px;
+  min-width: 300px;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -246,7 +246,6 @@ div#help-icon:hover {
   float: left;
   margin: auto;
   overflow: hidden;
-  max-width: 45vw;
 }
 
 .tree-toolbar > div.tree-toolbar__right {
@@ -379,18 +378,6 @@ g > foreignObject > div > p.tree__text {
   user-select: none;
 }
 
-.node:hover + ul li:not(:last-of-type):after {
-  border-left: solid 2px #12bcdf;
-}
-
-.node:hover + ul li:last-of-type:after {
-  border-left: solid 2px #12bcdf;
-}
-
-.node:hover + ul li:before {
-  border-bottom: solid 2px #12bcdf;
-}
-
 .details__wrapper {
   position: relative;
   background: var(--background-light);
@@ -405,7 +392,7 @@ g > foreignObject > div > p.tree__text {
   border-top-color: rgba(190, 190, 190, 0.5);
   color: var(--icon-fill);
   display: flex;
-  flex-basis: 40%;
+  flex-basis: calc(100% - 10vh);
   flex-direction: column;
   flex-shrink: 0;
   font-size: var(--source-code-font-size);

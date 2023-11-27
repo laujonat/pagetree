@@ -1,4 +1,4 @@
-import { buildTree, getSelectorFromNode, scanPage } from "../parser"; // replace with actual file path
+import { buildTree, getSelectorFromNode, scanPage } from "../utils/parser"; // replace with actual file path
 
 describe("scanPage", () => {
   it("should correctly scan a simple DOM structure", () => {
