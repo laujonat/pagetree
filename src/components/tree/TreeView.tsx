@@ -1,11 +1,35 @@
-import { LegacyRef, useEffect, useRef, useState } from "react";
+import { forwardRef, LegacyRef, useEffect, useRef, useState } from "react";
 import { Tree, TreeNodeDatum } from "react-d3-tree";
 
-import useDraggable from "../../hooks/useDraggable";
+import { useDraggable } from "../../hooks/useDraggable";
 import { useTree } from "../../hooks/useTree";
-import { DevToolsElement } from "../popup/details_panel";
+import { TreeHierarchyNode } from "../../types";
+import { DevToolsElement } from "../common/info";
 
-const TreeView = ({ orientation, updateOrientation }) => {
+interface SelectedNodeInfoProps {
+  selectedNode: TreeHierarchyNode;
+}
+
+const SelectedNodeInfo = forwardRef<HTMLDivElement, SelectedNodeInfoProps>(
+  (props: SelectedNodeInfoProps, ref) => {
+    const { selectedNode } = props;
+
+    return (
+      <div className="tree-selector">
+        <div className="tree-selector__left">
+          <div className="tree-selector__label">Element</div>
+        </div>
+        <div className="tree-selector__right">
+          <div className="webkit-element__scrollable" ref={ref}>
+            {selectedNode?.data && <DevToolsElement {...selectedNode.data} />}
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+export const TreeView = ({ orientation, updateOrientation }) => {
   const {
     loaded,
     selectedNode,
@@ -129,29 +153,15 @@ const TreeView = ({ orientation, updateOrientation }) => {
 
   const getDynamicPathClass = ({ source, target }) => {
     updateCurrentNode(source, target);
-
     if (!target.children) {
-      // Target node has no children -> this link leads to a leaf node.
       return "link__to-leaf";
     }
-
-    // Style it as a link connecting two branch nodes by default.
     return "link__to-branch";
   };
 
   return (
     <section className="wrapper">
       <div>
-        <div className="tree-selector">
-          <div className="tree-selector__left">
-            <div className="tree-selector__label">Element</div>
-          </div>
-          <div className="tree-selector__right">
-            <div className="webkit-element__scrollable" ref={elementContainer}>
-              {selectedNode?.data && <DevToolsElement {...selectedNode.data} />}
-            </div>
-          </div>
-        </div>
         <div className="tree-toolbar">
           <div className="tree-toolbar__left">
             <div className="tree-toolbar__label">Orientation</div>
@@ -173,6 +183,10 @@ const TreeView = ({ orientation, updateOrientation }) => {
             </div>
           </div>
         </div>
+        <SelectedNodeInfo
+          ref={elementContainer}
+          selectedNode={selectedNode as TreeHierarchyNode}
+        />
       </div>
       {!loaded ? (
         <h1 className="loading">Loading..</h1>
@@ -193,21 +207,6 @@ const TreeView = ({ orientation, updateOrientation }) => {
               updateSelectedNode(node);
             });
           }}
-          //   onNodeMouseOver={(...args) => {
-          //     console.log("onNodeMouseOver", args);
-          //   }}
-          //   onNodeMouseOut={(...args) => {
-          //     console.log("onNodeMouseOut", args);
-          //   }}
-          //   onLinkClick={(e) => {
-          //     console.log("onLinkClick", e);
-          //   }}
-          //   onLinkMouseOver={(...args) => {
-          //     console.log("onLinkMouseOver", args);
-          //   }}
-          //   onLinkMouseOut={(...args) => {
-          //     console.log("onLinkMouseOut", args);
-          //   }}
           pathFunc={stepPathFunc}
           pathClassFunc={getDynamicPathClass}
         />

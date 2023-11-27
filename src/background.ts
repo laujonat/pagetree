@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 chrome.runtime.onConnect.addListener(() => {
   console.log("Onconnect");
 });
@@ -11,15 +13,20 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-chrome.action.onClicked.addListener(function (...args) {
-  console.log(args);
+chrome.action.onClicked.addListener(async function (tab) {
+  await chrome.sidePanel.open({ tabId: tab.id });
+
+  await chrome.sidePanel.setOptions({
+    tabId: tab.id,
+    path: "sidepanel.html",
+    enabled: true,
+  });
 });
 
 chrome.tabs.onUpdated.addListener(async function (tabid, changeinfo, tab) {
   await new Promise<void>((resolve) => {
     chrome.tabs.onUpdated.addListener(async function listener(tabId, info) {
       if (changeinfo.status === "complete") {
-        handleBackgroundReady(tabid);
         const iconFile = `icons/icon-active.png`;
         // There are easier ways for a page to extract an image's imageData, but the approach used here
         // works in both extension pages and service workers.
@@ -49,10 +56,6 @@ async function handleBackgroundMessages(message) {
   }
   // Dispatch the message to an appropriate handler.
   switch (message.type) {
-    case "context-element-select":
-      console.log("message-data", message.data);
-      handleSelection2();
-      break;
     case "add-exclamationmarks-result":
       handleBackgroundResultTest(message.data);
       break;
@@ -64,34 +67,8 @@ async function handleBackgroundMessages(message) {
 async function handleBackgroundResultTest(dom) {
   console.log("Received dom in background", dom);
 }
-async function handleBackgroundReady(receiverTabId) {
-  // Send a message to the receiver tab
-  chrome.tabs.sendMessage(receiverTabId, {
-    target: "popup",
-    action: "notify-client-ready",
-    data: {
-      ready: true,
-    },
-  });
-}
 
 async function handleSelection() {
-  chrome.tabs.query(
-    { active: true, lastFocusedWindow: true },
-    async (tabs, ...others) => {
-      console.log("others", others);
-      if (tabs[0]?.id) {
-        //   const response = await chrome.tabs.sendMessage(tabs[0].id, message);
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: "process-selected-element",
-          target: "popup",
-          data: "hello",
-        });
-      }
-    }
-  );
-}
-async function handleSelection2() {
   chrome.tabs.query(
     { active: true, lastFocusedWindow: true },
     async (tabs, ...others) => {
@@ -108,8 +85,7 @@ async function handleSelection2() {
 }
 
 chrome.contextMenus.onClicked.addListener(genericOnClick);
-
-function genericOnClick(info) {
+function genericOnClick(info, tab) {
   console.log("info", info);
   switch (info.menuItemId) {
     case "selection":
@@ -121,10 +97,15 @@ function genericOnClick(info) {
       break;
     default:
       // Standard context menu item function
-      handleSelection();
+      chrome.sidePanel.open({ windowId: tab.windowId });
   }
 }
-chrome.runtime.onInstalled.addListener(function () {
+
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
+chrome.runtime.onInstalled.addListener(async function () {
   chrome.action.setBadgeText({ text: "0" });
   // Create one test item for each context type.
   const contexts = [

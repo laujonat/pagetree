@@ -12,13 +12,13 @@ import { useClickOutside } from "use-events";
 import { RefHandler } from "../../types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const WrapperContext = createContext<any>(null);
+export const WindowContext = createContext<any>(null);
 
-interface PopupProviderProps {
+interface WindowProviderProps {
   children: ReactNode;
 }
 
-const PopupProvider: FC<PopupProviderProps> = ({ children }) => {
+const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const refsHandlers = useRef<RefHandler[]>([]);
 
   const registerClickOutside = useCallback(
@@ -64,10 +64,10 @@ const PopupProvider: FC<PopupProviderProps> = ({ children }) => {
   }, []);
 
   return (
-    <WrapperContext.Provider value={{ registerClickOutside }}>
+    <WindowContext.Provider value={{ registerClickOutside }}>
       {children}
-    </WrapperContext.Provider>
+    </WindowContext.Provider>
   );
 };
 
-export default PopupProvider;
+export default WindowProvider;

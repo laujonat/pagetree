@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
 type Point = {
   x: number;
@@ -12,21 +12,26 @@ export const useCenteredTree = (
   point: Point = { x: 0, y: 0 }
 ): [Point, RefObject<HTMLDivElement>, (newTranslate: Point) => void] => {
   const [translate, setTranslate] = useState<Point>(point);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use a callback ref to set the translate state based on the container dimensions
-  const containerRef = useCallback(
-    (containerElem: HTMLDivElement | null) => {
-      if (containerElem) {
-        const { width, height } = containerElem.getBoundingClientRect();
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const observer = new ResizeObserver((entries) => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
         setTranslate({
-          x: orientation === "vertical" ? width : width / 2,
-          y: orientation === "vertical" ? 100 : height / 2,
+          x: width / 2,
+          y: orientation === "vertical" ? 100 : height / 4,
         });
       }
-    },
-    [orientation]
-  );
+    });
 
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [orientation]);
   // @ts-ignore Callback ref element
   return [translate, containerRef, setTranslate];
 };

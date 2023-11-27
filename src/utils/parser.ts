@@ -1,5 +1,5 @@
 // @ts-nocheck awsdas
-import { TreeNode } from "./types";
+import { TreeNode } from "../types";
 
 export function scanPage(root: Element): TreeNode {
   return _scanElement(root);

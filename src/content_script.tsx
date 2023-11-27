@@ -1,4 +1,4 @@
-import { scanPage } from "./parser";
+import { scanPage } from "./utils/parser";
 
 interface IMessage {
   target: "sidepanel" | "popup";
@@ -23,33 +23,24 @@ async function handleMessages(
   sendResponse
 ) {
   // Return early if this message isn't meant for the offscreen document.
-  if (message.target !== "popup") {
+  if (message.target !== "popup" && message.target !== "sidepanel") {
     return false;
   }
 
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "test-action":
-      sendToBackground(
-        "add-exclamationmarks-result",
-        document.documentElement.outerHTML
-      );
+      sendToBackground("open_side_panel", document.documentElement.outerHTML);
       break;
     case "toggle-dark-mode":
       chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
         document.body.classList.add("dark-mode");
       });
       break;
-    case "notify-client-ready":
-      console.log("notify-client-ready", message, sender);
-      sendResponse({ data: { ready: true } });
-      break;
     case "extension-scan-element":
-      //   console.log("extension-scan-element", message, sender);
       sendResponse({ data: scanPage(document.documentElement) });
       break;
     case "process-selected-element":
-      console.log("PROCESSING SELECTED", lastRightClickedElement);
       sendResponse({
         action: "process-selected-element",
         data: scanPage(lastRightClickedElement),

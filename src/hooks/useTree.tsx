@@ -1,6 +1,6 @@
 import { useContext } from "react";
 
-import { TreeContext } from "../components/context/tree_provider";
+import { TreeContext } from "../components/providers/TreeContextProvider";
 
 export const useTree = () => {
   const context = useContext(TreeContext);

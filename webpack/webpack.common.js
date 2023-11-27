@@ -12,7 +12,7 @@ const _resolve = {
 }
 module.exports = {
     entry: {
-        popup: path.join(srcDir, "popup.tsx"),
+        sidepanel: path.join(srcDir, "sidepanel.tsx"),
         options: path.join(srcDir, "options.tsx"),
         background: path.join(srcDir, "background.ts"),
         content_script: path.join(srcDir, "content_script.tsx"),
