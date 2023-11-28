@@ -68,15 +68,22 @@ async function handleMessages(
       });
       break;
     case "extension-scan-page":
+      console.warn("extensionscanpage");
       sendResponse({ data: scanPage(document.documentElement) });
       break;
+    case "extension-scan-element":
+      console.info(lastRightClickedElement);
+      sendResponse({ data: scanPage(lastRightClickedElement) });
+      break;
     case "process-selected-element-context":
+      console.warn("lastselectedcontext", lastRightClickedElement);
       relayMessageToExtension(
         "process-context-menu-selection",
         scanPage(lastRightClickedElement)
       );
       break;
     case "process-selected-page-context":
+      console.warn("pageContext", document.documentElement);
       relayMessageToExtension(
         "process-context-menu-selection",
         scanPage(document.documentElement)

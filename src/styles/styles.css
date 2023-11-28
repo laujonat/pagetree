@@ -165,21 +165,12 @@ section.inspector__container {
   flex-flow: row nowrap;
 }
 
-div#help-icon {
-  z-index: 1000;
-  will-change: transform;
-  transition: transform 250ms, opacity 400ms;
-}
-
-div#help-icon:hover {
-  opacity: 0.9;
-  transform: scale(0.95);
-}
-
-#help-dialog {
-  z-index: 1000;
-  box-shadow: var(--box-shadow);
-  color: var(--text-color-light);
+strong.nodelen__text {
+  float: right;
+  padding: 1em 10px;
+  z-index: 999;
+  background-color: var(--bg-0);
+  position: relative;
 }
 
 .loading {
