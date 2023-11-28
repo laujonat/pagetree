@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { Orientation } from "react-d3-tree";
 
 import { useThrottle } from "../../hooks/useThrottle";
@@ -54,7 +54,7 @@ export const DevToolsElement = (props: TreeNode) => {
 function DetailsItem(props) {
   const { highlightPathToNode, removeHighlightPathToNode, treeState } =
     useTree();
-
+  const id = useId();
   const handleClick = () => {
     if (props.__rd3t.id) {
       // Find the foreignObject by its ID and trigger a click event
@@ -79,6 +79,7 @@ function DetailsItem(props) {
   return (
     <li
       role="button"
+      key={id}
       tabIndex={0}
       className="details__item"
       onMouseEnter={(evt) =>
@@ -90,9 +91,9 @@ function DetailsItem(props) {
       <div className="slider-rotate">
         <div className="slider-rotate__selector">
           <div className="slider-rotate__button" onClick={handleClick}>
-            Jump
+            Visit
           </div>
-          <div className="slider-rotate__button">Skip</div>
+          <div className="slider-rotate__button">Expand</div>
         </div>
       </div>
     </li>
@@ -102,6 +103,10 @@ function DetailsItem(props) {
 function DetailsPanel() {
   const { selectedNode } = useTree();
 
+  useEffect(() => {
+    console.log("selectedNode from details panel", selectedNode);
+  }, [selectedNode]);
+
   const renderChildren = (children) => {
     return children.map((child, idx) => <DetailsItem {...child} key={idx} />);
   };
@@ -109,7 +114,12 @@ function DetailsPanel() {
   return (
     <div className="details__wrapper">
       <div className="details__header">
-        <div className="details__article">Children</div>
+        <div className="details__article">
+          <div>Child Elements</div>
+          {selectedNode?.data?.children && (
+            <div>&#40;{(selectedNode?.data?.children as []).length}&#41;</div>
+          )}
+        </div>
       </div>
       <section id="details">
         <ul className="details__list">

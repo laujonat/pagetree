@@ -17,11 +17,11 @@ export function scanPage(root: Element): TreeNode {
     },
     childIndex: number = 0
   ): TreeNode {
-    const id = domElement.id;
-    const classes = Array.from(domElement.classList);
+    const id = domElement?.id;
+    const classes = Array.from(domElement?.classList);
     const tagName = domElement.tagName;
     const attributes = createAttributesObject(domElement);
-    const children = Array.from(domElement.children); // Convert HTMLCollection to Array
+    const children = Array.from(domElement?.children); // Convert HTMLCollection to Array
     const scannedChildren: TreeNode[] = [];
 
     // for (const attr of Object.values)

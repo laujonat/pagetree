@@ -1,10 +1,12 @@
-import { forwardRef, LegacyRef, useEffect, useRef, useState } from "react";
-import { Tree, TreeNodeDatum } from "react-d3-tree";
+import { forwardRef, Ref, useEffect, useRef, useState } from "react";
 
 import { useDraggable } from "../../hooks/useDraggable";
 import { useTree } from "../../hooks/useTree";
 import { TreeHierarchyNode } from "../../types";
 import { DevToolsElement } from "../common/info";
+import Tabs from "../common/tabs";
+import { TreeComponent } from "./TreeComponent";
+import { TreeSettings } from "./TreeSettings";
 
 interface SelectedNodeInfoProps {
   selectedNode: TreeHierarchyNode;
@@ -17,7 +19,35 @@ const SelectedNodeInfo = forwardRef<HTMLDivElement, SelectedNodeInfoProps>(
     return (
       <div className="tree-selector">
         <div className="tree-selector__left">
-          <div className="tree-selector__label">Element</div>
+          <div className="tree-selector__label">
+            <svg
+              fill="var(--text-color)"
+              height="24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+              stroke="var(--text-color)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m18.285 17.578 2.569 2.568a.5.5 0 0 1-.708.708l-2.568-2.57-1.662 2.493a.5.5 0 0 1-.884-.101l-3-8a.5.5 0 0 1 .644-.644l8 3a.5.5 0 0 1 .101.884zm-1.054-.5 2.18-1.453-6.057-2.27 2.271 6.055 1.453-2.179a.502.502 0 0 1 .153-.153zM5.5 3a.5.5 0 0 1 0 1A1.5 1.5 0 0 0 4 5.5a.5.5 0 0 1-1 0A2.5 2.5 0 0 1 5.5 3zm3 1a.5.5 0 0 1 0-1h2a.5.5 0 1 1 0 1zm5 0a.5.5 0 1 1 0-1h2a.5.5 0 1 1 0 1zm-5 17a.5.5 0 1 1 0-1h2a.5.5 0 1 1 0 1zM3 8.5a.5.5 0 0 1 1 0v2a.5.5 0 1 1-1 0zm0 5a.5.5 0 1 1 1 0v2a.5.5 0 1 1-1 0zm0 5a.5.5 0 1 1 1 0A1.5 1.5 0 0 0 5.5 20a.5.5 0 1 1 0 1A2.5 2.5 0 0 1 3 18.5zm18-8a.5.5 0 1 1-1 0v-2a.5.5 0 1 1 1 0zm0-5a.5.5 0 1 1-1 0A1.5 1.5 0 0 0 18.5 4a.5.5 0 1 1 0-1A2.5 2.5 0 0 1 21 5.5z" />
+            </svg>
+          </div>
+          <div className="tree-selector__label">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="var(--text-color)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+              <path d="M15 6a9 9 0 0 0-9 9M18 15v6M21 18h-6" />
+            </svg>
+          </div>
         </div>
         <div className="tree-selector__right">
           <div className="webkit-element__scrollable" ref={ref}>
@@ -30,19 +60,11 @@ const SelectedNodeInfo = forwardRef<HTMLDivElement, SelectedNodeInfoProps>(
 );
 
 export const TreeView = ({ orientation, updateOrientation }) => {
-  const {
-    loaded,
-    selectedNode,
-    treeRef,
-    treeState,
-    setOnNodeClick,
-    updateSelectedNode,
-    updateTreeState,
-  } = useTree();
-  const foreignObjectProps = { width: 50, height: 50, x: -25, y: -30 };
-  const [ref, setRef] = useState<LegacyRef<Tree> | undefined>();
+  const { loaded, selectedNode, treeRef, updateTreeState } = useTree();
+
+  const [ref, setRef] = useState<Ref<SVGElement> | undefined>();
   useEffect(() => {
-    setRef(treeRef);
+    setRef(treeRef as Ref<SVGElement>);
   }, []);
 
   const elementContainer = useRef(null);
@@ -52,166 +74,34 @@ export const TreeView = ({ orientation, updateOrientation }) => {
     updateTreeState({ orientation });
   }, [orientation]);
 
-  const renderForeignObjectNode = (rd3tProps) => {
-    const { nodeDatum, toggleNode, foreignObjectProps, onNodeClick } =
-      rd3tProps;
-
-    function collapseNode(node: TreeNodeDatum) {
-      //   console.log("collapse", node);
-      node.__rd3t.collapsed = true;
-      //   node.__rd3t.collapsed = false;
-      if (node.children && node.children.length > 0) {
-        node.children.forEach((child) => {
-          // If the child is not already collapsed, collapse it
-          if (!child.__rd3t.collapsed) {
-            Tree.collapseNode(child);
-            collapseNode(child); // Recursively collapse its children
-          }
-        });
-      }
-    }
-
-    const handleClick = (evt) => {
-      evt.preventDefault();
-      // If the node is not collapsed, expand it
-      if (!nodeDatum.__rd3t.collapsed) {
-        Tree.expandNode(nodeDatum);
-      } else {
-        // If the node is collapsed, toggle it
-        // This also triggers collapse of nodes on the same depth as the selected node
-        toggleNode(nodeDatum);
-      }
-      // Collapse all children of the node
-      collapseNode(nodeDatum);
-      // Notify about the node click
-      onNodeClick(evt);
-      // Expand the node again
-      Tree.expandNode(nodeDatum);
-    };
-
-    return (
-      <>
-        <circle
-          onMouseOver={(e) => {
-            e.preventDefault();
-          }}
-          cursor="pointer"
-          r={5}
-          stroke={
-            nodeDatum.children.length > 0
-              ? "var(--node-border)"
-              : "var(--text-color-light)"
-          }
-          fill={nodeDatum.children.length > 0 ? "var(--node)" : "var(--leaf)"}
-        ></circle>
-        <foreignObject
-          {...foreignObjectProps}
-          style={{ overflow: "hidden", margin: "0 auto" }}
-          onClick={handleClick}
-          onMouseEnter={(e) => {
-            e.preventDefault();
-            rd3tProps.onNodeMouseOver(e);
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <div>
-            <p className="tree__text">{`<${nodeDatum.name}>`}</p>
-          </div>
-        </foreignObject>
-      </>
-    );
-  };
-
-  const updateCurrentNode = (source, target) => {
-    const previouslySelected = document.querySelectorAll(".link__selected");
-    previouslySelected.forEach((el) => el.classList.remove("link__selected"));
-    const addClassToNodeElement = (node) => {
-      if (node && !node.data.__rd3t.collapsed) {
-        const element = document.getElementById(node.data.__rd3t.id);
-        if (element instanceof SVGElement) {
-          element.classList.add("link__selected");
-        }
-      }
-    };
-    addClassToNodeElement(source);
-    addClassToNodeElement(target);
-  };
-
-  const stepPathFunc = (linkDatum, orientation) => {
-    const { source, target } = linkDatum;
-    const deltaY = target.y - source.y;
-    return orientation === "horizontal"
-      ? `M${source.y},${source.x} H${source.y + deltaY / 2} V${target.x} H${
-          target.y
-        }`
-      : `M${source.x},${source.y} V${source.y + deltaY / 2} H${target.x} V${
-          target.y
-        }`;
-  };
-
-  const getDynamicPathClass = ({ source, target }) => {
-    updateCurrentNode(source, target);
-    if (!target.children) {
-      return "link__to-leaf";
-    }
-    return "link__to-branch";
-  };
+  const tabsData = [
+    {
+      label: "Tree",
+      content: (
+        <>
+          {!loaded ? (
+            <h1 className="loading">Loading..</h1>
+          ) : (
+            <div style={{ height: "87%" }}>
+              <SelectedNodeInfo
+                ref={elementContainer}
+                selectedNode={selectedNode as TreeHierarchyNode}
+              />
+              <TreeComponent ref={ref} />
+            </div>
+          )}
+        </>
+      ),
+    },
+    {
+      label: "Options",
+      content: <TreeSettings updateOrientation={updateOrientation} />,
+    },
+  ];
 
   return (
     <section className="wrapper">
-      <div>
-        <div className="tree-toolbar">
-          <div className="tree-toolbar__left">
-            <div className="tree-toolbar__label">Orientation</div>
-          </div>
-          <div className="tree-toolbar__right">
-            <div
-              onClick={() => updateOrientation("horizontal")}
-              role="button"
-              className="button"
-            >
-              Horizontal
-            </div>
-            <div
-              onClick={() => updateOrientation("vertical")}
-              role="button"
-              className="button"
-            >
-              Vertical
-            </div>
-          </div>
-        </div>
-        <SelectedNodeInfo
-          ref={elementContainer}
-          selectedNode={selectedNode as TreeHierarchyNode}
-        />
-      </div>
-      {!loaded ? (
-        <h1 className="loading">Loading..</h1>
-      ) : (
-        <Tree
-          ref={ref}
-          {...treeState}
-          renderCustomNodeElement={(rd3tProps) =>
-            renderForeignObjectNode({
-              ...rd3tProps,
-              foreignObjectProps,
-            })
-          }
-          onNodeClick={(...args) => {
-            const [node] = args;
-            updateSelectedNode(node);
-            setOnNodeClick(() => () => {
-              updateSelectedNode(node);
-            });
-          }}
-          pathFunc={stepPathFunc}
-          pathClassFunc={getDynamicPathClass}
-        />
-        // </div>
-      )}
+      <Tabs tabs={tabsData} />
     </section>
   );
 };

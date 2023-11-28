@@ -1,51 +1,33 @@
 import { useState } from "react";
 
-export function Tabs() {
-  const [activeIndex, setActiveIndex] = useState(1);
-  const handleClick = (index) => setActiveIndex(index);
-  const checkActive = (index, className) =>
-    activeIndex === index ? className : "";
+export function Tabs({ tabs }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+
   return (
     <>
       <div className="tabs">
-        <button
-          className={`tab ${checkActive(1, "active")}`}
-          onClick={() => handleClick(1)}
-        >
-          Product Info
-        </button>
-        <button
-          className={`tab ${checkActive(2, "active")}`}
-          onClick={() => handleClick(2)}
-        >
-          Customer Reviews
-        </button>
-        <button
-          className={`tab ${checkActive(3, "active")}`}
-          onClick={() => handleClick(3)}
-        >
-          Delivery &amp; Returns
-        </button>
+        <div className="tabs__actions">
+          {tabs.map((tab, index) => (
+            <button
+              key={index}
+              className={`tab ${activeIndex === index ? "active" : ""}`}
+              onClick={() => setActiveIndex(index)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div className="tabs__label">{tabs[activeIndex].label}</div>
       </div>
-      <div className="panels">
-        <div className={`panel ${checkActive(1, "active")}`}>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean erat
-            ligula, feugiat at felis vitae, porttitor lacinia quam.
-          </p>
-        </div>
-        <div className={`panel ${checkActive(2, "active")}`}>
-          <p>
-            Nulla lobortis quis massa quis lobortis. Nullam porta semper lorem,
-            vel efficitur augue rutrum quis. Suspendisse potenti.
-          </p>
-        </div>
-        <div className={`panel ${checkActive(3, "active")}`}>
-          <p>
-            Cras porta consectetur dolor porttitor fringilla. Cras vitae urna ac
-            erat fermentum egestas. Donec egestas cursus scelerisque.
-          </p>
-        </div>
+      <div className="panels" style={{ height: "100%" }}>
+        {tabs.map((tab, index) => (
+          <div
+            key={index}
+            className={`panel ${activeIndex === index ? "active" : ""}`}
+          >
+            {tab.content}
+          </div>
+        ))}
       </div>
     </>
   );

@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useLayoutEffect, useRef, useState } from "react";
 
 type Point = {
   x: number;
@@ -14,11 +14,12 @@ export const useCenteredTree = (
   const [translate, setTranslate] = useState<Point>(point);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const observer = new ResizeObserver((entries) => {
+      // Calculate dimensions relative to tree element container
       if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
+        const { width, height } = window.document.body.getBoundingClientRect();
         setTranslate({
           x: width / 2,
           y: orientation === "vertical" ? 100 : height / 4,

@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "Tree",
-    "description": "Chrome extension to create interactive tree graphs",
+    "name": "PageTree Visualizer",
+    "description": "Visualize distribution of DOM nodes in the document tree",
     "version": "1.0",
     "minimum_chrome_version": "116",
     "options_ui": {
@@ -28,7 +28,7 @@
         "service_worker": "js/background.js"
     },
     "action": {
-        "default_title": "WebDOM Visualizer",
+        "default_title": "Visualize Document Tree",
         "default_sidepanel": "sidepanel.html",
         "default_icon": {
             "16": "icons/icon-inactive.png",
