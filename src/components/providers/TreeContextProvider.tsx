@@ -4,6 +4,7 @@ import { createContext, LegacyRef, useEffect, useRef, useState } from "react";
 import {
   Orientation,
   Point,
+  RawNodeDatum,
   Tree,
   TreeNodeDatum,
   TreeProps,
@@ -130,6 +131,34 @@ export const TreeProvider = ({
     }
   }, [treeRef.current]);
 
+  //   useEffect(() => {
+  //     console.log(treeState.data);
+  //     if (!loaded) {
+  //       if (treeRef.current) {
+  //         const gElement = document
+  //           .getElementsByClassName(treeRef.current.gInstanceRef)[0]
+  //           .getElementsByTagName("g")[0];
+  //         const fObjElement = gElement.getElementsByTagName("foreignObject")[0];
+  //         fObjElement.dispatchEvent(clickEvent);
+  //       }
+  //       setLoaded(true);
+  //     }
+  //   }, [treeState.data, loaded]);
+  const updateTreeState = (newState: Partial<TreeProps>) => {
+    console.log(newState);
+    setTreeState((prevState) => ({
+      ...prevState,
+      ...newState,
+      dataKey: Object.hasOwn(newState, "data")
+        ? (newState?.data as RawNodeDatum).name
+        : prevState.dataKey,
+    }));
+  };
+
+  const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
+    console.log("newState", newState);
+    setSelectedNode(newState);
+  };
   useEffect(() => {
     updateTreeState({
       orientation: orientation,
@@ -148,6 +177,39 @@ export const TreeProvider = ({
     cancelable: true,
   });
 
+  const [shouldDispatchClick, setShouldDispatchClick] = useState(false);
+
+  useEffect(() => {
+    if (shouldDispatchClick && treeRef.current) {
+      const gElement = document
+        .getElementsByClassName(treeRef.current.gInstanceRef)[0]
+        .getElementsByTagName("g")[0];
+      const fObjElement = gElement.getElementsByTagName("foreignObject")[0];
+      fObjElement.dispatchEvent(clickEvent);
+
+      setShouldDispatchClick(false); // Reset the flag
+    }
+  }, [treeState.data, shouldDispatchClick]); // Run when tree data or shouldDispatchClick changes
+
+  useEffect(() => {
+    const handleMessage = async (message) => {
+      if (message.action === "process-context-menu-selection") {
+        setLoaded(false);
+        const r3dtNodes = await convertToD3Format(message.data);
+        await updateTreeState({ data: r3dtNodes });
+        setLoaded(true);
+        setShouldDispatchClick(true);
+      }
+      return true;
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, [updateTreeState]);
+
   useEffect(() => {
     // Perform actions that depend on the updated selectedNode
     if (selectedNode) {
@@ -155,53 +217,9 @@ export const TreeProvider = ({
     }
   }, [selectedNode]);
 
-  //   const [nodeToSelect, setNodeToSelect] = useState(null); // Track node to select
-
-  //   useEffect(() => {
-  //     if (nodeToSelect) {
-  //       // Assuming onNodeClick can be called with the node data
-  //       treeRef.current?.handleOnNodeClickCb(nodeToSelect);
-  //       setNodeToSelect(null); // Reset the node to select
-  //     }
-  //   }, [treeState.data, nodeToSelect]); // Run when tree data or nodeToSelect changes
-
-  //   // When you receive new data and want to select a specific node:
-  //   setNodeToSelect(specificNodeData);
-
-  useEffect(() => {
-    const handleMessage = async (message) => {
-      console.log(message);
-      if (message.action === "process-context-menu-selection") {
-        setLoaded(false);
-        const r3dtNodes = await convertToD3Format(message.data);
-        await updateTreeState({
-          data: [],
-        });
-        await updateTreeState({
-          data: r3dtNodes,
-        });
-        setLoaded(true);
-        if (treeRef.current) {
-          const gElement = document
-            .getElementsByClassName(treeRef.current.gInstanceRef)[0]
-            .getElementsByTagName("g")[0];
-          const fObjElement = gElement.getElementsByTagName("foreignObject")[0];
-          fObjElement.dispatchEvent(clickEvent);
-        }
-      }
-      return true;
-    };
-
-    chrome.runtime.onMessage.addListener(handleMessage);
-
-    // Cleanup listener on component unmount
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage);
-    };
-  }, []);
-
   useEffect(() => {
     if (!loaded) {
+      //   treeRef.current?.forceUpdate();
       try {
         // @ts-ignore ajhlksdjlksa
         async function scanActiveTabHTML(message: {
@@ -320,15 +338,6 @@ export const TreeProvider = ({
       });
     }
     evt.stopPropagation();
-  };
-
-  const updateTreeState = (newState: Partial<TreeProps>) => {
-    setTreeState((prevState) => ({ ...prevState, ...newState }));
-  };
-
-  const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
-    console.log("newState", newState);
-    setSelectedNode((prevState) => ({ ...prevState, ...newState }));
   };
 
   const value = {
