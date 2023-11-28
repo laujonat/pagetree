@@ -12,7 +12,11 @@ import {
 import { getErrorMessage } from "../../logger";
 import { TreeHierarchyNode, TreeNode } from "../../types";
 import { convertToD3Format } from "../../utils/parser";
-import { sortPaths } from "../../utils/paths";
+import {
+  renderForeignObjectNode,
+  sortPaths,
+  updateCurrentNode,
+} from "../../utils/paths";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
@@ -32,7 +36,7 @@ export type ProviderValue = {
   treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
   selectedNode?: TreeHierarchyNode;
   loaded: boolean;
-  treeRef: LegacyRef<Tree> | undefined;
+  treeRef: LegacyRef<SVGElement> | undefined;
   highlightPathToNode: HighlightPathFunction;
   removeHighlightPathToNode: RemoveHighlightPathFunction;
   onNodeClick: OnNodeClickFunction;
@@ -46,6 +50,7 @@ export type DefaultValue = undefined;
 export type ContextValue = DefaultValue | ProviderValue;
 
 interface TreeProviderProps {
+  tabid: string;
   children: React.ReactNode;
   orientation: Orientation;
   translate: Point;
@@ -55,13 +60,15 @@ interface TreeProviderProps {
 export const TreeContext = createContext<ContextValue>(undefined);
 
 export const TreeProvider = ({
+  tabid,
   children,
   orientation,
   translate,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<TreeHierarchyNode>();
-  const treeRef = useRef<Element>();
+  const [selectedNode, setSelectedNode] =
+    useState<HierarchyPointNode<TreeNodeDatum>>();
+  const treeRef = useRef<Tree>();
   const [onNodeClick, setOnNodeClick] = useState<OnNodeClickFunction>(
     () => () => {
       // No operation
@@ -73,8 +80,9 @@ export const TreeProvider = ({
     centeringTransitionDuration: 800,
     collapsible: true,
     data: [],
+    dataKey: tabid,
     depthFactor: undefined,
-    dimensions: { width: translate.x / 2, height: translate.y / 2 },
+    dimensions: undefined,
     draggable: true,
     enableLegacyTransitions: false,
     hasInteractiveNodes: true,
@@ -84,13 +92,33 @@ export const TreeProvider = ({
     rootNodeClassName: "tree__root",
     branchNodeClassName: "tree__branch",
     leafNodeClassName: "tree__leaf",
+    pathFunc: "step",
     scaleExtent: { min: 0.25, max: 2 },
     separation: { siblings: 0.5, nonSiblings: 0 },
     shouldCollapseNeighborNodes: true,
+    svgClassName: "pageTree__root",
     transitionDuration: 500,
     translate: translate,
-    zoom: 1,
+    zoom: 1.5,
     zoomable: true,
+    renderCustomNodeElement: (rd3tProps) =>
+      renderForeignObjectNode({
+        ...rd3tProps,
+      }),
+    onNodeClick: (...args) => {
+      const [node] = args;
+      updateSelectedNode(node);
+      setOnNodeClick(() => () => {
+        updateSelectedNode(node);
+      });
+    },
+    pathClassFunc: ({ source, target }) => {
+      updateCurrentNode(source, target);
+      if (!target.children) {
+        return "link__to-leaf";
+      }
+      return "link__to-branch";
+    },
   });
 
   useEffect(() => {
@@ -107,13 +135,70 @@ export const TreeProvider = ({
       orientation: orientation,
       separation:
         orientation === "vertical"
-          ? { siblings: 1, nonSiblings: 1 }
+          ? { siblings: 0.75, nonSiblings: 1 }
           : { siblings: 0.5, nonSiblings: 0 },
       dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
       translate: translate, // Use calculated translate
-      zoom: 1,
+      zoom: 1.5,
     });
   }, [orientation, translate]);
+  const clickEvent = new MouseEvent("click", {
+    view: window,
+    bubbles: true,
+    cancelable: true,
+  });
+
+  useEffect(() => {
+    // Perform actions that depend on the updated selectedNode
+    if (selectedNode) {
+      console.log("selectedNode", selectedNode);
+    }
+  }, [selectedNode]);
+
+  //   const [nodeToSelect, setNodeToSelect] = useState(null); // Track node to select
+
+  //   useEffect(() => {
+  //     if (nodeToSelect) {
+  //       // Assuming onNodeClick can be called with the node data
+  //       treeRef.current?.handleOnNodeClickCb(nodeToSelect);
+  //       setNodeToSelect(null); // Reset the node to select
+  //     }
+  //   }, [treeState.data, nodeToSelect]); // Run when tree data or nodeToSelect changes
+
+  //   // When you receive new data and want to select a specific node:
+  //   setNodeToSelect(specificNodeData);
+
+  useEffect(() => {
+    const handleMessage = async (message) => {
+      console.log(message);
+      if (message.action === "process-context-menu-selection") {
+        setLoaded(false);
+        const r3dtNodes = await convertToD3Format(message.data);
+        await updateTreeState({
+          data: [],
+        });
+        await updateTreeState({
+          data: r3dtNodes,
+        });
+        setLoaded(true);
+        if (treeRef.current) {
+          const gElement = document
+            .getElementsByClassName(treeRef.current.gInstanceRef)[0]
+            .getElementsByTagName("g")[0];
+          const fObjElement = gElement.getElementsByTagName("foreignObject")[0];
+          fObjElement.dispatchEvent(clickEvent);
+        }
+      }
+      return true;
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    // Cleanup listener on component unmount
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loaded) {
@@ -153,7 +238,7 @@ export const TreeProvider = ({
         }
         scanActiveTabHTML({
           target: "sidepanel",
-          action: "extension-scan-element",
+          action: "extension-scan-page",
         });
       } catch (error) {
         reportError({ message: getErrorMessage(error) });
@@ -241,7 +326,8 @@ export const TreeProvider = ({
     setTreeState((prevState) => ({ ...prevState, ...newState }));
   };
 
-  const updateSelectedNode = (newState: TreeHierarchyNode) => {
+  const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
+    console.log("newState", newState);
     setSelectedNode((prevState) => ({ ...prevState, ...newState }));
   };
 
@@ -266,7 +352,9 @@ export const TreeProvider = ({
         selectedNode: value.selectedNode,
         onNodeClick: value.onNodeClick,
         setOnNodeClick: value.setOnNodeClick,
-        treeRef: value.treeRef as unknown as React.LegacyRef<Tree> | undefined,
+        treeRef: value.treeRef as unknown as
+          | React.LegacyRef<SVGElement>
+          | undefined,
         highlightPathToNode: value.highlightPathToNode,
         removeHighlightPathToNode: value.removeHighlightPathToNode,
         updateTreeState: value.updateTreeState,

@@ -1,9 +1,5 @@
 // @ts-nocheck
 
-chrome.runtime.onConnect.addListener(() => {
-  console.log("Onconnect");
-});
-
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
     console.log(
@@ -49,55 +45,48 @@ chrome.tabs.onUpdated.addListener(async function (tabid, changeinfo, tab) {
 });
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
-async function handleBackgroundMessages(message) {
+async function handleBackgroundMessages(message, { tab }) {
+  console.log(tab);
   // Return early if this message isn't meant for the background script
   if (message.target !== "background") {
     return;
   }
   // Dispatch the message to an appropriate handler.
   switch (message.type) {
-    case "add-exclamationmarks-result":
-      handleBackgroundResultTest(message.data);
+    case "process-context-menu-selection":
+      console.log("handlin background process-context-menu-selection");
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, message);
+      }
       break;
     default:
       console.warn(`Unexpected message type received: '${message.type}'.`);
   }
 }
 
-async function handleBackgroundResultTest(dom) {
-  console.log("Received dom in background", dom);
-}
-
-async function handleSelection() {
-  chrome.tabs.query(
-    { active: true, lastFocusedWindow: true },
-    async (tabs, ...others) => {
-      console.log("others", others);
-      if (tabs[0]?.id) {
-        //   const response = await chrome.tabs.sendMessage(tabs[0].id, message);
-        chrome.tabs.sendMessage(tabs[0].id, {
-          action: "process-selected-element",
-          target: "popup",
-        });
-      }
-    }
-  );
-}
+chrome.scripting
+  .getRegisteredContentScripts()
+  .then((scripts) => console.log("registered content scripts", scripts));
 
 chrome.contextMenus.onClicked.addListener(genericOnClick);
+
 function genericOnClick(info, tab) {
-  console.log("info", info);
+  chrome.sidePanel.open({ windowId: tab.windowId });
   switch (info.menuItemId) {
-    case "selection":
-      handleSelection();
+    case "context-page":
+      chrome.tabs.sendMessage(tab.id, {
+        action: "process-selected-page-context",
+        target: "sidepanel",
+      });
       break;
-    case "checkbox":
-      // Checkbox item function
-      console.log("Checkbox item clicked. Status:", info.checked);
+    case "context-element":
+      chrome.tabs.sendMessage(tab.id, {
+        action: "process-selected-element-context",
+        target: "sidepanel",
+      });
       break;
     default:
-      // Standard context menu item function
-      chrome.sidePanel.open({ windowId: tab.windowId });
+      console.error("option unavailable");
   }
 }
 
@@ -105,7 +94,7 @@ chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
-chrome.runtime.onInstalled.addListener(async function () {
+chrome.runtime.onInstalled.addListener(async function (tab) {
   chrome.action.setBadgeText({ text: "0" });
   // Create one test item for each context type.
   const contexts = [
@@ -119,14 +108,15 @@ chrome.runtime.onInstalled.addListener(async function () {
   ];
 
   chrome.contextMenus.create({
-    title: "Generate Tree for '%s' Element",
-    contexts: [...contexts],
+    title: "Visualize '%s' Element Tree",
+    contexts: [...contexts].slice(1),
     id: "context-element",
   });
 
   // Create a parent item and two children.
   chrome.contextMenus.create({
-    title: "Generate Tree for this Page",
+    title: "Visualize Page Document Tree",
+    contexts: ["all"],
     id: "context-page",
   });
 });

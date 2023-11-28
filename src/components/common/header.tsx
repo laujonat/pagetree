@@ -25,12 +25,12 @@ export function Header() {
     <header className="header">
       <section className="header__heading">
         <div>
-          <img
+          {/* <img
             src="../icons/icon48.png"
             alt="HTML Tree Explorer Icon"
             className="header__icon"
-          />
-          <h1 className="header__name">HTML Tree Explorer</h1>
+          /> */}
+          {/* <h1 className="header__name">HTML Tree Explorer</h1> */}
         </div>
       </section>
       <section className="header__heading-events">
