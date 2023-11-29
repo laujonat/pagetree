@@ -11,7 +11,7 @@ import {
 
 import { getErrorMessage } from "../../logger";
 import { TreeHierarchyNode, TreeNode } from "../../types";
-import { convertToD3Format } from "../../utils/parser";
+import { genTreeData } from "../../utils/d3node";
 import {
   renderForeignObjectNode,
   sortPaths,
@@ -79,7 +79,7 @@ export const TreeProvider = ({
   );
   const [treeElement, setTreeElement] = useState<Element>();
   const [treeState, setTreeState] = useState<TreeProps>({
-    centeringTransitionDuration: 800,
+    centeringTransitionDuration: 500,
     collapsible: true,
     data: [],
     dataKey: "initial-key",
@@ -191,8 +191,7 @@ export const TreeProvider = ({
 
   useEffect(() => {
     if (shouldDispatchClick && treeRef.current) {
-      const fObjElement = getRootForeignObject();
-      fObjElement.dispatchEvent(clickEvent);
+      getRootForeignObject().dispatchEvent(clickEvent);
       setShouldDispatchClick(false); // Reset the flag
     }
   }, [treeState.data, shouldDispatchClick]); // Run when tree data or shouldDispatchClick changes
@@ -201,7 +200,7 @@ export const TreeProvider = ({
     const handleMessage = async (message) => {
       if (message.action === "process-context-menu-selection") {
         setLoaded(false);
-        const r3dtNodes = await convertToD3Format(message.data);
+        const r3dtNodes = await genTreeData(message.data);
         await updateTreeState({ data: r3dtNodes }, true);
         setLoaded(true);
         setShouldDispatchClick(true);
@@ -210,7 +209,6 @@ export const TreeProvider = ({
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
-
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
@@ -218,7 +216,6 @@ export const TreeProvider = ({
 
   useEffect(() => {
     if (!loaded) {
-      //   treeRef.current?.forceUpdate();
       try {
         // @ts-ignore ajhlksdjlksa
         async function scanActiveTabHTML(message: {
@@ -241,7 +238,7 @@ export const TreeProvider = ({
                 // @ts-ignore asdsad
                 if (response?.data) {
                   // @ts-ignore asdsad
-                  const r3dtNodes = await convertToD3Format(response.data);
+                  const r3dtNodes = await genTreeData(response.data);
                   updateTreeState(
                     {
                       data: r3dtNodes,
