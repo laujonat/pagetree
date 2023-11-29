@@ -1,6 +1,7 @@
 import { forwardRef, Ref, useEffect, useRef, useState } from "react";
 
 import { useDraggable } from "../../hooks/useDraggable";
+import { useSettings } from "../../hooks/useSettings";
 import { useTree } from "../../hooks/useTree";
 import { TreeHierarchyNode } from "../../types";
 import { DevToolsElement } from "../common/info";
@@ -19,6 +20,7 @@ const SelectedNodeInfo = forwardRef<HTMLDivElement, SelectedNodeInfoProps>(
     return (
       <div className="tree-selector">
         <div className="tree-selector__left">
+          <button id="activateInspector">Inspect Element</button>
           <div className="tree-selector__label">
             <svg
               fill="var(--text-color)"
@@ -59,9 +61,9 @@ const SelectedNodeInfo = forwardRef<HTMLDivElement, SelectedNodeInfoProps>(
   }
 );
 
-export const TreeView = ({ orientation, updateOrientation }) => {
-  const { loaded, selectedNode, treeRef, updateTreeState } = useTree();
-
+export const TreeView = () => {
+  const { loaded, selectedNode, treeRef } = useTree();
+  const { settings, updateSetting } = useSettings();
   const [ref, setRef] = useState<Ref<SVGElement> | undefined>();
   useEffect(() => {
     setRef(treeRef as Ref<SVGElement>);
@@ -69,10 +71,6 @@ export const TreeView = ({ orientation, updateOrientation }) => {
 
   const elementContainer = useRef(null);
   useDraggable(elementContainer);
-
-  useEffect(() => {
-    updateTreeState({ orientation });
-  }, [orientation]);
 
   const tabsData = [
     {
@@ -95,7 +93,9 @@ export const TreeView = ({ orientation, updateOrientation }) => {
     },
     {
       label: "Options",
-      content: <TreeSettings updateOrientation={updateOrientation} />,
+      content: (
+        <TreeSettings settings={settings} updateSetting={updateSetting} />
+      ),
     },
   ];
 

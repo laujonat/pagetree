@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const SettingsOption = ({ label, options, onChange }) => {
-  const [activeOption, setActiveOption] = useState(options[0].value);
+const SettingsOption = ({ label, options, onChange, active }) => {
+  console.log("active", active);
+  const [activeOption, setActiveOption] = useState(active);
+
+  useEffect(() => {
+    setActiveOption(active);
+  }, [active]);
 
   const handleClick = (value) => {
     setActiveOption(value);
@@ -31,8 +36,55 @@ const SettingsOption = ({ label, options, onChange }) => {
   );
 };
 
-export function TreeSettings({ updateOrientation }) {
-  //   const { loaded, selectedNode, treeRef, updateTreeState } = useTree();
+const SettingsDropdownOption = ({ label, options, onChange, active }) => {
+  const [selectedOption, setSelectedOption] = useState(active);
+
+  useEffect(() => {
+    setSelectedOption(active); // Update selected option when active changes
+  }, [active]);
+
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setSelectedOption(value);
+    onChange(value);
+  };
+
+  return (
+    <div className="tree-toolbar">
+      <div className="tree-toolbar__left">
+        <div className="tree-toolbar__label">{label}</div>
+      </div>
+      <div className="tree-toolbar__right">
+        <select
+          className="tree-toolbar__select"
+          name="settings"
+          id="settings-select"
+          value={selectedOption}
+          onChange={handleChange}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+};
+
+export function TreeSettings({ settings, updateSetting }) {
+  const handleUpdateOrientation = (newOrientation: string) => {
+    updateSetting("orientation", newOrientation);
+  };
+
+  const handleUpdateShouldCollapseNeighborNodes = (newValue: boolean) => {
+    updateSetting("shouldCollapseNeighborNodes", newValue);
+  };
+
+  const handleUpdatePathFunc = (newPathFunction: string) => {
+    updateSetting("pathFunc", newPathFunction);
+  };
 
   const orientationOptions = [
     { label: "Horizontal", value: "horizontal" },
@@ -40,27 +92,37 @@ export function TreeSettings({ updateOrientation }) {
   ];
 
   const collapseNeighborOptions = [
-    { label: "Yes", value: 1 },
-    { label: "No", value: 0 },
+    { label: "Yes", value: true },
+    { label: "No", value: false },
+  ];
+
+  const pathFunctionOptions = [
+    { label: "Step", value: "step" },
+    { label: "Diagonal", value: "diagonal" },
+    { label: "Straight", value: "straight" },
+    { label: "Elbow", value: "elbow" },
   ];
 
   return (
     <>
       <SettingsOption
-        label="Orientation"
+        label="Tree orientation"
         options={orientationOptions}
-        onChange={updateOrientation}
+        active={settings.orientation}
+        onChange={handleUpdateOrientation}
       />
       <SettingsOption
         label="Collapse neighbor nodes"
+        active={settings.shouldCollapseNeighborNodes}
         options={collapseNeighborOptions}
-        onChange={updateOrientation}
+        onChange={handleUpdateShouldCollapseNeighborNodes}
       />
-      {/* <SettingsOption
+      <SettingsDropdownOption
         label="Path Function"
+        active={settings.pathFunc}
         options={pathFunctionOptions}
-        onChange={updatePathFunction}
-      /> */}
+        onChange={handleUpdatePathFunc}
+      />
     </>
   );
 }

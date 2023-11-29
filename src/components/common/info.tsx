@@ -4,7 +4,7 @@ import { Orientation } from "react-d3-tree";
 import { useThrottle } from "../../hooks/useThrottle";
 import { useTree } from "../../hooks/useTree";
 import { TreeNode } from "../../types";
-import { sanitizeId } from "../../utils/paths";
+import { sanitizeId } from "../../utils/treeutils";
 
 export const DevToolsElement = (props: TreeNode) => {
   const { attrs, children, name } = props;
@@ -117,7 +117,9 @@ function DetailsPanel() {
         <div className="details__article">
           <div>Child Elements</div>
           {selectedNode?.data?.children && (
-            <div>&#40;{(selectedNode?.data?.children as []).length}&#41;</div>
+            <div>
+              <b>&#40;{(selectedNode?.data?.children as []).length}&#41;</b>
+            </div>
           )}
         </div>
       </div>

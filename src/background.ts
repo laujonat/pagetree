@@ -120,3 +120,9 @@ chrome.runtime.onInstalled.addListener(async function (tab) {
     id: "context-page",
   });
 });
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    chrome.runtime.setUninstallURL("https://example.com/extension-survey");
+  }
+});
