@@ -6,6 +6,12 @@ import { useTree } from "../../hooks/useTree";
 import { TreeNode } from "../../types";
 import { sanitizeId } from "../../utils/treeutils";
 
+const clickEvent = new MouseEvent("click", {
+  view: window,
+  bubbles: true,
+  cancelable: true,
+});
+
 export const DevToolsElement = (props: TreeNode) => {
   const { attrs, children, name } = props;
   const elementStyle = {
@@ -55,20 +61,18 @@ function DetailsItem(props) {
   const { highlightPathToNode, removeHighlightPathToNode, treeState } =
     useTree();
   const id = useId();
+
+  function getForeignObjectElement(id: string): SVGElement {
+    const selector = `#${sanitizeId(id)} foreignObject`;
+    const foreignObject = document.querySelector(String(selector));
+    if (!foreignObject) throw new Error("SvgElementQueryErr..");
+    return foreignObject as SVGElement;
+  }
+
   const handleClick = () => {
     if (props.__rd3t.id) {
-      // Find the foreignObject by its ID and trigger a click event
-      const selector = `#${sanitizeId(props.__rd3t.id)} foreignObject`;
-      const foreignObject = document.querySelector(String(selector));
-      const clickEvent = new MouseEvent("click", {
-        view: window,
-        bubbles: true,
-        cancelable: true,
-      });
-      // Dispatch it on the foreignObject
-      if (foreignObject) {
-        foreignObject.dispatchEvent(clickEvent);
-      }
+      const fObjElement: SVGElement = getForeignObjectElement(props.__rd3t.id);
+      fObjElement.dispatchEvent(clickEvent);
     }
   };
 

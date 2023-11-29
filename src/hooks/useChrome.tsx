@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const useChrome = () => {
+export const useChrome = () => {
   const [tabId, setTabId] = useState<number>();
 
   useEffect(() => {
@@ -33,7 +33,20 @@ const useChrome = () => {
     };
   }, [tabId]);
 
-  return { tabId };
+  // Function to send messages to the content script
+  const messageToSend = async (message) => {
+    if (tabId !== undefined) {
+      try {
+        await chrome.tabs.sendMessage(tabId, message);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    } else {
+      console.error("Tab ID is undefined.");
+    }
+  };
+
+  return { tabId, messageToSend };
 };
 
 export default useChrome;

@@ -7,7 +7,7 @@ import DetailsPanel from "./components/common/info";
 import { SettingsProvider } from "./components/providers/SettingsContextProvider";
 import { TreeProvider } from "./components/providers/TreeContextProvider";
 import WindowProvider from "./components/providers/WindowContextProvider";
-import TreeView from "./components/tree/TreeView";
+import TreeLayout from "./components/tree/TreeLayout";
 import { useCenteredTree } from "./hooks/useCenteredTree";
 import { useSettings } from "./hooks/useSettings";
 
@@ -35,7 +35,7 @@ const Sidepanel = () => {
               className="tree-container"
               ref={containerRef}
             >
-              <TreeView />
+              <TreeLayout />
             </div>
           </div>
         </section>

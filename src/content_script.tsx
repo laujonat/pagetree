@@ -1,4 +1,4 @@
-import { scanPage } from "./utils/parser";
+import { createTreeNodes } from "./utils/d3node";
 
 interface IMessage {
   target: "sidepanel" | "popup";
@@ -6,7 +6,7 @@ interface IMessage {
   data: object;
 }
 
-chrome.runtime.onMessage.addListener(handleMessages);
+chrome.runtime.onMessage.addListener(handleSidepanelMessages);
 let lastRightClickedElement;
 
 document.addEventListener(
@@ -42,30 +42,18 @@ document.addEventListener(
   },
   true
 );
-async function addIframe() {
-  const iframe = document.createElement("iframe");
-  const loadComplete = new Promise((resolve) =>
-    iframe.addEventListener("load", resolve)
-  );
-  iframe.src = "https://example.com";
-  document.body.appendChild(iframe);
-  await loadComplete;
-  if (iframe.contentWindow) {
-    return iframe.contentWindow.document.title;
-  }
-}
 // const serializer = new XMLSerializer();
-async function handleMessages(
+async function handleSidepanelMessages(
   message: IMessage,
   sender: chrome.runtime.MessageSender,
   sendResponse
 ) {
   // Return early if this message isn't meant for the offscreen document.
-  if (message.target !== "popup" && message.target !== "sidepanel") {
+  if (message.target !== "sidepanel") {
     return false;
   }
 
-  //   const { tab } = sender;
+  const { tab } = sender;
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "test-action":
@@ -81,24 +69,24 @@ async function handleMessages(
       break;
     case "extension-scan-page":
       console.warn("extensionscanpage");
-      sendResponse({ data: scanPage(document.documentElement) });
+      sendResponse({ data: createTreeNodes(document.documentElement) });
       break;
     case "extension-scan-element":
       console.info(lastRightClickedElement);
-      sendResponse({ data: scanPage(lastRightClickedElement) });
+      sendResponse({ data: createTreeNodes(lastRightClickedElement) });
       break;
     case "process-selected-element-context":
       console.warn("lastselectedcontext", lastRightClickedElement);
       relayMessageToExtension(
         "process-context-menu-selection",
-        scanPage(lastRightClickedElement)
+        createTreeNodes(lastRightClickedElement)
       );
       break;
     case "process-selected-page-context":
       console.warn("pageContext", document.documentElement);
       relayMessageToExtension(
         "process-context-menu-selection",
-        scanPage(document.documentElement)
+        createTreeNodes(document.documentElement)
       );
       break;
     // case "extension-active-inspector":
@@ -117,19 +105,25 @@ async function handleMessages(
     //       });
     //   }
     //   break;
-    // case "extension-reload-content":
-    //   chrome.runtime.reload();
-    //   break;
+    case "extension-reload-content":
+      console.log("here-reload, ", sender);
+      relayMessageToExtension(
+        "reload-active-tab",
+        tab?.id as number,
+        "background"
+      );
+
+      break;
     default:
       console.warn(`Unexpected message type received: '${message.action}'.`);
       return false;
   }
 }
 
-function relayMessageToExtension(type, data) {
+function relayMessageToExtension(type, data, target = "runtime") {
   chrome.runtime.sendMessage({
     action: type,
-    target: "runtime",
+    target,
     data,
   });
 }

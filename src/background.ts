@@ -1,5 +1,7 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck types unavailable?
 
+/* Persistent storage data setup  */
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
     console.log(
@@ -46,21 +48,40 @@ chrome.tabs.onUpdated.addListener(async function (tabid, changeinfo, tab) {
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
 async function handleBackgroundMessages(message, { tab }) {
+  console.log(
+    "🚀 ----------------------------------------------------------------------------🚀"
+  );
+  console.log(
+    "🚀 ⚛︎ file: background.ts:52 ⚛︎ handleBackgroundMessages ⚛︎ message:",
+    message
+  );
+  console.log(
+    "🚀 ----------------------------------------------------------------------------🚀"
+  );
+
   console.log(tab);
   // Return early if this message isn't meant for the background script
   if (message.target !== "background") {
     return;
   }
   // Dispatch the message to an appropriate handler.
-  switch (message.type) {
+  switch (message.action) {
     case "process-context-menu-selection":
       console.log("handlin background process-context-menu-selection");
       if (tab.id) {
         chrome.tabs.sendMessage(tab.id, message);
       }
       break;
+    case "reload-active-tab":
+      console.log("background reload");
+      if (tab.id) {
+        chrome.tabs.reload(tab?.id as number).then((result) => {
+          console.log("background task -> reload-active-tab", result);
+        });
+      }
+      break;
     default:
-      console.warn(`Unexpected message type received: '${message.type}'.`);
+      console.warn(`Unexpected message type received: '${message.action}'.`);
   }
 }
 
