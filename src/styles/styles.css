@@ -26,7 +26,7 @@
   --node-path-to-branch-dark: rgb(138, 180, 248);
   --node-path-to-branch-light: rgb(0, 145, 255);
   --node-path-to-leaf-dark: #929292c7;
-  --node-path-to-leaf-light: #2d374891;
+  --node-path-to-leaf-light: rgb(0 0 0/50%);
   --node-select: rgb(0, 99, 155);
   --node-select-light: rgb(142, 0, 75);
 
@@ -165,12 +165,16 @@ section.inspector__container {
   flex-flow: row nowrap;
 }
 
-strong.nodelen__text {
-  float: right;
-  padding: 1em 10px;
-  z-index: 999;
-  background-color: var(--bg-0);
+article.container {
   position: relative;
+  height: 100%;
+}
+strong.nodelen__text {
+  left: 0;
+  top: 0;
+  padding: 1em 10px;
+  background-color: var(--bg-0);
+  position: absolute;
 }
 
 .loading {
@@ -233,6 +237,7 @@ strong.nodelen__text {
   border-bottom-style: solid;
   border-bottom-width: 1px;
   font-size: var(--source-code-font-size);
+  user-select: none;
 }
 .tree-toolbar__left,
 .tree-selector__left {
@@ -253,7 +258,6 @@ strong.nodelen__text {
   /* height: 3em; */
   line-height: 15px;
   white-space: nowrap;
-  cursor: default;
   display: flex;
   align-items: center;
 }
@@ -271,6 +275,10 @@ strong.nodelen__text {
   justify-content: flex-end;
 }
 
+.tree-toolbar__select {
+  font-size: 12px;
+}
+
 .tree-selector__right,
 .tree-toolbar__right {
   flex-grow: 1;
@@ -280,8 +288,7 @@ strong.nodelen__text {
 }
 
 .tree-toolbar__right > div.button {
-  cursor: pointer;
-  padding: 5px 0;
+  padding: 5px 10px;
 }
 .tree-toolbar__right > div.button.active {
   border-bottom: 1px solid var(--border-active);
@@ -349,9 +356,13 @@ div.webkit-element span.children-placeholder span.expand-button > .dot {
 #treeWrapper path.link__to-leaf {
   stroke: var(--path-to-leaf);
 }
+
+path.link--crisp-edges {
+  shape-rendering: crispEdges;
+}
+
 #treeWrapper path {
   stroke-width: 0.5;
-  shape-rendering: crispEdges;
 }
 
 #treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
@@ -522,6 +533,7 @@ main.container {
 
 li.details__item:hover .slider-rotate {
   transform: rotateX(0deg);
+
   transition: transform 0.2s ease-in-out 0.18s;
 }
 
@@ -541,7 +553,6 @@ li.details__item:hover .slider-rotate {
 }
 .slider-rotate__button:hover {
   background-color: var(--bg-1);
-  cursor: pointer;
 }
 
 div.details__article {
@@ -564,7 +575,6 @@ div.details__header {
 }
 
 li.details__item {
-  cursor: pointer;
   display: flex;
   position: relative;
   padding: 5px 10px;
@@ -654,14 +664,13 @@ body .wrapper::-webkit-scrollbar-thumb {
 } */
 
 .tabs > div button {
-  cursor: pointer;
   background-color: var(--bg-0);
   color: var(--icon-fill);
   font-size: var(--source-code-font-size);
   letter-spacing: 0.3px;
   min-height: 30px;
   padding: 5px 10px;
-  cursor: pointer;
+
   outline: 0px;
   transition: all 0.5s ease 0s;
 }

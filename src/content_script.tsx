@@ -42,7 +42,18 @@ document.addEventListener(
   },
   true
 );
-
+async function addIframe() {
+  const iframe = document.createElement("iframe");
+  const loadComplete = new Promise((resolve) =>
+    iframe.addEventListener("load", resolve)
+  );
+  iframe.src = "https://example.com";
+  document.body.appendChild(iframe);
+  await loadComplete;
+  if (iframe.contentWindow) {
+    return iframe.contentWindow.document.title;
+  }
+}
 // const serializer = new XMLSerializer();
 async function handleMessages(
   message: IMessage,
@@ -54,6 +65,7 @@ async function handleMessages(
     return false;
   }
 
+  //   const { tab } = sender;
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "test-action":
@@ -89,6 +101,25 @@ async function handleMessages(
         scanPage(document.documentElement)
       );
       break;
+    // case "extension-active-inspector":
+    //   console.warn("pageContext", document.documentElement);
+    //   if (tab?.id) {
+    //     chrome.scripting
+    //       .executeScript({
+    //         target: { tabId: tab.id as number },
+    //         func: addIframe,
+    //       })
+    //       .then((injectionResults) => {
+    //         for (const frameResult of injectionResults) {
+    //           const { frameId, result } = frameResult;
+    //           console.log(`Frame ${frameId} result:`, result);
+    //         }
+    //       });
+    //   }
+    //   break;
+    // case "extension-reload-content":
+    //   chrome.runtime.reload();
+    //   break;
     default:
       console.warn(`Unexpected message type received: '${message.action}'.`);
       return false;

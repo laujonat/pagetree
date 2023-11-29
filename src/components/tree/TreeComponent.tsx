@@ -1,4 +1,3 @@
-import { select } from "d3";
 import { forwardRef, Ref, useEffect, useState } from "react";
 import Tree from "react-d3-tree";
 
@@ -33,35 +32,12 @@ export const TreeComponent = forwardRef<SVGElement, TreeComponentProps>(
     return !loaded ? (
       <h1 className="loading">Loading..</h1>
     ) : (
-      <>
+      <article className="container">
         <strong className="nodelen__text">
           Total Element Node in Tree: {nodeCount}
         </strong>
-        <Tree
-          ref={ref as Ref<Tree>}
-          {...treeState}
-          onNodeMouseOver={mouseover}
-          onNodeMouseOut={mouseout}
-        />
-      </>
+        <Tree ref={ref as Ref<Tree>} {...treeState} />
+      </article>
     );
   }
 );
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mouseover(d: any) {
-  // @ts-ignore ignore
-  select(this)
-    .append("text")
-    .attr("class", "hover")
-    .attr("transform", function (d) {
-      return "translate(5, -10)";
-    })
-    .text(d.name + ": " + d.id);
-}
-
-// Toggle children on click.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-function mouseout(_d) {
-  // @ts-ignore ignore
-  select(this).select("text.hover").remove();
-}

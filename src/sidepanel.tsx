@@ -1,34 +1,28 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode } from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
 import { Header } from "./components/common/header";
 import DetailsPanel from "./components/common/info";
+import { SettingsProvider } from "./components/providers/SettingsContextProvider";
 import { TreeProvider } from "./components/providers/TreeContextProvider";
 import WindowProvider from "./components/providers/WindowContextProvider";
 import TreeView from "./components/tree/TreeView";
 import { useCenteredTree } from "./hooks/useCenteredTree";
-import useOrientation from "./hooks/useOrientation";
+import { useSettings } from "./hooks/useSettings";
 
 const Sidepanel = () => {
-  const [orientation, updateOrientation] = useOrientation();
-  const [translate, containerRef, setTranslate] = useCenteredTree(
-    orientation as Orientation
-  );
-  const [tabId, setTabId] = useState<string>("");
+  const { settings } = useSettings();
 
-  useEffect(() => {
-    chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) =>
-      setTabId(String(tabs[0].id))
-    );
-  }, []);
+  const [translate, containerRef, setTranslate] = useCenteredTree(
+    settings.orientation as Orientation
+  );
 
   return (
     <TreeProvider
-      tabid={tabId}
       translate={translate}
+      settings={settings}
       setTranslate={setTranslate}
-      orientation={orientation as Orientation}
     >
       <Header />
       <main className="container">
@@ -41,10 +35,7 @@ const Sidepanel = () => {
               className="tree-container"
               ref={containerRef}
             >
-              <TreeView
-                orientation={orientation}
-                updateOrientation={updateOrientation}
-              />
+              <TreeView />
             </div>
           </div>
         </section>
@@ -58,7 +49,9 @@ const root = createRoot(document.getElementById("root")!);
 root.render(
   <StrictMode>
     <WindowProvider>
-      <Sidepanel />
+      <SettingsProvider>
+        <Sidepanel />
+      </SettingsProvider>
     </WindowProvider>
   </StrictMode>
 );

@@ -4,7 +4,6 @@ import { createContext, LegacyRef, useEffect, useRef, useState } from "react";
 import {
   Orientation,
   Point,
-  RawNodeDatum,
   Tree,
   TreeNodeDatum,
   TreeProps,
@@ -17,7 +16,7 @@ import {
   renderForeignObjectNode,
   sortPaths,
   updateCurrentNode,
-} from "../../utils/paths";
+} from "../../utils/treeutils";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
@@ -51,37 +50,39 @@ export type DefaultValue = undefined;
 export type ContextValue = DefaultValue | ProviderValue;
 
 interface TreeProviderProps {
-  tabid: string;
   children: React.ReactNode;
-  orientation: Orientation;
+  settings: Partial<TreeProps>;
   translate: Point;
   setTranslate;
 }
 
 export const TreeContext = createContext<ContextValue>(undefined);
 
+const clickEvent = new MouseEvent("click", {
+  view: window,
+  bubbles: true,
+  cancelable: true,
+});
+
 export const TreeProvider = ({
-  tabid,
   children,
-  orientation,
   translate,
+  setTranslate,
+  settings,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
   const [selectedNode, setSelectedNode] =
     useState<HierarchyPointNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
   const [onNodeClick, setOnNodeClick] = useState<OnNodeClickFunction>(
-    () => () => {
-      // No operation
-    }
+    () => () => {}
   );
-
   const [treeElement, setTreeElement] = useState<Element>();
   const [treeState, setTreeState] = useState<TreeProps>({
     centeringTransitionDuration: 800,
     collapsible: true,
     data: [],
-    dataKey: tabid,
+    dataKey: "initial-key",
     depthFactor: undefined,
     dimensions: undefined,
     draggable: true,
@@ -89,19 +90,34 @@ export const TreeProvider = ({
     hasInteractiveNodes: true,
     initialDepth: 1,
     nodeSize: { x: 100, y: 100 },
-    orientation: "vertical",
+    orientation: settings.orientation,
     rootNodeClassName: "tree__root",
     branchNodeClassName: "tree__branch",
     leafNodeClassName: "tree__leaf",
-    pathFunc: "step",
+    pathFunc: settings.pathFunc,
     scaleExtent: { min: 0.25, max: 2 },
     separation: { siblings: 0.5, nonSiblings: 0 },
-    shouldCollapseNeighborNodes: true,
+    shouldCollapseNeighborNodes: settings.shouldCollapseNeighborNodes,
     svgClassName: "pageTree__root",
     transitionDuration: 500,
     translate: translate,
     zoom: 1.5,
     zoomable: true,
+    onUpdate: () => {
+      if (treeElement instanceof SVGElement) {
+        const { width, height } = treeElement.getBoundingClientRect();
+        setTranslate({ x: width / 2, y: height / 2 });
+        if (settings.pathFunc !== "step") {
+          const linksWithCrispEdges =
+            treeElement.querySelectorAll(".link--crisp-edges");
+
+          // Remove the 'link--crisp-edges' class from each link
+          linksWithCrispEdges.forEach((link) => {
+            link.classList.remove("link--crisp-edges");
+          });
+        }
+      }
+    },
     renderCustomNodeElement: (rd3tProps) =>
       renderForeignObjectNode({
         ...rd3tProps,
@@ -115,43 +131,35 @@ export const TreeProvider = ({
     },
     pathClassFunc: ({ source, target }) => {
       updateCurrentNode(source, target);
-      if (!target.children) {
-        return "link__to-leaf";
+      let classes = "";
+      console.log(settings.pathFunc);
+      if (settings.pathFunc === "step") {
+        classes += "link--crisp-edges ";
       }
-      return "link__to-branch";
+      classes += !target.children ? "link__to-leaf" : "link__to-branch";
+
+      return classes;
     },
   });
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {
-      const element = document.getElementsByClassName(
+      const tElement = document.getElementsByClassName(
         treeRef.current.gInstanceRef
-      )[0];
-      setTreeElement(element);
+      )[0] as SVGElement;
+      setTreeElement(tElement);
     }
   }, [treeRef.current]);
 
-  //   useEffect(() => {
-  //     console.log(treeState.data);
-  //     if (!loaded) {
-  //       if (treeRef.current) {
-  //         const gElement = document
-  //           .getElementsByClassName(treeRef.current.gInstanceRef)[0]
-  //           .getElementsByTagName("g")[0];
-  //         const fObjElement = gElement.getElementsByTagName("foreignObject")[0];
-  //         fObjElement.dispatchEvent(clickEvent);
-  //       }
-  //       setLoaded(true);
-  //     }
-  //   }, [treeState.data, loaded]);
-  const updateTreeState = (newState: Partial<TreeProps>) => {
+  const updateTreeState = async (
+    newState: Partial<TreeProps>,
+    isNewTree: boolean = false
+  ) => {
     console.log(newState);
     setTreeState((prevState) => ({
       ...prevState,
       ...newState,
-      dataKey: Object.hasOwn(newState, "data")
-        ? (newState?.data as RawNodeDatum).name
-        : prevState.dataKey,
+      dataKey: isNewTree ? `tree-${Date.now()}` : prevState.dataKey,
     }));
   };
 
@@ -161,32 +169,30 @@ export const TreeProvider = ({
   };
   useEffect(() => {
     updateTreeState({
-      orientation: orientation,
+      orientation: settings.orientation,
       separation:
-        orientation === "vertical"
-          ? { siblings: 0.75, nonSiblings: 1 }
+        settings.orientation === "vertical"
+          ? { siblings: 0.75, nonSiblings: 1.5 }
           : { siblings: 0.5, nonSiblings: 0 },
       dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
       translate: translate, // Use calculated translate
       zoom: 1.5,
     });
-  }, [orientation, translate]);
-  const clickEvent = new MouseEvent("click", {
-    view: window,
-    bubbles: true,
-    cancelable: true,
-  });
+  }, [settings.orientation, translate]);
+
+  useEffect(() => {
+    setTreeState((prevState) => ({
+      ...prevState,
+      ...settings,
+    }));
+  }, [settings]);
 
   const [shouldDispatchClick, setShouldDispatchClick] = useState(false);
 
   useEffect(() => {
     if (shouldDispatchClick && treeRef.current) {
-      const gElement = document
-        .getElementsByClassName(treeRef.current.gInstanceRef)[0]
-        .getElementsByTagName("g")[0];
-      const fObjElement = gElement.getElementsByTagName("foreignObject")[0];
+      const fObjElement = getRootForeignObject();
       fObjElement.dispatchEvent(clickEvent);
-
       setShouldDispatchClick(false); // Reset the flag
     }
   }, [treeState.data, shouldDispatchClick]); // Run when tree data or shouldDispatchClick changes
@@ -196,7 +202,7 @@ export const TreeProvider = ({
       if (message.action === "process-context-menu-selection") {
         setLoaded(false);
         const r3dtNodes = await convertToD3Format(message.data);
-        await updateTreeState({ data: r3dtNodes });
+        await updateTreeState({ data: r3dtNodes }, true);
         setLoaded(true);
         setShouldDispatchClick(true);
       }
@@ -209,13 +215,6 @@ export const TreeProvider = ({
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
   }, [updateTreeState]);
-
-  useEffect(() => {
-    // Perform actions that depend on the updated selectedNode
-    if (selectedNode) {
-      console.log("selectedNode", selectedNode);
-    }
-  }, [selectedNode]);
 
   useEffect(() => {
     if (!loaded) {
@@ -243,11 +242,17 @@ export const TreeProvider = ({
                 if (response?.data) {
                   // @ts-ignore asdsad
                   const r3dtNodes = await convertToD3Format(response.data);
-                  updateTreeState({
-                    data: r3dtNodes,
-                    dimensions: { width: translate.x / 2, height: translate.y },
-                    translate: { x: translate.x / 2, y: translate.y / 2 },
-                  });
+                  updateTreeState(
+                    {
+                      data: r3dtNodes,
+                      dimensions: {
+                        width: translate.x / 2,
+                        height: translate.y,
+                      },
+                      translate: { x: translate.x / 2, y: translate.y / 2 },
+                    },
+                    true
+                  );
                   setLoaded(true);
                 }
               }
@@ -264,61 +269,90 @@ export const TreeProvider = ({
     }
   }, [translate, loaded]);
 
+  function getTreeElement() {
+    if (!treeRef.current) {
+      throw new Error("RefErr"); // throw keyword is used here
+    }
+    return document.getElementsByClassName(
+      treeRef.current.gInstanceRef
+    )[0] as SVGElement;
+  }
+
+  function getRootElementFromTree() {
+    return getTreeElement().getElementsByTagName("g")[0] as SVGElement;
+  }
+
+  function getRootForeignObject() {
+    return getRootElementFromTree().getElementsByTagName("foreignObject")[0];
+  }
+
+  function highlightSelectedPath(paths, selectedChildIndex) {
+    if (selectedChildIndex < 0 || selectedChildIndex >= paths.length) {
+      throw new Error("IndexOutOfBounds");
+    }
+    const selectedPath = paths[selectedChildIndex];
+    if (selectedPath) {
+      selectedPath.id = "current-path";
+      selectedPath.classList.add("highlight");
+    }
+
+    return selectedPath;
+  }
+
+  function selectNodeDescendantPaths() {
+    if (!(treeElement instanceof SVGElement)) {
+      throw new Error("TreeReferenceError");
+    }
+    //@ts-ignore asd
+    const selectedNodeChildCount = selectedNode.data.children.length;
+    // Retrieve the last 'selectedNodeChildCount' number of link paths
+    const linkPaths = Array.from(
+      treeElement.querySelectorAll("path.rd3t-link")
+    );
+    const relevantPaths = linkPaths.slice(-selectedNodeChildCount);
+    return relevantPaths;
+  }
+  function removeDescendantPathStyles() {
+    const paths = selectNodeDescendantPaths();
+    paths.forEach((path) => {
+      path.classList.remove("highlight");
+      path.classList.add("current-paths");
+      path.removeAttribute("id");
+    });
+    return paths;
+  }
   const highlightPathToNode = (rd3tNode, evt, orientation) => {
+    if (!settings.shouldCollapseNeighborNodes) return false;
     // Ensure treeElement is an SVGElement before proceeding
     if (treeElement instanceof SVGElement) {
-      //@ts-ignore asd
-      const selectedNodeChildCount = selectedNode.data.children.length;
-      // Retrieve the last 'selectedNodeChildCount' number of link paths
-      const linkPaths = Array.from(
-        treeElement.querySelectorAll("path.rd3t-link")
-      );
-      const relevantPaths = linkPaths.slice(-selectedNodeChildCount);
-
-      // Find the current-path element and remove it
-      const currentPath = treeElement.querySelector("#current-path");
-      if (currentPath) {
-        currentPath.removeAttribute("id");
-        currentPath.classList.remove("highlight");
-      }
+      const relevantPaths = selectNodeDescendantPaths();
 
       // Reset styles for all relevant paths and dim descendant paths
-      relevantPaths.forEach((path) => {
-        path.classList.remove("highlight");
-        path.classList.add("current-paths");
-        path.removeAttribute("id");
-      });
+
       const sortedPaths = sortPaths(relevantPaths, orientation).filter(
         (el) => el.id !== "current-path"
       );
       // Highlight the specific path for the selected child node
       const selectedChildIdx = rd3tNode.attributes.childIndex - 1;
-      const selectedPath = sortedPaths[selectedChildIdx];
-      if (selectedPath) {
-        selectedPath.id = "current-path";
-        selectedPath.classList.add("highlight");
-        // Use the sorting function based on orientation
-        // sortedPaths.forEach((path) => );
-        // Find the first <g> element within treeElement
-        const firstGElement = treeElement.querySelector("g");
-        // Append sorted paths before the first <g> element
-        sortedPaths.forEach((path) => {
-          path.remove();
-          if (firstGElement) {
-            treeElement.insertBefore(path, firstGElement);
-          } else {
-            treeElement.appendChild(path);
-          }
-        });
+      highlightSelectedPath(sortedPaths, selectedChildIdx);
+      const firstGElement = getRootElementFromTree();
+      // Append sorted paths before the first <g> element
+      sortedPaths.forEach((path) => {
+        path.remove();
+        if (firstGElement) {
+          treeElement.insertBefore(path, firstGElement);
+        } else {
+          treeElement.appendChild(path);
+        }
+      });
 
-        // Ensure the current-path is last among the paths
-        const currentPathElement = treeElement.querySelector("#current-path");
-        if (currentPathElement) {
-          if (firstGElement) {
-            treeElement.insertBefore(currentPathElement, firstGElement);
-          } else {
-            treeElement.appendChild(currentPathElement);
-          }
+      // Ensure the current-path is last among the paths
+      const currentPathElement = treeElement.querySelector("#current-path");
+      if (currentPathElement) {
+        if (firstGElement) {
+          treeElement.insertBefore(currentPathElement, firstGElement);
+        } else {
+          treeElement.appendChild(currentPathElement);
         }
       }
     }
@@ -327,15 +361,10 @@ export const TreeProvider = ({
   };
 
   const removeHighlightPathToNode = (evt) => {
-    if (treeElement instanceof SVGElement) {
-      const linkPaths = Array.from(
-        treeElement.querySelectorAll("path.rd3t-link")
-      );
-      linkPaths.forEach((path) => {
-        path.classList.remove("highlight");
-        path.classList.remove("current-paths");
-        path.removeAttribute("id");
-      });
+    try {
+      removeDescendantPathStyles();
+    } catch (e) {
+      throw new Error("DomErr");
     }
     evt.stopPropagation();
   };
