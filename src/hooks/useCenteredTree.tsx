@@ -1,25 +1,29 @@
 import { RefObject, useLayoutEffect, useRef, useState } from "react";
+import { Point } from "react-d3-tree";
 
-type Point = {
-  x: number;
-  y: number;
-};
+import { Dimension } from "../types";
 
 type Orientation = "horizontal" | "vertical";
 
 export const useCenteredTree = (
   orientation: Orientation = "horizontal",
   point: Point = { x: 0, y: 0 }
-): [Point, RefObject<HTMLDivElement>, (newTranslate: Point) => void] => {
+): [
+  Point,
+  Dimension | undefined,
+  RefObject<HTMLDivElement>,
+  (newTranslate: Point) => void
+] => {
   const [translate, setTranslate] = useState<Point>(point);
+  const [dimensions, setDimensions] = useState<Dimension>();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const observer = new ResizeObserver((entries) => {
-      // Calculate dimensions relative to tree element container
       if (containerRef.current) {
-        const { width, height } = window.document.body.getBoundingClientRect();
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height });
         setTranslate({
           x: width / 2,
           y: orientation === "vertical" ? 100 : height / 4,
@@ -32,7 +36,7 @@ export const useCenteredTree = (
     }
 
     return () => observer.disconnect();
-  }, [orientation]);
-  // @ts-ignore Callback ref element
-  return [translate, containerRef, setTranslate];
+  }, [orientation, containerRef]);
+
+  return [translate, dimensions, containerRef, setTranslate];
 };

@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
-import { Header } from "./components/common/header";
 import DetailsPanel from "./components/common/info";
 import { SettingsProvider } from "./components/providers/SettingsContextProvider";
 import { TreeProvider } from "./components/providers/TreeContextProvider";
@@ -14,17 +13,18 @@ import { useSettings } from "./hooks/useSettings";
 const Sidepanel = () => {
   const { settings } = useSettings();
 
-  const [translate, containerRef, setTranslate] = useCenteredTree(
+  const [dimensions, translate, containerRef, setTranslate] = useCenteredTree(
     settings.orientation as Orientation
   );
 
   return (
     <TreeProvider
+      dimensions={dimensions}
       translate={translate}
       settings={settings}
       setTranslate={setTranslate}
     >
-      <Header />
+      {/* <Header /> */}
       <main className="container">
         <section className="inspector__container">
           <DetailsPanel />

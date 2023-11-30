@@ -48,18 +48,6 @@ chrome.tabs.onUpdated.addListener(async function (tabid, changeinfo, tab) {
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
 async function handleBackgroundMessages(message, { tab }) {
-  console.log(
-    "🚀 ----------------------------------------------------------------------------🚀"
-  );
-  console.log(
-    "🚀 ⚛︎ file: background.ts:52 ⚛︎ handleBackgroundMessages ⚛︎ message:",
-    message
-  );
-  console.log(
-    "🚀 ----------------------------------------------------------------------------🚀"
-  );
-
-  console.log(tab);
   // Return early if this message isn't meant for the background script
   if (message.target !== "background") {
     return;
@@ -67,7 +55,6 @@ async function handleBackgroundMessages(message, { tab }) {
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "process-context-menu-selection":
-      console.log("handlin background process-context-menu-selection");
       if (tab.id) {
         chrome.tabs.sendMessage(tab.id, message);
       }
@@ -117,20 +104,11 @@ chrome.sidePanel
 
 chrome.runtime.onInstalled.addListener(async function (tab) {
   chrome.action.setBadgeText({ text: "0" });
-  // Create one test item for each context type.
-  const contexts = [
-    "page",
-    "selection",
-    "link",
-    "editable",
-    "image",
-    "video",
-    "audio",
-  ];
+  const contexts = ["selection", "link", "editable", "image", "video", "audio"];
 
   chrome.contextMenus.create({
     title: "Visualize '%s' Element Tree",
-    contexts: [...contexts].slice(1),
+    contexts: [...contexts],
     id: "context-element",
   });
 
@@ -140,6 +118,14 @@ chrome.runtime.onInstalled.addListener(async function (tab) {
     contexts: ["all"],
     id: "context-page",
   });
+});
+
+chrome.runtime.onConnect.addListener(function (port) {
+  if (port.name === "pagetree-panel-extension") {
+    port.onDisconnect.addListener(async () => {
+      console.log("Sidepanel closed.");
+    });
+  }
 });
 
 chrome.runtime.onInstalled.addListener((details) => {

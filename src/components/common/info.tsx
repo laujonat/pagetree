@@ -1,10 +1,12 @@
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Orientation } from "react-d3-tree";
 
+import useDraggable from "../../hooks/useDraggable";
 import { useThrottle } from "../../hooks/useThrottle";
 import { useTree } from "../../hooks/useTree";
-import { TreeNode } from "../../types";
+import { TreeHierarchyNode, TreeNode } from "../../types";
 import { sanitizeId } from "../../utils/treeutils";
+import { TreeActionsToolbar } from "../tree/TreeActionsToolbar";
 
 const clickEvent = new MouseEvent("click", {
   view: window,
@@ -106,7 +108,8 @@ function DetailsItem(props) {
 
 function DetailsPanel() {
   const { selectedNode } = useTree();
-
+  const elementContainer = useRef(null);
+  useDraggable(elementContainer);
   useEffect(() => {
     console.log("selectedNode from details panel", selectedNode);
   }, [selectedNode]);
@@ -116,24 +119,30 @@ function DetailsPanel() {
   };
 
   return (
-    <div className="details__wrapper">
-      <div className="details__header">
-        <div className="details__article">
-          <div>Child Elements</div>
-          {selectedNode?.data?.children && (
-            <div>
-              <b>&#40;{(selectedNode?.data?.children as []).length}&#41;</b>
-            </div>
-          )}
+    <>
+      <TreeActionsToolbar
+        ref={elementContainer}
+        selectedNode={selectedNode as TreeHierarchyNode}
+      />
+      <div className="details__wrapper">
+        <div className="details__header">
+          <div className="details__article">
+            <div>Child Elements</div>
+            {selectedNode?.data?.children && (
+              <div>
+                <b>&#40;{(selectedNode?.data?.children as []).length}&#41;</b>
+              </div>
+            )}
+          </div>
         </div>
+        <section id="details">
+          <ul className="details__list">
+            {selectedNode?.data?.children &&
+              renderChildren(selectedNode.data?.children)}
+          </ul>
+        </section>
       </div>
-      <section id="details">
-        <ul className="details__list">
-          {selectedNode?.data?.children &&
-            renderChildren(selectedNode.data?.children)}
-        </ul>
-      </section>
-    </div>
+    </>
   );
 }
 

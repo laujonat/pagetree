@@ -10,7 +10,7 @@ import {
 } from "react-d3-tree";
 
 import { getErrorMessage } from "../../logger";
-import { TreeHierarchyNode, TreeNode } from "../../types";
+import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/d3node";
 import {
   renderForeignObjectNode,
@@ -53,7 +53,8 @@ interface TreeProviderProps {
   children: React.ReactNode;
   settings: Partial<TreeProps>;
   translate: Point;
-  setTranslate;
+  dimensions?: Dimension; // dimensions can be optional if it might not be set initially
+  setTranslate: (newTranslate: Point) => void;
 }
 
 export const TreeContext = createContext<ContextValue>(undefined);
@@ -66,6 +67,7 @@ const clickEvent = new MouseEvent("click", {
 
 export const TreeProvider = ({
   children,
+  dimensions,
   translate,
   setTranslate,
   settings,
@@ -84,7 +86,7 @@ export const TreeProvider = ({
     data: [],
     dataKey: "initial-key",
     depthFactor: undefined,
-    dimensions: undefined,
+    dimensions: dimensions,
     draggable: true,
     enableLegacyTransitions: false,
     hasInteractiveNodes: true,
@@ -132,7 +134,6 @@ export const TreeProvider = ({
     pathClassFunc: ({ source, target }) => {
       updateCurrentNode(source, target);
       let classes = "";
-      console.log(settings.pathFunc);
       if (settings.pathFunc === "step") {
         classes += "link--crisp-edges ";
       }

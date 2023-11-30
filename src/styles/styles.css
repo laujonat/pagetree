@@ -1,22 +1,20 @@
 :root {
-  --background-dark: #121212;
-  --background-light: #fff;
   --background-dark-accent: #222;
   --background-dark-item: #282828;
-  --background-light-item: rgb(230, 230, 230);
+  --background-dark: #121212;
   --background-light-accent: #fafafa;
-  --border: rgba(190, 190, 190, 0.2);
-  --border-active-light: rgb(0, 145, 255);
+  --background-light-item: rgb(230, 230, 230);
+  --background-light: #fff;
   --border-active-dark: rgb(232, 232, 232);
+  --border-active-light: rgb(0, 145, 255);
+  --border-radius: 1.5em;
+  --border: rgba(190, 190, 190, 0.2);
+  --box-shadow: rgba(0, 0, 0, 0.05) 0 6px 24px 0px,
+    rgba(0, 0, 0, 0.08) 0 0 0 1px;
+  --box-shadow-active: 0 0 0 3px rgb(7 56 68);
   --icon-fill-dark: #fff;
   --icon-fill-light: #282828;
   --link-color: #005fcc;
-  --text-color-dark: #e0e0e0;
-  --text-color-light: #333;
-  --box-shadow: rgba(0, 0, 0, 0.05) 0 6px 24px 0px,
-    rgba(0, 0, 0, 0.08) 0 0 0 1px;
-  --border-radius: 1.5em;
-  --box-shadow-active: 0 0 0 3px rgb(7 56 68);
   --node-dark-border: rgb(143, 255, 169);
   --node-dark: rgb(229, 251, 234);
   --node-leaf-dark: #333;
@@ -27,15 +25,16 @@
   --node-path-to-branch-light: rgb(0, 145, 255);
   --node-path-to-leaf-dark: #929292c7;
   --node-path-to-leaf-light: rgb(0 0 0/50%);
-  --node-select: rgb(0, 99, 155);
   --node-select-light: rgb(142, 0, 75);
+  --node-select: rgb(0, 99, 155);
+  --text-color-dark: #e0e0e0;
+  --text-color-light: #333;
 
   --webkit-tag-name-dark: rgb(73 166 210);
   --webkit-tag-attribute-key-dark: rgb(124, 172, 248);
   --webkit-tag-attribute-value-dark: rgb(254, 141, 89);
   --webkit-doctype: rgb(192, 192, 192);
   --webkit-resource-link: rgb(227, 186, 89);
-
   --webkit-tag-name-light: rgb(142, 0, 75);
   --webkit-tag-attribute-key-light: rgb(159, 67, 18);
   --webkit-tag-attribute-value-light: rgb(8, 66, 160);
@@ -60,23 +59,40 @@ html {
   font-style: normal;
   font-variant-alternates: normal;
   font-variant-caps: normal;
-  min-height: 400px;
-  height: 100%;
-  width: 100%;
 }
 
 body {
-  color: var(--text-color-light);
-  background-color: var(--background-light);
-  font-family: "Lucida Grande", sans-serif;
-  margin: 1px;
-  position: fixed;
-  min-height: 400px;
-  min-width: 300px;
   height: 100%;
   width: 100%;
+  min-height: 400px;
+  background-color: var(--background-light);
+  color: var(--text-color-light);
+  font-family: "Lucida Grande", sans-serif;
+  height: 100%;
+  margin: 1px;
+  min-height: 400px;
+  min-width: 300px;
   overflow: hidden;
+  position: fixed;
+  scroll-behavior: smooth;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
+}
+
+body .wrapper::-webkit-scrollbar {
+  background-color: transparent;
+  width: 0.45em;
+}
+
+body .wrapper::-webkit-scrollbar:horizontal {
+  height: 0.45em;
+}
+
+body .wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #a8a8a8, #a8a8a8 1px, #8b8b8b 0, #9c9c9c);
+  border-radius: 16px;
+  box-shadow: inset 2px 2px 2px hsla(0, 0%, 100%, 0.15),
+    inset -2px -2px 2px rgb(0 0 0 / 13%);
 }
 
 h1 {
@@ -89,6 +105,7 @@ ul {
 }
 
 body > #root {
+  min-width: 350px;
   height: 400px;
   width: 100%;
 }
@@ -231,7 +248,7 @@ strong.nodelen__text {
 .tree-toolbar {
   display: flex;
   flex: 0 0 30px;
-  padding: 5px 10px;
+  padding: 3px 10px;
   align-items: center;
   border-bottom-color: var(--border);
   border-bottom-style: solid;
@@ -239,6 +256,7 @@ strong.nodelen__text {
   font-size: var(--source-code-font-size);
   user-select: none;
 }
+
 .tree-toolbar__left,
 .tree-selector__left {
   flex: 0 0 30px;
@@ -248,19 +266,83 @@ strong.nodelen__text {
 }
 
 .tree-toolbar__left > div.tree-toolbar__label,
-.tree-selector__left > div.tree-selector__label {
-  flex-basis: 40%;
-  border-bottom: none;
-  float: left;
-  color: var(--icon-fill);
-  font-size: 12px;
-  padding: 5px 0;
-  /* height: 3em; */
-  line-height: 15px;
-  white-space: nowrap;
-  display: flex;
+.tree-selector__left > div.tree-selector__action {
+  line-height: 0;
   align-items: center;
+  border-bottom: none;
+  color: var(--icon-fill);
+  display: inline-block;
+  flex-shrink: 0;
+  margin: 1px;
+  font-size: 12px;
+  position: relative;
+  white-space: nowrap;
 }
+
+.tree-selector__left > div.tree-selector__action::before {
+  background: var(--bg-1);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--icon-color);
+  content: "Toggle inspector";
+  left: calc(50% + 11px);
+  line-height: 16px;
+  position: absolute;
+  top: 50px;
+  opacity: 0;
+  transform: translate(-100%, -100%);
+  transition-delay: 200ms;
+  user-select: none;
+  /* white-space: pre; */
+  z-index: 999;
+}
+
+.tree-selector__left > div.tree-selector__action::after {
+  top: 8px;
+  transition-delay: 500ms;
+}
+
+.tree-selector__left > div.tree-selector__action:hover::before {
+  opacity: 0.9;
+  visibility: visible;
+  top: 50px;
+  left: 100px;
+  padding: 2px 5px;
+  transition-delay: 200ms;
+}
+
+.tree-selector__left > div.tree-selector__action:hover:after {
+  opacity: 0.9;
+  content: "";
+  border-width: 7px;
+  left: calc(50% + 100px);
+  border-color: var(--border);
+}
+
+.tree-selector__left > div.tree-selector__action > div {
+  margin: auto 1px;
+}
+
+.tree-selector__left > div.tree-selector__action > button {
+  background-color: var(--bg-1);
+  border-radius: 0px;
+  white-space: nowrap;
+  padding-inline: 3px;
+  box-shadow: none !important;
+  padding: 2px 7px;
+}
+
+.tree-selector__left > div.tree-selector__action button {
+  background-color: var(--bg-1);
+  border-radius: 0px;
+  white-space: nowrap;
+  box-shadow: none !important;
+  line-height: 0;
+  min-height: 30px;
+  padding: 0 3px; /* Updated to set horizontal padding only */
+  border: 1px solid var(--border);
+}
+
 .tree-selector > div.tree-selector__right {
   float: left;
   margin: auto;
@@ -292,6 +374,11 @@ strong.nodelen__text {
 }
 .tree-toolbar__right > div.button.active {
   border-bottom: 1px solid var(--border-active);
+}
+
+section.tree-settings__container {
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
 .webkit-element {
@@ -361,25 +448,6 @@ path.link--crisp-edges {
   shape-rendering: crispEdges;
 }
 
-#treeWrapper path {
-  stroke-width: 0.5;
-}
-
-#treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
-  stroke-opacity: 1 !important;
-}
-
-#treeWrapper path.link__to-leaf.highlight {
-  stroke: var(--path-to-current-leaf);
-  stroke-opacity: 1;
-  stroke-width: 1 !important;
-}
-
-#treeWrapper path.link__to-branch {
-  stroke: var(--path-to-branch);
-  /* stroke-width: 1.25 !important; */
-}
-
 .link__selected > circle {
   stroke: var(--node-select);
   stroke-width: 0.25em;
@@ -408,6 +476,32 @@ g > foreignObject > div > p.tree__text {
   user-select: none;
 }
 
+#treeWrapper path {
+  stroke-width: 0.5;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+#treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
+  stroke-opacity: 1 !important;
+}
+
+#treeWrapper path.link__to-leaf.highlight {
+  stroke: var(--path-to-current-leaf);
+  stroke-opacity: 1;
+  stroke-width: 1 !important;
+}
+
+#treeWrapper path.link__to-branch {
+  stroke: var(--path-to-branch);
+  /* stroke-width: 1.25 !important; */
+}
+
+div.tree__layout_element {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
 .details__wrapper {
   position: relative;
   background: var(--bg-2);
@@ -425,29 +519,6 @@ g > foreignObject > div > p.tree__text {
   border-bottom-width: 3px;
   border-top-color: rgba(190, 190, 190, 0.5);
   overflow: hidden;
-}
-
-.class-tag__container {
-  display: flex;
-  justify-content: flex-start;
-  font-size: 0.9em;
-  max-height: 100px;
-  font-family: monospace, ui-monospace, ui-rounded;
-  height: 40px;
-}
-
-.class-tag {
-  font-style: italic;
-  color: rgb(102, 199, 186);
-  padding: 3px 2px;
-  white-space: nowrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.id-tag {
-  color: rgb(248 126 131);
-  font-style: italic;
 }
 
 div#details__children-count {
@@ -498,6 +569,7 @@ main.container {
   display: flex;
   height: 100%;
   width: 100%;
+  min-width: 350px;
   flex-flow: column;
 }
 
@@ -519,39 +591,40 @@ main.container {
   font-family: var(--monospace-font-family);
 }
 
-.slider-rotate {
+li.details__item > div.slider-rotate {
   transform: rotateX(90deg);
   transition: transform 0.2s ease-in-out 0.08s;
   position: absolute;
   right: 0;
 }
 
-.slider-rotate__shown {
+li.details__item > .slider-rotate__shown {
   overflow: hidden;
   position: relative;
 }
 
-li.details__item:hover .slider-rotate {
+li.details__item > li.details__item:hover .slider-rotate {
   transform: rotateX(0deg);
 
   transition: transform 0.2s ease-in-out 0.18s;
 }
 
-.slider-rotate__selector {
+li.details__item > .slider-rotate__selector {
   display: inline-flex;
   margin: auto 1em;
   line-height: 24px;
   border-radius: var(--border-radius);
 }
 
-.slider-rotate__button {
+li.details__item > .slider-rotate__selector > .slider-rotate__button {
   padding: 0px 8px;
   font-size: 0.8em;
   color: var(--icon-fill);
   background-color: var(--bg-2);
   border: 1px solid var(--border);
 }
-.slider-rotate__button:hover {
+
+li.details__item > .slider-rotate__selector > .slider-rotate__button:hover {
   background-color: var(--bg-1);
 }
 
@@ -589,7 +662,7 @@ li.details__item:hover {
   background-color: var(--bg-1);
 }
 
-section.wrapper {
+section.tree__layout_wrapper {
   height: 100%;
   white-space: nowrap;
   position: relative;
@@ -602,21 +675,6 @@ section.wrapper {
   background: transparent;
 }
 
-body .wrapper::-webkit-scrollbar {
-  background-color: transparent;
-  width: 0.45em;
-}
-
-body .wrapper::-webkit-scrollbar:horizontal {
-  height: 0.45em;
-}
-
-body .wrapper::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #a8a8a8, #a8a8a8 1px, #8b8b8b 0, #9c9c9c);
-  border-radius: 16px;
-  box-shadow: inset 2px 2px 2px hsla(0, 0%, 100%, 0.15),
-    inset -2px -2px 2px rgb(0 0 0 / 13%);
-}
 /* Tabs style */
 .tabs {
   display: flex;
@@ -722,10 +780,10 @@ body .wrapper::-webkit-scrollbar-thumb {
   clear: both;
 }
 
-.panel {
+.tabs > div.panels > .panel {
   display: none;
 }
-.panel.active {
+.tabs > div.panels > .panel.active {
   display: block;
   height: 100%;
 }

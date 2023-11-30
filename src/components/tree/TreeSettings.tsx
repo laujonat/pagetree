@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 const SettingsOption = ({ label, options, onChange, active }) => {
-  console.log("active", active);
   const [activeOption, setActiveOption] = useState(active);
 
   useEffect(() => {
@@ -104,7 +103,7 @@ export function TreeSettings({ settings, updateSetting }) {
   ];
 
   return (
-    <>
+    <section className="tree-settings__container">
       <SettingsOption
         label="Tree orientation"
         options={orientationOptions}
@@ -123,6 +122,6 @@ export function TreeSettings({ settings, updateSetting }) {
         options={pathFunctionOptions}
         onChange={handleUpdatePathFunc}
       />
-    </>
+    </section>
   );
 }

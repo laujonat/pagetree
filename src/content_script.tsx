@@ -1,3 +1,4 @@
+import Inspector from "./inspector";
 import { createTreeNodes } from "./utils/d3node";
 
 interface IMessage {
@@ -5,6 +6,8 @@ interface IMessage {
   action: string;
   data: object;
 }
+
+chrome.runtime.connect({ name: "pagetree-panel-extension" });
 
 chrome.runtime.onMessage.addListener(handleSidepanelMessages);
 let lastRightClickedElement;
@@ -42,6 +45,8 @@ document.addEventListener(
   },
   true
 );
+
+let isInspectorActive = false;
 // const serializer = new XMLSerializer();
 async function handleSidepanelMessages(
   message: IMessage,
@@ -89,22 +94,20 @@ async function handleSidepanelMessages(
         createTreeNodes(document.documentElement)
       );
       break;
-    // case "extension-active-inspector":
-    //   console.warn("pageContext", document.documentElement);
-    //   if (tab?.id) {
-    //     chrome.scripting
-    //       .executeScript({
-    //         target: { tabId: tab.id as number },
-    //         func: addIframe,
-    //       })
-    //       .then((injectionResults) => {
-    //         for (const frameResult of injectionResults) {
-    //           const { frameId, result } = frameResult;
-    //           console.log(`Frame ${frameId} result:`, result);
-    //         }
-    //       });
-    //   }
-    //   break;
+    case "script-toggle-inspector":
+      try {
+        if (isInspectorActive) {
+          Inspector.deactivate();
+        } else {
+          Inspector.activate();
+        }
+        isInspectorActive = !isInspectorActive;
+        relayMessageToExtension("script-inspector-status", isInspectorActive);
+      } catch (e) {
+        isInspectorActive = false;
+        throw new Error("InspectorErr");
+      }
+      break;
     case "extension-reload-content":
       console.log("here-reload, ", sender);
       relayMessageToExtension(

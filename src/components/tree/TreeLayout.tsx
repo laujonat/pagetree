@@ -3,14 +3,13 @@ import { Ref, useEffect, useRef, useState } from "react";
 import { useDraggable } from "../../hooks/useDraggable";
 import { useSettings } from "../../hooks/useSettings";
 import { useTree } from "../../hooks/useTree";
-import { TreeHierarchyNode } from "../../types";
+import { DevToolsElement } from "../common/info";
 import { Tabs } from "../common/tabs";
-import { TreeActionsToolbar } from "./TreeActionsToolbar";
 import { TreeComponent } from "./TreeComponent";
 import { TreeSettings } from "./TreeSettings";
 
 export const TreeLayout = () => {
-  const { loaded, selectedNode, treeRef } = useTree();
+  const { loaded, treeRef, selectedNode } = useTree();
   const { settings, updateSetting } = useSettings();
   const [ref, setRef] = useState<Ref<SVGElement> | undefined>();
   useEffect(() => {
@@ -29,10 +28,16 @@ export const TreeLayout = () => {
             <h1 className="loading">Loading..</h1>
           ) : (
             <div style={{ height: "87%" }}>
-              <TreeActionsToolbar
-                ref={elementContainer}
-                selectedNode={selectedNode as TreeHierarchyNode}
-              />
+              <div className="tree__layout_element">
+                <div
+                  className="webkit-element__scrollable"
+                  ref={elementContainer}
+                >
+                  {selectedNode?.data && (
+                    <DevToolsElement {...selectedNode.data} />
+                  )}
+                </div>
+              </div>
               <TreeComponent ref={ref} />
             </div>
           )}
@@ -48,7 +53,7 @@ export const TreeLayout = () => {
   ];
 
   return (
-    <section className="wrapper">
+    <section className="tree__layout_wrapper">
       <Tabs tabs={tabsData} />
     </section>
   );
