@@ -53,7 +53,7 @@ export const TreeLayout = () => {
   ];
 
   return (
-    <section className="tree__layout_wrapper">
+    <section className="wrapper">
       <Tabs tabs={tabsData} />
     </section>
   );

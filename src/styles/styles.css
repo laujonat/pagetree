@@ -591,32 +591,32 @@ main.container {
   font-family: var(--monospace-font-family);
 }
 
-li.details__item > div.slider-rotate {
+div.slider-rotate {
   transform: rotateX(90deg);
   transition: transform 0.2s ease-in-out 0.08s;
   position: absolute;
   right: 0;
 }
 
-li.details__item > .slider-rotate__shown {
+.slider-rotate__shown {
   overflow: hidden;
   position: relative;
 }
 
-li.details__item > li.details__item:hover .slider-rotate {
+li.details__item:hover .slider-rotate {
   transform: rotateX(0deg);
 
   transition: transform 0.2s ease-in-out 0.18s;
 }
 
-li.details__item > .slider-rotate__selector {
+.slider-rotate__selector {
   display: inline-flex;
   margin: auto 1em;
   line-height: 24px;
   border-radius: var(--border-radius);
 }
 
-li.details__item > .slider-rotate__selector > .slider-rotate__button {
+.slider-rotate__button {
   padding: 0px 8px;
   font-size: 0.8em;
   color: var(--icon-fill);
@@ -624,7 +624,7 @@ li.details__item > .slider-rotate__selector > .slider-rotate__button {
   border: 1px solid var(--border);
 }
 
-li.details__item > .slider-rotate__selector > .slider-rotate__button:hover {
+.slider-rotate__button:hover {
   background-color: var(--bg-1);
 }
 
@@ -662,7 +662,7 @@ li.details__item:hover {
   background-color: var(--bg-1);
 }
 
-section.tree__layout_wrapper {
+section.wrapper {
   height: 100%;
   white-space: nowrap;
   position: relative;
@@ -775,15 +775,17 @@ section.tree__layout_wrapper {
   border-image: initial;
   box-shadow: var(--box-active);
 }
-.tabs > div.panels {
+
+.tabs > div.tabs__panel-container {
   display: block;
   clear: both;
 }
 
-.tabs > div.panels > .panel {
+.tab_panel {
   display: none;
 }
-.tabs > div.panels > .panel.active {
+
+.tab_panel.active {
   display: block;
   height: 100%;
 }

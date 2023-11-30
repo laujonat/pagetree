@@ -19,11 +19,11 @@ export function Tabs({ tabs }) {
         </div>
         <div className="tabs__label">{tabs[activeIndex].label}</div>
       </div>
-      <div className="panels" style={{ height: "100%" }}>
+      <div className="tabs__panel-container" style={{ height: "100%" }}>
         {tabs.map((tab, index) => (
           <div
             key={index}
-            className={`panel ${activeIndex === index ? "active" : ""}`}
+            className={`tab_panel ${activeIndex === index ? "active" : ""}`}
           >
             {tab.content}
           </div>

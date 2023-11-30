@@ -243,11 +243,11 @@ export const TreeProvider = ({
                   updateTreeState(
                     {
                       data: r3dtNodes,
-                      dimensions: {
-                        width: translate.x / 2,
-                        height: translate.y,
-                      },
-                      translate: { x: translate.x / 2, y: translate.y / 2 },
+                      //   dimensions: {
+                      //     width: translate.x / 2,
+                      //     height: translate.y,
+                      //   },
+                      //   translate: { x: translate.x / 2, y: translate.y / 2 },
                     },
                     true
                   );
