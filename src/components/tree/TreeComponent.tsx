@@ -1,5 +1,5 @@
 import { forwardRef, Ref, useEffect, useState } from "react";
-import Tree from "react-d3-tree";
+import { Tree } from "react-d3-tree";
 
 import { useTree } from "../../hooks/useTree";
 

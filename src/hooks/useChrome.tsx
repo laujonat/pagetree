@@ -37,13 +37,15 @@ export const useChrome = () => {
   const messageToSend = async (message) => {
     if (tabId !== undefined) {
       try {
-        await chrome.tabs.sendMessage(tabId, message);
+        const response = await chrome.tabs.sendMessage(tabId, message);
+        return response;
       } catch (error) {
         console.error("Error sending message:", error);
       }
     } else {
       console.error("Tab ID is undefined.");
     }
+    return false;
   };
 
   return { tabId, messageToSend };

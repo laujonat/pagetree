@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "PageTree Visualizer",
+    "name": "PageTree Inspector",
     "description": "Visualize distribution of DOM nodes in the document tree",
     "version": "1.0",
     "minimum_chrome_version": "116",
@@ -41,6 +41,16 @@
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"
     },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "template.html"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
+    ],
     "permissions": [
         "tabs",
         "activeTab",

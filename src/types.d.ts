@@ -22,3 +22,13 @@ interface RefHandler {
   ref: MutableRefObject<HTMLElement>;
   handler: (event: MouseEvent) => void;
 }
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface Dimension {
+  width: number;
+  height: number;
+}

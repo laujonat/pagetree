@@ -15,6 +15,7 @@ module.exports = {
         sidepanel: path.join(srcDir, "sidepanel.tsx"),
         options: path.join(srcDir, "options.tsx"),
         background: path.join(srcDir, "background.ts"),
+        script: path.join(srcDir, "inspector.ts"),
         content_script: path.join(srcDir, "content_script.tsx"),
     },
     output: {
