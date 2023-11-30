@@ -13,7 +13,7 @@ import { useSettings } from "./hooks/useSettings";
 const Sidepanel = () => {
   const { settings } = useSettings();
 
-  const [dimensions, translate, containerRef, setTranslate] = useCenteredTree(
+  const [translate, dimensions, containerRef, setTranslate] = useCenteredTree(
     settings.orientation as Orientation
   );
 
