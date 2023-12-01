@@ -7,11 +7,10 @@ interface TreeComponentProps {}
 
 export const TreeComponent = forwardRef<SVGElement, TreeComponentProps>(
   (_props: TreeComponentProps, ref) => {
-    const { loaded, treeState, setLoaded } = useTree();
+    const { loaded, treeState } = useTree();
     const [nodeCount, setNodeCount] = useState<number>(0);
 
     useEffect(() => {
-      setLoaded(false);
       function countNodes(count: number = 0, node) {
         count += 1;
         if (!node.children) {
@@ -28,7 +27,6 @@ export const TreeComponent = forwardRef<SVGElement, TreeComponentProps>(
         Array.isArray(treeState.data) ? treeState.data[0] : treeState.data
       );
       setNodeCount(len);
-      setLoaded(true);
     }, [treeState.data]);
 
     return !loaded ? (

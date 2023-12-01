@@ -51,7 +51,7 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
 
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
-      console.warn("Tab reopened, refetch the data!");
+      //   console.warn("Tab reopened, refetch the data!");
       chrome.tabs.query(
         { active: true, lastFocusedWindow: true },
         async (tabs) => {
@@ -63,17 +63,17 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
       );
     }
 
-    // if (document.visibilityState === "hidden") {
-    //   chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-    //     const tabId = tabs[0]?.id;
-    //     if (tabId) {
-    //       messageToSend(
-    //         { action: "definite-stop-inspector", target: "background" },
-    //         tabId
-    //       );
-    //     }
-    //   });
-    // }
+    if (document.visibilityState === "hidden") {
+      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const tabId = tabs[0]?.id;
+        if (tabId) {
+          messageToSend(
+            { action: "definite-stop-inspector", target: "background" },
+            tabId
+          );
+        }
+      });
+    }
   };
 
   useLayoutEffect(() => {
