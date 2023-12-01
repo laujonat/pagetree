@@ -7,7 +7,7 @@ export const useChrome = () => {
     // Fetch the current active tab ID
     const fetchTabId = async () => {
       try {
-        const queryOptions = { active: true, lastFocusedWindow: true };
+        const queryOptions = { active: true, currentWindow: true };
         const [tab] = await chrome.tabs.query(queryOptions);
         if (tab?.id) {
           setTabId(tab.id);

@@ -15,40 +15,24 @@ export const TreeActionsToolbar = forwardRef<
   const { messageToSend } = useChrome();
   const [isInspectorActive, setIsInspectorActive] = useState<boolean>(false);
   useEffect(() => {
-    chrome.tabs.query(
-      { active: true, lastFocusedWindow: true },
-      async (tabs) => {
-        const tabId = tabs[0]?.id;
-        if (tabId) {
-          messageToSend(
-            {
-              action: "extension-inspector-status",
-            },
-            tabId
-          );
-        }
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId) {
+        messageToSend(
+          {
+            action: "extension-inspector-status",
+          },
+          tabId
+        );
       }
-    );
+    });
   }, []);
 
   useEffect(() => {
     const handleMessage = async (message) => {
-      console.log("handling message from content", message);
       if (message.target === "runtime") {
         if (message.action === "onload-script-inspector-status") {
           const { active } = message.data;
-
-          console.log(
-            "🚀 ------------------------------------------------------------------------🚀"
-          );
-          console.log(
-            "🚀 ⚛︎ file: TreeActionsToolbar.tsx:30 ⚛︎ handleMessage ⚛︎ active:",
-            active
-          );
-          console.log(
-            "🚀 ------------------------------------------------------------------------🚀"
-          );
-
           setIsInspectorActive(active);
         }
       }
@@ -63,16 +47,11 @@ export const TreeActionsToolbar = forwardRef<
 
   const handleInspectorClick = async () => {
     try {
-      const message = await messageToSend({
+      messageToSend({
         action: "script-toggle-inspector",
+      }).then(() => {
+        setIsInspectorActive(!isInspectorActive); // Toggle the inspector status
       });
-      setIsInspectorActive(!isInspectorActive); // Toggle the inspector status
-
-      if (message) {
-        console.log("Response from content script:", message);
-      } else {
-        console.log("No response received from content script");
-      }
     } catch (error) {
       console.error("Error in handleClick:", error);
     }
