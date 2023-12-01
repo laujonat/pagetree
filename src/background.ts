@@ -25,7 +25,6 @@ chrome.action.onClicked.addListener(async function (tab) {
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
   // Log the change info for debugging
   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
-
   // Check if the tab update is complete
   if (changeInfo.status === "complete") {
     // Set icon and badge text once the tab is completely loaded
@@ -54,7 +53,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
 async function handleBackgroundMessages(message, { tab }) {
-  console.log(message, tab);
   // Return early if this message isn't meant for the background script
   if (message.target !== "background") {
     return;
@@ -75,7 +73,6 @@ async function handleBackgroundMessages(message, { tab }) {
       }
       break;
     case "reload-active-tab":
-      console.log("background reload");
       if (tab.id) {
         chrome.tabs.reload(tab?.id as number).then((result) => {
           console.log("background task -> reload-active-tab", result);
@@ -114,16 +111,14 @@ chrome.sidePanel
   .catch((error) => console.error(error));
 
 chrome.runtime.onInstalled.addListener(async function () {
-  chrome.action.setBadgeText({ text: "0" });
+  //   chrome.action.setBadgeText({ text: "0" });
   const contexts = ["selection", "link", "editable", "image", "video", "audio"];
-
   chrome.contextMenus.create({
     title: "Visualize '%s' Element Tree",
     contexts: [...contexts],
     id: "context-element",
   });
 
-  // Create a parent item and two children.
   chrome.contextMenus.create({
     title: "Visualize Page Document Tree",
     contexts: ["all"],
@@ -179,14 +174,3 @@ chrome.runtime.onInstalled.addListener((details) => {
     chrome.runtime.setUninstallURL("https://example.com/extension-survey");
   }
 });
-
-function relayMessageToContentScript(
-  tabid,
-  { action, data, target = "sidepanel" }
-) {
-  chrome.runtime.sendMessage(tabid, {
-    action,
-    target,
-    data,
-  });
-}

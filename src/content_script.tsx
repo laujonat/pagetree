@@ -60,6 +60,7 @@ async function handleSidepanelMessages(
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "check-document-status":
+      forceInspectorStop();
       relayMessageToExtension({
         type: "document-status-response",
         data: {
@@ -69,9 +70,6 @@ async function handleSidepanelMessages(
         },
         target: "background",
       });
-      if (typeof document === "undefined") {
-        forceInspectorStop();
-      }
       break;
     case "toggle-dark-mode":
       chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
@@ -79,7 +77,6 @@ async function handleSidepanelMessages(
       });
       break;
     case "extension-scan-page":
-      console.log("SCANNDING PAGE", document);
       if (typeof document !== "undefined") {
         relayMessageToExtension({
           type: "update-gentree-state",
@@ -104,8 +101,7 @@ async function handleSidepanelMessages(
       console.log("script toggle inspector");
       try {
         if (isInspectorActive) {
-          Inspector.deactivate();
-          isInspectorActive = false;
+          forceInspectorStop();
         } else {
           Inspector.activate();
           isInspectorActive = true;
@@ -115,7 +111,7 @@ async function handleSidepanelMessages(
           data: isInspectorActive,
         });
       } catch (e) {
-        isInspectorActive = false;
+        forceInspectorStop();
         throw new Error("InspectorErr");
       }
       break;
@@ -133,7 +129,6 @@ async function handleSidepanelMessages(
       forceInspectorStop();
       break;
     case "extension-reload-content":
-      console.log("here-reload, ", sender);
       relayMessageToExtension({
         type: "reload-active-tab",
         data: tab?.id as number,
@@ -152,6 +147,12 @@ function forceInspectorStop() {
     if (isInspectorActive) {
       Inspector.deactivate();
       isInspectorActive = false;
+      relayMessageToExtension({
+        type: "onload-script-inspector-status",
+        data: {
+          active: isInspectorActive,
+        },
+      });
     }
   } catch (e) {
     throw new Error("InspectorErr");

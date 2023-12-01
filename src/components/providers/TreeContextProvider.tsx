@@ -157,7 +157,6 @@ export const TreeProvider = ({
     newState: Partial<TreeProps>,
     isNewTree: boolean = false
   ) => {
-    console.log(newState);
     setTreeState((prevState) => ({
       ...prevState,
       ...newState,
@@ -166,7 +165,6 @@ export const TreeProvider = ({
   };
 
   const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
-    console.log("newState", newState);
     setSelectedNode(newState);
   };
 
@@ -203,7 +201,6 @@ export const TreeProvider = ({
 
   useEffect(() => {
     const handleMessage = async (message) => {
-      console.log("handling message from content", message);
       if (message.target === "runtime") {
         if (message.action === "update-gentree-state") {
           setLoaded(false);
@@ -221,58 +218,6 @@ export const TreeProvider = ({
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
   }, [updateTreeState]);
-
-  //   useEffect(() => {
-  //     if (!loaded) {
-  //       try {
-  //         // @ts-ignore ajhlksdjlksa
-  //         async function scanActiveTabHTML(message: {
-  //           target: string;
-  //           action: string;
-  //         }) {
-  //           if (!chrome.tabs) {
-  //             // console.log(chrome.tabs);
-  //             throw new Error("no tabs");
-  //           }
-  //           chrome.tabs.query(
-  //             { active: true, lastFocusedWindow: true },
-  //             async (tabs) => {
-  //               //   console.log("tabs", tabs, message);
-  //               if (tabs[0]?.id) {
-  //                 const response = await chrome.tabs.sendMessage(
-  //                   tabs[0].id,
-  //                   message
-  //                 );
-  //                 // @ts-ignore asdsad
-  //                 if (response?.data) {
-  //                   // @ts-ignore asdsad
-  //                   const r3dtNodes = await genTreeData(response.data);
-  //                   updateTreeState(
-  //                     {
-  //                       data: r3dtNodes,
-  //                       //   dimensions: {
-  //                       //     width: translate.x / 2,
-  //                       //     height: translate.y,
-  //                       //   },
-  //                       //   translate: { x: translate.x / 2, y: translate.y / 2 },
-  //                     },
-  //                     true
-  //                   );
-  //                   setLoaded(true);
-  //                 }
-  //               }
-  //             }
-  //           );
-  //         }
-  //         scanActiveTabHTML({
-  //           target: "sidepanel",
-  //           action: "extension-scan-page",
-  //         });
-  //       } catch (error) {
-  //         reportError({ message: getErrorMessage(error) });
-  //       }
-  //     }
-  //   }, [translate, loaded]);
 
   function getTreeElement() {
     if (!treeRef.current) {
@@ -292,9 +237,6 @@ export const TreeProvider = ({
   }
 
   function highlightSelectedPath(paths, selectedChildIndex) {
-    // if (selectedChildIndex < 0 || selectedChildIndex >= paths.length) {
-    //   throw new Error("IndexOutOfBounds");
-    // }
     const selectedPath = paths[selectedChildIndex];
     if (selectedPath) {
       selectedPath.id = "current-path";
@@ -317,6 +259,7 @@ export const TreeProvider = ({
     const relevantPaths = linkPaths.slice(-selectedNodeChildCount);
     return relevantPaths;
   }
+
   function removeDescendantPathStyles() {
     const paths = selectNodeDescendantPaths();
     paths.forEach((path) => {
@@ -326,6 +269,7 @@ export const TreeProvider = ({
     });
     return paths;
   }
+
   const highlightPathToNode = (rd3tNode, evt, orientation) => {
     if (!settings.shouldCollapseNeighborNodes) return false;
     // Ensure treeElement is an SVGElement before proceeding

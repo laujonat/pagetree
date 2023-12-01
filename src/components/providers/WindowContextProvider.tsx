@@ -43,7 +43,6 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
     (event: MouseEvent) => {
       refsHandlers.current.forEach((rh) => {
         if (rh.ref.current && !rh.ref.current.contains(event.target as Node)) {
-          console.log(event);
           rh.handler(event);
         }
       });
@@ -53,30 +52,24 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
       console.warn("Tab reopened, refetch the data!");
-      chrome.tabs.query(
-        { active: true, lastFocusedWindow: true },
-        async (tabs) => {
-          const tabId = tabs[0]?.id;
-          if (tabId) {
-            messageToSend({ action: "check-document-status" }, tabId);
-          }
+      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const tabId = tabs[0]?.id;
+        if (tabId) {
+          messageToSend({ action: "check-document-status" }, tabId);
         }
-      );
+      });
     } else if (document.visibilityState === "hidden") {
       console.warn("Sidepanel closed or tab is no longer active.");
 
-      chrome.tabs.query(
-        { active: true, lastFocusedWindow: true },
-        async (tabs) => {
-          const tabId = tabs[0]?.id;
-          if (tabId) {
-            messageToSend(
-              { action: "definite-stop-inspector", target: "background" },
-              tabId
-            );
-          }
+      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const tabId = tabs[0]?.id;
+        if (tabId) {
+          messageToSend(
+            { action: "definite-stop-inspector", target: "background" },
+            tabId
+          );
         }
-      );
+      });
     }
   };
 
