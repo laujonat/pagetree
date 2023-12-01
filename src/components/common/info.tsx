@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useId, useRef } from "react";
 import { Orientation } from "react-d3-tree";
 
 import useDraggable from "../../hooks/useDraggable";
@@ -110,9 +110,6 @@ function DetailsPanel() {
   const { selectedNode } = useTree();
   const elementContainer = useRef(null);
   useDraggable(elementContainer);
-  useEffect(() => {
-    console.log("selectedNode from details panel", selectedNode);
-  }, [selectedNode]);
 
   const renderChildren = (children) => {
     return children.map((child, idx) => <DetailsItem {...child} key={idx} />);

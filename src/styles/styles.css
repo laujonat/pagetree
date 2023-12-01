@@ -12,6 +12,8 @@
   --box-shadow: rgba(0, 0, 0, 0.05) 0 6px 24px 0px,
     rgba(0, 0, 0, 0.08) 0 0 0 1px;
   --box-shadow-active: 0 0 0 3px rgb(7 56 68);
+  --button-active: rgb(240, 194, 31);
+  --button-active-hover: rgba(75, 189, 255, 0.364);
   --icon-fill-dark: #fff;
   --icon-fill-light: #282828;
   --link-color: #005fcc;
@@ -30,14 +32,14 @@
   --text-color-dark: #e0e0e0;
   --text-color-light: #333;
 
-  --webkit-tag-name-dark: rgb(73 166 210);
-  --webkit-tag-attribute-key-dark: rgb(124, 172, 248);
-  --webkit-tag-attribute-value-dark: rgb(254, 141, 89);
   --webkit-doctype: rgb(192, 192, 192);
   --webkit-resource-link: rgb(227, 186, 89);
-  --webkit-tag-name-light: rgb(142, 0, 75);
+  --webkit-tag-attribute-key-dark: rgb(124, 172, 248);
   --webkit-tag-attribute-key-light: rgb(159, 67, 18);
+  --webkit-tag-attribute-value-dark: rgb(254, 141, 89);
   --webkit-tag-attribute-value-light: rgb(8, 66, 160);
+  --webkit-tag-name-dark: rgb(73 166 210);
+  --webkit-tag-name-light: rgb(142, 0, 75);
 
   --monospace-font-size: 11px;
   --monospace-font-family: menlo, monospace;
@@ -190,7 +192,7 @@ strong.nodelen__text {
   left: 0;
   top: 0;
   padding: 1em 10px;
-  background-color: var(--bg-0);
+  background-color: transparent;
   position: absolute;
 }
 
@@ -280,11 +282,12 @@ strong.nodelen__text {
 }
 
 .tree-selector__left > div.tree-selector__action::before {
+  content: "Expand tree elements";
   background: var(--bg-1);
   border-radius: 3px;
   border: 1px solid var(--border);
   color: var(--icon-color);
-  content: "Toggle inspector";
+  content: "Expand tree elements";
   left: calc(50% + 11px);
   line-height: 16px;
   position: absolute;
@@ -293,8 +296,11 @@ strong.nodelen__text {
   transform: translate(-100%, -100%);
   transition-delay: 200ms;
   user-select: none;
-  /* white-space: pre; */
   z-index: 999;
+}
+
+.tree-selector__left > div.tree-selector__action.toggle-inspector::before {
+  content: "Toggle inspector";
 }
 
 .tree-selector__left > div.tree-selector__action::after {
@@ -325,22 +331,33 @@ strong.nodelen__text {
 
 .tree-selector__left > div.tree-selector__action > button {
   background-color: var(--bg-1);
-  border-radius: 0px;
+  border-radius: 5px;
   white-space: nowrap;
   padding-inline: 3px;
   box-shadow: none !important;
   padding: 2px 7px;
 }
 
+.tree-selector__left > div.tree-selector__action.active > button {
+  background-color: var(--button-active);
+}
+
+.tree-selector__left > div.tree-selector__action > button:hover {
+  background-color: var(--button-active-hover) !important;
+}
+
 .tree-selector__left > div.tree-selector__action button {
+  cursor: pointer;
+  padding: 5px;
   background-color: var(--bg-1);
-  border-radius: 0px;
   white-space: nowrap;
-  box-shadow: none !important;
   line-height: 0;
   min-height: 30px;
-  padding: 0 3px; /* Updated to set horizontal padding only */
   border: 1px solid var(--border);
+}
+
+.tree-selector__left > div.tree-selector__action.active > button ::hover {
+  background-color: var(--button-active-hover) !important;
 }
 
 .tree-selector > div.tree-selector__right {
@@ -357,8 +374,12 @@ strong.nodelen__text {
   justify-content: flex-end;
 }
 
-.tree-toolbar__select {
+select.tree-toolbar__select {
   font-size: 12px;
+}
+
+select.tree-toolbar__select > option {
+  cursor: pointer;
 }
 
 .tree-selector__right,
@@ -371,6 +392,7 @@ strong.nodelen__text {
 
 .tree-toolbar__right > div.button {
   padding: 5px 10px;
+  cursor: pointer;
 }
 .tree-toolbar__right > div.button.active {
   border-bottom: 1px solid var(--border-active);
@@ -498,8 +520,14 @@ g > foreignObject > div > p.tree__text {
 }
 
 div.tree__layout_element {
-  padding: 5px 10px;
+  background-color: var(--bg-0);
+  max-width: 60%;
+  padding: 3px 10px;
   font-size: 12px;
+  float: right;
+  z-index: 999;
+  position: relative;
+  border-bottom-left-radius: 5px;
 }
 
 .details__wrapper {
@@ -730,7 +758,14 @@ section.wrapper {
   padding: 5px 10px;
 
   outline: 0px;
-  transition: all 0.5s ease 0s;
+  transition: all 0.2s ease 0s;
+}
+
+.tabs > div button {
+  cursor: pointer;
+}
+.tabs > div button:hover {
+  background-color: var(--bg-1);
 }
 .tabs > div button:first-child {
   border-left-width: 1px;

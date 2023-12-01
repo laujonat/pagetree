@@ -1,8 +1,7 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 
 import useChrome from "../../hooks/useChrome";
 import { TreeHierarchyNode } from "../../types";
-import { DevToolsElement } from "../common/info";
 
 interface TreeActionsToolbarProps {
   selectedNode: TreeHierarchyNode;
@@ -11,15 +10,64 @@ interface TreeActionsToolbarProps {
 export const TreeActionsToolbar = forwardRef<
   HTMLDivElement,
   TreeActionsToolbarProps
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >((props: TreeActionsToolbarProps, ref) => {
-  const { selectedNode } = props;
   const { messageToSend } = useChrome();
-  const handleClick = async () => {
+  const [isInspectorActive, setIsInspectorActive] = useState<boolean>(false);
+  useEffect(() => {
+    chrome.tabs.query(
+      { active: true, lastFocusedWindow: true },
+      async (tabs) => {
+        const tabId = tabs[0]?.id;
+        if (tabId) {
+          messageToSend(
+            {
+              action: "extension-inspector-status",
+            },
+            tabId
+          );
+        }
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    const handleMessage = async (message) => {
+      console.log("handling message from content", message);
+      if (message.target === "runtime") {
+        if (message.action === "onload-script-inspector-status") {
+          const { active } = message.data;
+
+          console.log(
+            "🚀 ------------------------------------------------------------------------🚀"
+          );
+          console.log(
+            "🚀 ⚛︎ file: TreeActionsToolbar.tsx:30 ⚛︎ handleMessage ⚛︎ active:",
+            active
+          );
+          console.log(
+            "🚀 ------------------------------------------------------------------------🚀"
+          );
+
+          setIsInspectorActive(active);
+        }
+      }
+      return true;
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, [setIsInspectorActive]);
+
+  const handleInspectorClick = async () => {
     try {
       const message = await messageToSend({
         action: "script-toggle-inspector",
-        target: "sidepanel",
       });
+      setIsInspectorActive(!isInspectorActive); // Toggle the inspector status
+
       if (message) {
         console.log("Response from content script:", message);
       } else {
@@ -33,20 +81,19 @@ export const TreeActionsToolbar = forwardRef<
   return (
     <div className="tree-selector">
       <div className="tree-selector__left">
-        <div className="tree-selector__action">
-          <button aria-label="Toggle inspector" onClick={handleClick}>
+        <div
+          className={`tree-selector__action toggle-inspector ${
+            isInspectorActive ? "active" : ""
+          }`}
+        >
+          <button aria-label="Toggle inspector" onClick={handleInspectorClick}>
             <InspectorIcon />
           </button>
         </div>
-        <div className="tree-selector__action">
+        <div className="tree-selector__action expand-elements">
           <button aria-label="Expand tree elements">
             <ExpandAllIcon />
           </button>
-        </div>
-      </div>
-      <div className="tree-selector__right">
-        <div className="webkit-element__scrollable" ref={ref}>
-          {selectedNode?.data && <DevToolsElement {...selectedNode.data} />}
         </div>
       </div>
     </div>
@@ -74,15 +121,15 @@ function InspectorIcon() {
 function ExpandAllIcon() {
   return (
     <svg
-      width="18"
-      height="18"
-      viewBox="0 0 22 22"
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <g clipPath="url(#a)">
         <path
-          d="M5 9v7M5 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5.5 22a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM18.5 22a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM5.13 9a4.058 4.058 0 0 0 3.94 3.04l3.43-.01a5.989 5.989 0 0 1 5.67 4.01"
+          d="M5 9v7m0-8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm.5 14a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm13 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM5.13 9a4.058 4.058 0 0 0 3.94 3.04l3.43-.01a5.989 5.989 0 0 1 5.67 4.01"
           stroke="var(--icon-fill)"
           strokeWidth="1.5"
           strokeLinecap="round"

@@ -9,7 +9,6 @@ import {
   TreeProps,
 } from "react-d3-tree";
 
-import { getErrorMessage } from "../../logger";
 import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/d3node";
 import {
@@ -149,8 +148,10 @@ export const TreeProvider = ({
         treeRef.current.gInstanceRef
       )[0] as SVGElement;
       setTreeElement(tElement);
+    } else {
+      setLoaded(false);
     }
-  }, [treeRef.current]);
+  }, [treeRef.current, setLoaded]);
 
   const updateTreeState = async (
     newState: Partial<TreeProps>,
@@ -168,18 +169,21 @@ export const TreeProvider = ({
     console.log("newState", newState);
     setSelectedNode(newState);
   };
+
   useEffect(() => {
-    updateTreeState({
-      orientation: settings.orientation,
-      separation:
-        settings.orientation === "vertical"
-          ? { siblings: 0.75, nonSiblings: 1.5 }
-          : { siblings: 0.5, nonSiblings: 0 },
-      dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
-      translate: translate, // Use calculated translate
-      zoom: 1.5,
-    });
-  }, [settings.orientation, translate]);
+    if (loaded) {
+      updateTreeState({
+        orientation: settings.orientation,
+        separation:
+          settings.orientation === "vertical"
+            ? { siblings: 0.75, nonSiblings: 1.5 }
+            : { siblings: 0.5, nonSiblings: 0 },
+        dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
+        translate: translate, // Use calculated translate
+        zoom: 1.5,
+      });
+    }
+  }, [settings.orientation, translate, loaded]);
 
   useEffect(() => {
     setTreeState((prevState) => ({
@@ -199,12 +203,15 @@ export const TreeProvider = ({
 
   useEffect(() => {
     const handleMessage = async (message) => {
-      if (message.action === "process-context-menu-selection") {
-        setLoaded(false);
-        const r3dtNodes = await genTreeData(message.data);
-        await updateTreeState({ data: r3dtNodes }, true);
-        setLoaded(true);
-        setShouldDispatchClick(true);
+      console.log("handling message from content", message);
+      if (message.target === "runtime") {
+        if (message.action === "update-gentree-state") {
+          setLoaded(false);
+          const r3dtNodes = await genTreeData(message.data);
+          await updateTreeState({ data: r3dtNodes }, true);
+          setLoaded(true);
+          setShouldDispatchClick(true);
+        }
       }
       return true;
     };
@@ -215,57 +222,57 @@ export const TreeProvider = ({
     };
   }, [updateTreeState]);
 
-  useEffect(() => {
-    if (!loaded) {
-      try {
-        // @ts-ignore ajhlksdjlksa
-        async function scanActiveTabHTML(message: {
-          target: string;
-          action: string;
-        }) {
-          if (!chrome.tabs) {
-            // console.log(chrome.tabs);
-            throw new Error("no tabs");
-          }
-          chrome.tabs.query(
-            { active: true, lastFocusedWindow: true },
-            async (tabs) => {
-              //   console.log("tabs", tabs, message);
-              if (tabs[0]?.id) {
-                const response = await chrome.tabs.sendMessage(
-                  tabs[0].id,
-                  message
-                );
-                // @ts-ignore asdsad
-                if (response?.data) {
-                  // @ts-ignore asdsad
-                  const r3dtNodes = await genTreeData(response.data);
-                  updateTreeState(
-                    {
-                      data: r3dtNodes,
-                      //   dimensions: {
-                      //     width: translate.x / 2,
-                      //     height: translate.y,
-                      //   },
-                      //   translate: { x: translate.x / 2, y: translate.y / 2 },
-                    },
-                    true
-                  );
-                  setLoaded(true);
-                }
-              }
-            }
-          );
-        }
-        scanActiveTabHTML({
-          target: "sidepanel",
-          action: "extension-scan-page",
-        });
-      } catch (error) {
-        reportError({ message: getErrorMessage(error) });
-      }
-    }
-  }, [translate, loaded]);
+  //   useEffect(() => {
+  //     if (!loaded) {
+  //       try {
+  //         // @ts-ignore ajhlksdjlksa
+  //         async function scanActiveTabHTML(message: {
+  //           target: string;
+  //           action: string;
+  //         }) {
+  //           if (!chrome.tabs) {
+  //             // console.log(chrome.tabs);
+  //             throw new Error("no tabs");
+  //           }
+  //           chrome.tabs.query(
+  //             { active: true, lastFocusedWindow: true },
+  //             async (tabs) => {
+  //               //   console.log("tabs", tabs, message);
+  //               if (tabs[0]?.id) {
+  //                 const response = await chrome.tabs.sendMessage(
+  //                   tabs[0].id,
+  //                   message
+  //                 );
+  //                 // @ts-ignore asdsad
+  //                 if (response?.data) {
+  //                   // @ts-ignore asdsad
+  //                   const r3dtNodes = await genTreeData(response.data);
+  //                   updateTreeState(
+  //                     {
+  //                       data: r3dtNodes,
+  //                       //   dimensions: {
+  //                       //     width: translate.x / 2,
+  //                       //     height: translate.y,
+  //                       //   },
+  //                       //   translate: { x: translate.x / 2, y: translate.y / 2 },
+  //                     },
+  //                     true
+  //                   );
+  //                   setLoaded(true);
+  //                 }
+  //               }
+  //             }
+  //           );
+  //         }
+  //         scanActiveTabHTML({
+  //           target: "sidepanel",
+  //           action: "extension-scan-page",
+  //         });
+  //       } catch (error) {
+  //         reportError({ message: getErrorMessage(error) });
+  //       }
+  //     }
+  //   }, [translate, loaded]);
 
   function getTreeElement() {
     if (!treeRef.current) {
@@ -285,9 +292,9 @@ export const TreeProvider = ({
   }
 
   function highlightSelectedPath(paths, selectedChildIndex) {
-    if (selectedChildIndex < 0 || selectedChildIndex >= paths.length) {
-      throw new Error("IndexOutOfBounds");
-    }
+    // if (selectedChildIndex < 0 || selectedChildIndex >= paths.length) {
+    //   throw new Error("IndexOutOfBounds");
+    // }
     const selectedPath = paths[selectedChildIndex];
     if (selectedPath) {
       selectedPath.id = "current-path";

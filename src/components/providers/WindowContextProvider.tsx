@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useClickOutside } from "use-events";
 
+import useChrome from "../../hooks/useChrome";
 import { RefHandler } from "../../types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +21,7 @@ interface WindowProviderProps {
 
 const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const refsHandlers = useRef<RefHandler[]>([]);
-
+  const { messageToSend } = useChrome();
   const registerClickOutside = useCallback(
     (
       ref: MutableRefObject<HTMLElement>,
@@ -51,7 +52,31 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
 
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
-      console.log("Tab reopened, refetch the data!");
+      console.warn("Tab reopened, refetch the data!");
+      chrome.tabs.query(
+        { active: true, lastFocusedWindow: true },
+        async (tabs) => {
+          const tabId = tabs[0]?.id;
+          if (tabId) {
+            messageToSend({ action: "check-document-status" }, tabId);
+          }
+        }
+      );
+    } else if (document.visibilityState === "hidden") {
+      console.warn("Sidepanel closed or tab is no longer active.");
+
+      chrome.tabs.query(
+        { active: true, lastFocusedWindow: true },
+        async (tabs) => {
+          const tabId = tabs[0]?.id;
+          if (tabId) {
+            messageToSend(
+              { action: "definite-stop-inspector", target: "background" },
+              tabId
+            );
+          }
+        }
+      );
     }
   };
 

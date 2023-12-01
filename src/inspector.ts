@@ -236,9 +236,11 @@ class Inspector {
   deactivate() {
     this.$wrap.classList.add("-out");
     document.removeEventListener("mousemove", this.log);
-    setTimeout(() => {
-      document.body.removeChild(this.$host);
-    }, 600);
+    if (this.$host) {
+      setTimeout(() => {
+        document.body.removeChild(this.$host);
+      }, 600);
+    }
   }
 }
 

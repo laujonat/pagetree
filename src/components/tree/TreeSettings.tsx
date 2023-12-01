@@ -81,9 +81,18 @@ export function TreeSettings({ settings, updateSetting }) {
     updateSetting("shouldCollapseNeighborNodes", newValue);
   };
 
+  const handleThemeUpdate = (newValue: string) => {
+    updateSetting("darkMode", newValue);
+  };
+
   const handleUpdatePathFunc = (newPathFunction: string) => {
     updateSetting("pathFunc", newPathFunction);
   };
+
+  const themeOptions = [
+    { label: "Light", value: "disabled" },
+    { label: "Dark", value: "enabled" },
+  ];
 
   const orientationOptions = [
     { label: "Horizontal", value: "horizontal" },
@@ -104,6 +113,12 @@ export function TreeSettings({ settings, updateSetting }) {
 
   return (
     <section className="tree-settings__container">
+      <SettingsOption
+        label="Theme"
+        options={themeOptions}
+        active={settings.darkMode}
+        onChange={handleThemeUpdate}
+      />
       <SettingsOption
         label="Tree orientation"
         options={orientationOptions}
