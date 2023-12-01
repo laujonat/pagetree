@@ -39,7 +39,8 @@ type ContentTargetType = "runtime" | "background";
 interface IMessage {
   target: "sidepanel" | "popup";
   action: string;
-  data: object;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
 }
 
 interface IRelayMessageOptions {

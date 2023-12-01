@@ -44,13 +44,28 @@ document.addEventListener(
   },
   true
 );
+function waitForDOMReady(callback) {
+  let timer;
+  const observer = new MutationObserver(() => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      observer.disconnect();
+      callback();
+    }, 500); // Adjust the timeout to suit the page's load characteristics
+  });
 
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+}
 async function handleSidepanelMessages(
   message: IMessage,
   sender: chrome.runtime.MessageSender,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
+  console.log(message);
   // Return early if this message isn't meant for the sidepanel document.
   if (message.target !== "sidepanel") {
     return false;
@@ -61,14 +76,12 @@ async function handleSidepanelMessages(
   switch (message.action) {
     case "check-document-status":
       forceInspectorStop();
-      relayMessageToExtension({
-        type: "document-status-response",
-        data: {
-          isDocumentAvailable:
-            typeof document !== "undefined" &&
-            document.readyState === "complete",
-        },
-        target: "background",
+      waitForDOMReady(() => {
+        relayMessageToExtension({
+          type: "document-status-response",
+          data: { isDocumentAvailable: true },
+          target: "background",
+        });
       });
       break;
     case "toggle-dark-mode":
@@ -96,6 +109,18 @@ async function handleSidepanelMessages(
         type: "update-gentree-state",
         data: createTreeNodes(document.documentElement),
       });
+      break;
+    case "process-inspector-selected-element":
+      console.warn("Processing inspector selected element", message.data);
+      if (message.data) {
+        const element = document.querySelector(message.data);
+        relayMessageToExtension({
+          type: "update-gentree-state",
+          data: createTreeNodes(element),
+        });
+      } else {
+        console.error("No selected element to process");
+      }
       break;
     case "script-toggle-inspector":
       console.log("script toggle inspector");

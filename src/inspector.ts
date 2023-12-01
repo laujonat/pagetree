@@ -80,6 +80,24 @@ class Inspector {
 
   registerEvents() {
     document.addEventListener("mousemove", this.log);
+    document.addEventListener("click", (e) => {
+      if (e.target instanceof HTMLElement) {
+        // Extract information from the element
+        const elementInfo = {
+          tagName: e.target.tagName,
+          id: e.target.id,
+          classes: e.target.className,
+          // You can add more properties as needed
+        };
+
+        // Send this information to the background script or elsewhere
+        chrome.runtime.sendMessage({
+          action: "process-inspector-selected-element",
+          data: elementInfo,
+          target: "background",
+        });
+      }
+    });
     document.addEventListener("scroll", this.layout);
     window.addEventListener("resize", () => {
       this.handleResize();
@@ -222,6 +240,10 @@ class Inspector {
   handleResize() {
     this.width = this.$canvas.width = window.innerWidth;
     this.height = this.$canvas.height = window.innerHeight;
+  }
+
+  get target() {
+    return this.$target;
   }
 
   // code highlighting

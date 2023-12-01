@@ -25,7 +25,7 @@ export const TreeLayout = () => {
       content: (
         <>
           {!loaded ? (
-            <h1 className="loading">Loading..</h1>
+            <div className="loader"></div>
           ) : (
             <div style={{ height: "87%" }}>
               <div className="tree__layout_element">

@@ -1,5 +1,17 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck types unavailable?
+
+function createSelectorFromElementInfo(info) {
+  let selector = info.tagName.toLowerCase();
+  if (info.id) {
+    selector += `#${info.id}`;
+  }
+  if (info.classes) {
+    selector += `.${info.classes.split(" ").join(".")}`;
+  }
+  return selector;
+}
+
 /* Persistent storage data setup  */
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
@@ -53,6 +65,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
 async function handleBackgroundMessages(message, { tab }) {
+  console.log(message, tab);
   // Return early if this message isn't meant for the background script
   if (message.target !== "background") {
     return;
@@ -70,6 +83,16 @@ async function handleBackgroundMessages(message, { tab }) {
     case "update-gentree-state":
       if (tab.id) {
         chrome.tabs.sendMessage(tab.id, message);
+      }
+      break;
+    case "process-inspector-selected-element":
+      if (tab.id) {
+        const elementSelector = createSelectorFromElementInfo(message.data);
+        chrome.tabs.sendMessage(tab.id, {
+          action: "process-inspector-selected-element",
+          target: "sidepanel",
+          data: elementSelector,
+        });
       }
       break;
     case "reload-active-tab":
