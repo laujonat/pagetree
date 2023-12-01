@@ -1,45 +1,153 @@
-import { useEffect, useState } from "react";
+import { useId, useRef } from "react";
+import { Orientation } from "react-d3-tree";
 
-type Options = "enabled" | "disabled";
+import useDraggable from "../../hooks/useDraggable";
+import { useThrottle } from "../../hooks/useThrottle";
+import { useTree } from "../../hooks/useTree";
+import { TreeHierarchyNode, TreeNode } from "../../types";
+import { sanitizeId } from "../../utils/treeutils";
+import { TreeActionsToolbar } from "../tree/TreeActionsToolbar";
 
-export function Header() {
-  const [isDarkMode, setIsDarkMode] = useState<Partial<Options>>();
+const clickEvent = new MouseEvent("click", {
+  view: window,
+  bubbles: true,
+  cancelable: true,
+});
 
-  const handleToggleDarkMode = () => {
-    const newDarkMode = isDarkMode === "enabled" ? "disabled" : "enabled";
-    chrome.storage.sync.set({ darkMode: newDarkMode }).then(() => {
-      setIsDarkMode(newDarkMode);
-      document.body.classList.toggle("dark-mode", newDarkMode === "enabled");
-    });
+export const DevToolsElement = (props: TreeNode) => {
+  const { attrs, children, name } = props;
+  const elementStyle = {
+    color: "var(--webkit-tag-name)",
+  };
+  const elementContainer = useRef(null);
+  useDraggable(elementContainer);
+  const key = useId();
+  const renderAttributes = () => {
+    return Object.entries(attrs)?.map(([attrName, attrValue], idx) => (
+      <span key={idx}>
+        <span style={{ color: "var(--webkit-tag-attribute-key)" }}>
+          &nbsp;
+          {attrName}
+        </span>
+        <span
+          style={{ color: "var(--webkit-tag-attribute-value)" }}
+        >{`="${attrValue}"`}</span>
+      </span>
+    ));
   };
 
-  useEffect(() => {
-    chrome.storage.sync.get(["darkMode"]).then((result) => {
-      const mode = result.darkMode === "enabled" ? "enabled" : "disabled";
-      setIsDarkMode(mode);
-      document.body.classList.toggle("dark-mode", mode === "enabled");
-    });
-  }, []);
+  const expandElement = (): JSX.Element => {
+    return (
+      <span className="expand-button">
+        <span className="dot"></span>
+        <span className="dot"></span>
+        <span className="dot"></span>
+      </span>
+    );
+  };
 
   return (
-    <header className="header">
-      <section className="header__heading">
-        <div> </div>
-      </section>
-      <section className="header__heading-events">
-        <div className="switch js-switch">
-          <input
-            type="checkbox"
-            checked={isDarkMode === "enabled"}
-            className="switch__checkbox js-switch__checkbox"
-            id="switch__checkbox"
-            onChange={handleToggleDarkMode}
-          />
-          <label className="switch__slider" htmlFor="switch__checkbox"></label>
+    <div
+      style={elementStyle}
+      className="webkit-element"
+      key={key}
+      ref={elementContainer}
+    >
+      <code style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</code>
+      {renderAttributes()}
+      <code style={{ color: "var(--webkit-tag-name)" }}>
+        {`>`}
+        <span className="children-placeholder">
+          {children?.length ? expandElement() : ""}
+        </span>
+        {`</${name}>`}
+      </code>
+    </div>
+  );
+};
+
+function DetailsItem(props) {
+  const { highlightPathToNode, removeHighlightPathToNode, treeState } =
+    useTree();
+  const id = useId();
+
+  function getForeignObjectElement(id: string): SVGElement {
+    const selector = `#${sanitizeId(id)} foreignObject`;
+    const foreignObject = document.querySelector(String(selector));
+    if (!foreignObject) throw new Error("SvgElementQueryErr..");
+    return foreignObject as SVGElement;
+  }
+
+  const handleClick = () => {
+    if (props.__rd3t.id) {
+      const fObjElement: SVGElement = getForeignObjectElement(props.__rd3t.id);
+      fObjElement.dispatchEvent(clickEvent);
+    }
+  };
+
+  const throttledHighlightPathToNode = useThrottle(highlightPathToNode, 500);
+
+  const { orientation } = treeState;
+
+  return (
+    <li
+      role="button"
+      key={id}
+      tabIndex={0}
+      className="details__item"
+      onMouseEnter={(evt) =>
+        throttledHighlightPathToNode(props, evt, orientation as Orientation)
+      }
+      onMouseLeave={removeHighlightPathToNode}
+    >
+      <DevToolsElement {...props} />
+      <div className="slider-rotate">
+        <div className="slider-rotate__selector">
+          <div className="slider-rotate__button" onClick={handleClick}>
+            Visit
+          </div>
+          <div className="slider-rotate__button">Expand</div>
         </div>
-      </section>
-    </header>
+      </div>
+    </li>
   );
 }
 
-export default Header;
+function HeaderComponent() {
+  const { selectedNode } = useTree();
+  const elementContainer = useRef(null);
+  useDraggable(elementContainer);
+
+  const renderChildren = (children) => {
+    return children.map((child, idx) => <DetailsItem {...child} key={idx} />);
+  };
+
+  return (
+    <>
+      <TreeActionsToolbar
+        ref={elementContainer}
+        selectedNode={selectedNode as TreeHierarchyNode}
+      />
+      <div className="details__wrapper">
+        <div className="details__header">
+          <div className="details__article">
+            <div>Child Elements</div>
+            {selectedNode?.data?.children && (
+              <div>
+                <b>&#40;{(selectedNode?.data?.children as []).length}&#41;</b>
+              </div>
+            )}
+          </div>
+        </div>
+        <section id="details">
+          <ul className="details__list">
+            {selectedNode?.data?.children &&
+              renderChildren(selectedNode.data?.children)}
+          </ul>
+        </section>
+      </div>
+    </>
+  );
+}
+
+export default HeaderComponent;

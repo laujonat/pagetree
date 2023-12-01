@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck types unavailable?
 
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 function createSelectorFromElementInfo(info) {
   let selector = info.tagName.toLowerCase();
   if (info.id) {
@@ -25,13 +29,13 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 chrome.action.onClicked.addListener(async function (tab) {
-  console.warn("chrome action clicked", tab);
-  await chrome.sidePanel.open({ tabId: tab.id });
-  await chrome.sidePanel.setOptions({
-    tabId: tab.id,
-    path: "sidepanel.html",
-    enabled: true,
+  console.log("chrome action clicked", tab);
+  chrome.tabs.sendMessage(tab.id, {
+    action: "script-toggle-inspector",
+    target: "sidepanel",
+    source: "buttonClick",
   });
+  chrome.sidePanel.open({ tabId: tab.id });
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
@@ -72,6 +76,16 @@ async function handleBackgroundMessages(message, { tab }) {
   }
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
+    case "fetch-current-tab-url":
+      console.warn("URL", tab?.url);
+      if (tab?.url) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: "current-tab-url-response",
+          target: "sidepanel",
+          data: { url: tab?.url },
+        });
+      }
+      break;
     case "document-status-response":
       if (message.data.isDocumentAvailable) {
         chrome.tabs.sendMessage(tab.id, {
@@ -110,8 +124,20 @@ async function handleBackgroundMessages(message, { tab }) {
 chrome.contextMenus.onClicked.addListener(genericOnClick);
 
 function genericOnClick(info, tab) {
+  console.log("Tab ID:", tab.id, "clickinfo:", info);
   chrome.sidePanel.open({ tabId: tab.id });
+  chrome.sidePanel.setOptions({
+    tabId: tab.id,
+    path: "sidepanel.html",
+    enabled: true,
+  });
   switch (info.menuItemId) {
+    case "context-selector":
+      chrome.tabs.sendMessage(tab.id, {
+        action: "script-toggle-inspector",
+        target: "sidepanel",
+      });
+      break;
     case "context-page":
       chrome.tabs.sendMessage(tab.id, {
         action: "process-selected-page-context",
@@ -129,13 +155,16 @@ function genericOnClick(info, tab) {
   }
 }
 
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
-
 chrome.runtime.onInstalled.addListener(async function () {
   //   chrome.action.setBadgeText({ text: "0" });
   const contexts = ["selection", "link", "editable", "image", "video", "audio"];
+
+  chrome.contextMenus.create({
+    title: "Element Selector",
+    contexts: ["all"],
+    id: "context-selector",
+  });
+
   chrome.contextMenus.create({
     title: "Visualize '%s' Element Tree",
     contexts: [...contexts],

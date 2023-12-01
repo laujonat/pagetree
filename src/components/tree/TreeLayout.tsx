@@ -1,48 +1,45 @@
-import { Ref, useEffect, useRef, useState } from "react";
+import { Ref, useEffect, useState } from "react";
 
-import { useDraggable } from "../../hooks/useDraggable";
+import useChrome from "../../hooks/useChrome";
 import { useSettings } from "../../hooks/useSettings";
 import { useTree } from "../../hooks/useTree";
-import { DevToolsElement } from "../common/info";
-import { Tabs } from "../common/tabs";
+import { DevToolsElement } from "../common/Header";
+import { Tabs } from "../common/Tabs";
 import { TreeComponent } from "./TreeComponent";
 import { TreeSettings } from "./TreeSettings";
 
 export const TreeLayout = () => {
   const { loaded, treeRef, selectedNode } = useTree();
   const { settings, updateSetting } = useSettings();
+  const { openedBy } = useChrome();
   const [ref, setRef] = useState<Ref<SVGElement> | undefined>();
   useEffect(() => {
     setRef(treeRef as Ref<SVGElement>);
   }, []);
 
-  const elementContainer = useRef(null);
-  useDraggable(elementContainer);
+  const renderContentBasedOnSource = () => {
+    if (!loaded) {
+      return <div className="loader"></div>;
+    } else if (openedBy === "contextMenu") {
+      return <div>Select an element to visualize the tree.</div>;
+    } else {
+      return (
+        <div style={{ height: "87%", width: "100%" }}>
+          <div className="tree__layout_element">
+            <div className="webkit-element__scrollable">
+              {selectedNode?.data && <DevToolsElement {...selectedNode.data} />}
+            </div>
+          </div>
+          <TreeComponent ref={ref} />
+        </div>
+      );
+    }
+  };
 
   const tabsData = [
     {
       label: "Tree",
-      content: (
-        <>
-          {!loaded ? (
-            <div className="loader"></div>
-          ) : (
-            <div style={{ height: "87%" }}>
-              <div className="tree__layout_element">
-                <div
-                  className="webkit-element__scrollable"
-                  ref={elementContainer}
-                >
-                  {selectedNode?.data && (
-                    <DevToolsElement {...selectedNode.data} />
-                  )}
-                </div>
-              </div>
-              <TreeComponent ref={ref} />
-            </div>
-          )}
-        </>
-      ),
+      content: renderContentBasedOnSource(),
     },
     {
       label: "Options",

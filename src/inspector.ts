@@ -78,26 +78,28 @@ class Inspector {
     this.highlight();
   }
 
+  selectElement(e) {
+    if (e.target instanceof HTMLElement) {
+      // Extract information from the element
+      const elementInfo = {
+        tagName: e.target.tagName,
+        id: e.target.id,
+        classes: e.target.className,
+        // You can add more properties as needed
+      };
+
+      // Send this information to the background script or elsewhere
+      chrome.runtime.sendMessage({
+        action: "process-inspector-selected-element",
+        data: elementInfo,
+        target: "background",
+      });
+    }
+  }
+
   registerEvents() {
     document.addEventListener("mousemove", this.log);
-    document.addEventListener("click", (e) => {
-      if (e.target instanceof HTMLElement) {
-        // Extract information from the element
-        const elementInfo = {
-          tagName: e.target.tagName,
-          id: e.target.id,
-          classes: e.target.className,
-          // You can add more properties as needed
-        };
-
-        // Send this information to the background script or elsewhere
-        chrome.runtime.sendMessage({
-          action: "process-inspector-selected-element",
-          data: elementInfo,
-          target: "background",
-        });
-      }
-    });
+    document.addEventListener("click", this.selectElement);
     document.addEventListener("scroll", this.layout);
     window.addEventListener("resize", () => {
       this.handleResize();
@@ -257,6 +259,7 @@ class Inspector {
 
   deactivate() {
     this.$wrap.classList.add("-out");
+    document.removeEventListener("click", this.selectElement);
     document.removeEventListener("mousemove", this.log);
     if (this.$host) {
       setTimeout(() => {

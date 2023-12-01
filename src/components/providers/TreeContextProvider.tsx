@@ -1,21 +1,11 @@
 /* eslint-disable no-inner-declarations */
 import { HierarchyPointNode } from "d3";
 import { createContext, LegacyRef, useEffect, useRef, useState } from "react";
-import {
-  Orientation,
-  Point,
-  Tree,
-  TreeNodeDatum,
-  TreeProps,
-} from "react-d3-tree";
+import { Orientation, Point, Tree, TreeNodeDatum, TreeProps } from "react-d3-tree";
 
 import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/d3node";
-import {
-  renderForeignObjectNode,
-  sortPaths,
-  updateCurrentNode,
-} from "../../utils/treeutils";
+import { renderForeignObjectNode, sortPaths, updateCurrentNode } from "../../utils/treeutils";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
@@ -206,7 +196,6 @@ export const TreeProvider = ({
       console.log("handling message", message);
       if (message.target === "runtime") {
         if (message.action === "update-gentree-state") {
-          setLoaded(false);
           const r3dtNodes = await genTreeData(message.data);
           await updateTreeState({ data: r3dtNodes }, true);
           setLoaded(true);
