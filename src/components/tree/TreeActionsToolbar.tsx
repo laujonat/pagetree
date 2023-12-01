@@ -12,8 +12,34 @@ export const TreeActionsToolbar = forwardRef<
   TreeActionsToolbarProps
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >((props: TreeActionsToolbarProps, ref) => {
-  const { messageToSend } = useChrome();
+  const { messageToSend, tabId } = useChrome();
+  const [tabUrl, setTabUrl] = useState<string>("");
   const [isInspectorActive, setIsInspectorActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Fetch current tab URL when the component mounts
+    if (!tabId) return;
+    messageToSend(
+      {
+        action: "fetch-current-tab-url",
+      },
+      tabId
+    );
+
+    const handleMessage = (message) => {
+      // Handle response with current tab URL
+      if (message.action === "current-tab-url-response") {
+        setTabUrl(message.data.url);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
+  }, [tabId]);
+
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       const tabId = tabs[0]?.id;
@@ -32,6 +58,10 @@ export const TreeActionsToolbar = forwardRef<
     const handleMessage = async (message) => {
       if (message.target === "runtime") {
         if (message.action === "onload-script-inspector-status") {
+          const { active } = message.data;
+          setIsInspectorActive(active);
+        }
+        if (message.action === "script-inspector-status") {
           const { active } = message.data;
           setIsInspectorActive(active);
         }
@@ -58,10 +88,10 @@ export const TreeActionsToolbar = forwardRef<
   };
 
   return (
-    <div className="tree-selector">
-      <div className="tree-selector__left">
+    <div className="tree-actions">
+      <div className="tree-actions__left">
         <div
-          className={`tree-selector__action toggle-inspector ${
+          className={`tree-actions__action toggle-inspector ${
             isInspectorActive ? "active" : ""
           }`}
         >
@@ -69,11 +99,14 @@ export const TreeActionsToolbar = forwardRef<
             <InspectorIcon />
           </button>
         </div>
-        <div className="tree-selector__action expand-elements">
+        <div className="tree-actions__action expand-elements">
           <button aria-label="Expand tree elements">
             <ExpandAllIcon />
           </button>
         </div>
+      </div>
+      <div className="tree-actions__right">
+        <p>{tabUrl}</p>
       </div>
     </div>
   );

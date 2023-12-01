@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 
 export const useChrome = () => {
   const [tabId, setTabId] = useState<number>();
+  const [openedBy, setOpenedBy] = useState<
+    "contextMenu" | "buttonClick" | null
+  >(null);
+  const setSidePanelSource = (source: "contextMenu" | "buttonClick") => {
+    setOpenedBy(source);
+  };
 
   useEffect(() => {
     // Fetch the current active tab ID
@@ -54,7 +60,7 @@ export const useChrome = () => {
     return false;
   };
 
-  return { tabId, messageToSend };
+  return { tabId, messageToSend, setSidePanelSource, openedBy };
 };
 
 export default useChrome;

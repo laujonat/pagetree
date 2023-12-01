@@ -65,7 +65,7 @@ async function handleSidepanelMessages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
-  console.log(message);
+  console.log("content", message);
   // Return early if this message isn't meant for the sidepanel document.
   if (message.target !== "sidepanel") {
     return false;
@@ -75,13 +75,27 @@ async function handleSidepanelMessages(
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "check-document-status":
-      forceInspectorStop();
+      //   forceInspectorStop();
       waitForDOMReady(() => {
         relayMessageToExtension({
           type: "document-status-response",
           data: { isDocumentAvailable: true },
           target: "background",
         });
+      });
+      break;
+    case "fetch-current-tab-url":
+      console.warn("URL", message.data);
+      relayMessageToExtension({
+        type: "fetch-current-tab-url",
+        target: "background",
+      });
+      break;
+    case "current-tab-url-response":
+      console.warn("URL", message.data);
+      relayMessageToExtension({
+        type: "current-tab-url-response",
+        data: { url: message.data.url },
       });
       break;
     case "toggle-dark-mode":
@@ -131,7 +145,9 @@ async function handleSidepanelMessages(
         }
         relayMessageToExtension({
           type: "script-inspector-status",
-          data: isInspectorActive,
+          data: {
+            active: isInspectorActive,
+          },
         });
       } catch (e) {
         forceInspectorStop();

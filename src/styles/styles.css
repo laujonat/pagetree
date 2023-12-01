@@ -64,21 +64,18 @@ html {
 }
 
 body {
-  height: 100%;
-  width: 100%;
-  min-height: 400px;
+  -webkit-font-smoothing: antialiased;
   background-color: var(--background-light);
   color: var(--text-color-light);
   font-family: "Lucida Grande", sans-serif;
   height: 100%;
   margin: 1px;
   min-height: 400px;
-  min-width: 300px;
+  /* min-width: 350px; */
   overflow: hidden;
   position: fixed;
   scroll-behavior: smooth;
   width: 100%;
-  -webkit-font-smoothing: antialiased;
 }
 
 body .wrapper::-webkit-scrollbar {
@@ -107,7 +104,7 @@ ul {
 }
 
 body > #root {
-  min-width: 350px;
+  min-width: 100%;
   height: 400px;
   width: 100%;
 }
@@ -205,12 +202,12 @@ strong.nodelen__text {
 
 /* Load spinner */
 .loader {
-  border: 16px solid #f3f3f3; /* Light grey */
-  border-top: 16px solid #3498db; /* Blue */
+  border: 5px solid var(--icon-fill); /* Light grey */
+  border-top: 5px solid var(--border-active-light); /* Blue */
   border-radius: 50%;
   width: 35px;
   height: 35px;
-  margin: auto;
+  margin: 50% auto;
   animation: spin 2s linear infinite;
 }
 
@@ -266,7 +263,7 @@ strong.nodelen__text {
   color: #a0a0a0;
 }
 
-.tree-selector,
+.tree-actions,
 .tree-toolbar {
   display: flex;
   flex: 0 0 30px;
@@ -280,7 +277,7 @@ strong.nodelen__text {
 }
 
 .tree-toolbar__left,
-.tree-selector__left {
+.tree-actions__left {
   flex: 0 0 30px;
   display: flex;
   min-height: 3em;
@@ -288,7 +285,7 @@ strong.nodelen__text {
 }
 
 .tree-toolbar__left > div.tree-toolbar__label,
-.tree-selector__left > div.tree-selector__action {
+.tree-actions__left > div.tree-actions__action {
   line-height: 0;
   align-items: center;
   border-bottom: none;
@@ -301,7 +298,7 @@ strong.nodelen__text {
   white-space: nowrap;
 }
 
-.tree-selector__left > div.tree-selector__action::before {
+.tree-actions__left > div.tree-actions__action::before {
   content: "Expand tree elements";
   background: var(--bg-1);
   border-radius: 3px;
@@ -319,16 +316,16 @@ strong.nodelen__text {
   z-index: 999;
 }
 
-.tree-selector__left > div.tree-selector__action.toggle-inspector::before {
+.tree-actions__left > div.tree-actions__action.toggle-inspector::before {
   content: "Select Element";
 }
 
-.tree-selector__left > div.tree-selector__action::after {
+.tree-actions__left > div.tree-actions__action::after {
   top: 8px;
   transition-delay: 500ms;
 }
 
-.tree-selector__left > div.tree-selector__action:hover::before {
+.tree-actions__left > div.tree-actions__action:hover::before {
   opacity: 0.9;
   visibility: visible;
   top: 50px;
@@ -337,7 +334,7 @@ strong.nodelen__text {
   transition-delay: 200ms;
 }
 
-.tree-selector__left > div.tree-selector__action:hover:after {
+.tree-actions__left > div.tree-actions__action:hover:after {
   opacity: 0.9;
   content: "";
   border-width: 7px;
@@ -345,11 +342,11 @@ strong.nodelen__text {
   border-color: var(--border);
 }
 
-.tree-selector__left > div.tree-selector__action > div {
+.tree-actions__left > div.tree-actions__action > div {
   margin: auto 1px;
 }
 
-.tree-selector__left > div.tree-selector__action > button {
+.tree-actions__left > div.tree-actions__action > button {
   background-color: var(--bg-1);
   border-radius: 5px;
   white-space: nowrap;
@@ -358,15 +355,15 @@ strong.nodelen__text {
   padding: 2px 7px;
 }
 
-.tree-selector__left > div.tree-selector__action.active > button {
+.tree-actions__left > div.tree-actions__action.active > button {
   background-color: var(--button-active);
 }
 
-.tree-selector__left > div.tree-selector__action > button:hover {
+.tree-actions__left > div.tree-actions__action > button:hover {
   background-color: var(--button-active-hover) !important;
 }
 
-.tree-selector__left > div.tree-selector__action button {
+.tree-actions__left > div.tree-actions__action button {
   cursor: pointer;
   padding: 5px;
   background-color: var(--bg-1);
@@ -376,14 +373,22 @@ strong.nodelen__text {
   border: 1px solid var(--border);
 }
 
-.tree-selector__left > div.tree-selector__action.active > button ::hover {
+.tree-actions__left > div.tree-actions__action.active > button ::hover {
   background-color: var(--button-active-hover) !important;
 }
 
-.tree-selector > div.tree-selector__right {
+.tree-actions > div.tree-actions__right {
   float: left;
   margin: auto;
   overflow: hidden;
+  font-size: 10px;
+}
+
+.tree-actions > div.tree-actions__right > p {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 65%;
 }
 
 .tree-toolbar > div.tree-toolbar__right {
@@ -402,7 +407,7 @@ select.tree-toolbar__select > option {
   cursor: pointer;
 }
 
-.tree-selector__right,
+.tree-actions__right,
 .tree-toolbar__right {
   flex-grow: 1;
   display: flex;
@@ -482,7 +487,12 @@ div.webkit-element span.children-placeholder span.expand-button > .dot {
   border-top: 1px solid rgb(79, 90, 101);
 }
 
-#treeWrapper path.link__to-leaf {
+#treecanvas__container {
+  width: 100%;
+  height: 65vh;
+}
+
+#treecanvas__container path.link__to-leaf {
   stroke: var(--path-to-leaf);
 }
 
@@ -518,23 +528,23 @@ g > foreignObject > div > p.tree__text {
   user-select: none;
 }
 
-#treeWrapper path {
+#treecanvas__container path {
   stroke-width: 0.5;
   stroke-linecap: round !important;
   stroke-linejoin: round !important;
 }
 
-#treeWrapper path.link__to-leaf.current-paths:not(.highlight) {
+#treecanvas__container path.link__to-leaf.current-paths:not(.highlight) {
   stroke-opacity: 1 !important;
 }
 
-#treeWrapper path.link__to-leaf.highlight {
+#treecanvas__container path.link__to-leaf.highlight {
   stroke: var(--path-to-current-leaf);
   stroke-opacity: 1;
   stroke-width: 1 !important;
 }
 
-#treeWrapper path.link__to-branch {
+#treecanvas__container path.link__to-branch {
   stroke: var(--path-to-branch);
   /* stroke-width: 1.25 !important; */
 }
@@ -548,6 +558,13 @@ div.tree__layout_element {
   z-index: 999;
   position: relative;
   border-bottom-left-radius: 5px;
+}
+
+@media screen and (max-width: 400px) {
+  div.tree__layout_element {
+    max-width: 100%; /* Full width */
+    float: none; /* Remove float */
+  }
 }
 
 .details__wrapper {
@@ -617,7 +634,6 @@ main.container {
   display: flex;
   height: 100%;
   width: 100%;
-  min-width: 350px;
   flex-flow: column;
 }
 

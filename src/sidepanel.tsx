@@ -2,7 +2,7 @@ import { StrictMode } from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
-import DetailsPanel from "./components/common/info";
+import HeaderComponent from "./components/common/Header";
 import { SettingsProvider } from "./components/providers/SettingsContextProvider";
 import { TreeProvider } from "./components/providers/TreeContextProvider";
 import WindowProvider from "./components/providers/WindowContextProvider";
@@ -27,14 +27,9 @@ const Sidepanel = () => {
       {/* <Header /> */}
       <main className="container">
         <section className="inspector__container">
-          <DetailsPanel />
+          <HeaderComponent />
           <div className="inspector">
-            <div
-              style={{ width: "100%", height: "65vh" }}
-              id="treeWrapper"
-              className="tree-container"
-              ref={containerRef}
-            >
+            <div id="treecanvas__container" ref={containerRef}>
               <TreeLayout />
             </div>
           </div>
