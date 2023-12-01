@@ -32,3 +32,19 @@ interface Dimension {
   width: number;
   height: number;
 }
+
+// Message passing type safety
+type ContentTargetType = "runtime" | "background";
+
+interface IMessage {
+  target: "sidepanel" | "popup";
+  action: string;
+  data: object;
+}
+
+interface IRelayMessageOptions {
+  type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+  target?: string;
+}

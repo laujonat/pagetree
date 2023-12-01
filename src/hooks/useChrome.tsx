@@ -7,7 +7,7 @@ export const useChrome = () => {
     // Fetch the current active tab ID
     const fetchTabId = async () => {
       try {
-        const queryOptions = { active: true, currentWindow: true };
+        const queryOptions = { active: true, lastFocusedWindow: true };
         const [tab] = await chrome.tabs.query(queryOptions);
         if (tab?.id) {
           setTabId(tab.id);
@@ -34,10 +34,16 @@ export const useChrome = () => {
   }, [tabId]);
 
   // Function to send messages to the content script
-  const messageToSend = async (message) => {
-    if (tabId !== undefined) {
+  const messageToSend = async (message, tabid?: number) => {
+    if (tabId !== undefined || tabid) {
       try {
-        const response = await chrome.tabs.sendMessage(tabId, message);
+        const defaultMessage = { target: "sidepanel" };
+        const finalMessage = { ...defaultMessage, ...message };
+        const response = await chrome.tabs.sendMessage(
+          tabId || (tabid as number),
+          finalMessage
+        );
+
         return response;
       } catch (error) {
         console.error("Error sending message:", error);
