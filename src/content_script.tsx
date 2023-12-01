@@ -98,7 +98,6 @@ async function handleSidepanelMessages(
       }
       break;
     case "process-selected-element-context":
-      console.warn("lastselectedcontext", lastRightClickedElement);
       relayMessageToExtension({
         type: "update-gentree-state",
         data: createTreeNodes(lastRightClickedElement),
@@ -111,7 +110,6 @@ async function handleSidepanelMessages(
       });
       break;
     case "process-inspector-selected-element":
-      console.warn("Processing inspector selected element", message.data);
       if (message.data) {
         const element = document.querySelector(message.data);
         relayMessageToExtension({
@@ -141,7 +139,7 @@ async function handleSidepanelMessages(
       }
       break;
     case "extension-inspector-status":
-      console.warn("checking inspector status");
+      console.log("checking inspector status");
       relayMessageToExtension({
         type: "onload-script-inspector-status",
         data: {

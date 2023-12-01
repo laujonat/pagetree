@@ -42,7 +42,7 @@ const Options = () => {
   return (
     <>
       <div>
-        Favorite color:{" "}
+        Placeholder - No function:{" "}
         <select
           value={color}
           onChange={(event) => setColor(event.target.value)}
