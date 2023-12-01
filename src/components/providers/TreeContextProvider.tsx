@@ -25,6 +25,7 @@ type HighlightPathFunction = (
   orientation: Orientation
 ) => void;
 type RemoveHighlightPathFunction = (evt: React.MouseEvent) => void;
+type SetLoadedFunction = (a: boolean) => void;
 type OnNodeClickFunction = (
   a: HierarchyPointNode<TreeNodeDatum>,
   event: React.MouseEvent
@@ -35,6 +36,7 @@ export type ProviderValue = {
   treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
   selectedNode?: TreeHierarchyNode;
   loaded: boolean;
+  setLoaded: SetLoadedFunction;
   treeRef: LegacyRef<SVGElement> | undefined;
   highlightPathToNode: HighlightPathFunction;
   removeHighlightPathToNode: RemoveHighlightPathFunction;
@@ -201,6 +203,7 @@ export const TreeProvider = ({
 
   useEffect(() => {
     const handleMessage = async (message) => {
+      console.log("handling message", message);
       if (message.target === "runtime") {
         if (message.action === "update-gentree-state") {
           setLoaded(false);
@@ -320,6 +323,7 @@ export const TreeProvider = ({
 
   const value = {
     loaded,
+    setLoaded,
     treeState,
     selectedNode,
     onNodeClick,
@@ -335,6 +339,7 @@ export const TreeProvider = ({
     <TreeContext.Provider
       value={{
         loaded: value.loaded,
+        setLoaded: value.setLoaded,
         treeState: value.treeState,
         selectedNode: value.selectedNode,
         onNodeClick: value.onNodeClick,
