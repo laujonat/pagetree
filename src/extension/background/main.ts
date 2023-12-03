@@ -127,6 +127,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
 });
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
+
 async function handleBackgroundMessages(message, sender) {
   const { tab } = sender;
   console.log(message.action, tab.id);
