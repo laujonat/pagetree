@@ -12,11 +12,11 @@ const _resolve = {
 }
 module.exports = {
     entry: {
-        sidepanel: path.join(srcDir, "sidepanel.tsx"),
-        options: path.join(srcDir, "options.tsx"),
-        background: path.join(srcDir, "background.ts"),
-        script: path.join(srcDir, "inspector.ts"),
-        content_script: path.join(srcDir, "content_script.tsx"),
+        sidepanel: path.join(srcDir, "extension/sidepanel.tsx"),
+        options: path.join(srcDir, "extension/options.tsx"),
+        background: path.join(srcDir, "extension/background/main.ts"),
+        script: path.join(srcDir, "extension/scripts/inspector.ts"),
+        content_script: path.join(srcDir, "extension/content_script.tsx"),
     },
     output: {
         path: path.join(__dirname, "../dist/js"),
@@ -49,7 +49,7 @@ module.exports = {
             patterns: [
                 { from: ".", to: "../", context: "public" },
                 { from: "styles/*.css", to: "../", context: srcDir },
-                { from: "icons/*.{png,svg}", to: "../", context: srcDir },
+                { from: "assets/*.{png,svg}", to: "../", context: srcDir },
             ],
             options: {},
         }),

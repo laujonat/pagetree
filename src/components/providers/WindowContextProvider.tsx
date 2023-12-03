@@ -63,17 +63,17 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
       );
     }
 
-    if (document.visibilityState === "hidden") {
-      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-        const tabId = tabs[0]?.id;
-        if (tabId) {
-          messageToSend(
-            { action: "definite-stop-inspector", target: "background" },
-            tabId
-          );
-        }
-      });
-    }
+    // if (document.visibilityState === "hidden") {
+    //   chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+    //     const tabId = tabs[0]?.id;
+    //     if (tabId) {
+    //       messageToSend(
+    //         { action: "definite-stop-inspector", target: "background" },
+    //         tabId
+    //       );
+    //     }
+    //   });
+    // }
   };
 
   useLayoutEffect(() => {

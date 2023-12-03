@@ -31,15 +31,15 @@
         "default_title": "Visualize Document Tree",
         "default_sidepanel": "sidepanel.html",
         "default_icon": {
-            "16": "icons/icon-inactive.png",
-            "48": "icons/icon48.png",
-            "128": "icons/icon128.png"
+            "16": "assets/icon-inactive.png",
+            "48": "assets/icon48.png",
+            "128": "assets/icon128.png"
         }
     },
     "icons": {
-        "16": "icons/icon-inactive.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
+        "16": "assets/icon-inactive.png",
+        "48": "assets/icon48.png",
+        "128": "assets/icon128.png"
     },
     "web_accessible_resources": [
         {

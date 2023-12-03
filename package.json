@@ -1,7 +1,7 @@
 {
-    "name": "chrome-extension-typescript-starter",
+    "name": "pagetree-inspector-extension",
     "version": "1.0.0",
-    "description": "chrome-extension-typescript-starter",
+    "description": "Visualize distribution of DOM nodes in the document tree",
     "main": "index.js",
     "scripts": {
         "watch": "webpack --config webpack/webpack.dev.js --watch",
@@ -26,7 +26,7 @@
         "use-events": "^1.4.2"
     },
     "devDependencies": {
-        "@types/chrome": "^0.0.158",
+        "@types/chrome": "^0.0.246",
         "@types/jest": "^29.5.0",
         "@types/react": "^18.0.29",
         "@types/react-dom": "^18.0.11",

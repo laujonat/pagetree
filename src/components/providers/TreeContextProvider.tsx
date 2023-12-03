@@ -1,11 +1,21 @@
 /* eslint-disable no-inner-declarations */
 import { HierarchyPointNode } from "d3";
 import { createContext, LegacyRef, useEffect, useRef, useState } from "react";
-import { Orientation, Point, Tree, TreeNodeDatum, TreeProps } from "react-d3-tree";
+import {
+  Orientation,
+  Point,
+  Tree,
+  TreeNodeDatum,
+  TreeProps,
+} from "react-d3-tree";
 
 import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/d3node";
-import { renderForeignObjectNode, sortPaths, updateCurrentNode } from "../../utils/treeutils";
+import {
+  renderForeignObjectNode,
+  sortPaths,
+  updateCurrentNode,
+} from "../../utils/treeutils";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
@@ -67,6 +77,7 @@ export const TreeProvider = ({
   const [selectedNode, setSelectedNode] =
     useState<HierarchyPointNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
+
   const [onNodeClick, setOnNodeClick] = useState<OnNodeClickFunction>(
     () => () => {}
   );
@@ -135,6 +146,10 @@ export const TreeProvider = ({
   });
 
   useEffect(() => {
+    console.log("loaded", loaded);
+  }, [loaded]);
+
+  useEffect(() => {
     if (treeRef.current instanceof Tree) {
       const tElement = document.getElementsByClassName(
         treeRef.current.gInstanceRef
@@ -154,6 +169,7 @@ export const TreeProvider = ({
       ...newState,
       dataKey: isNewTree ? `tree-${Date.now()}` : prevState.dataKey,
     }));
+    // setLoaded(true);
   };
 
   const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
@@ -196,20 +212,20 @@ export const TreeProvider = ({
       console.log("handling message", message);
       if (message.target === "runtime") {
         if (message.action === "update-gentree-state") {
+          console.warn("updating");
           const r3dtNodes = await genTreeData(message.data);
           await updateTreeState({ data: r3dtNodes }, true);
           setLoaded(true);
           setShouldDispatchClick(true);
         }
       }
-      return true;
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
-  }, [updateTreeState]);
+  }, [updateTreeState, setLoaded, setShouldDispatchClick]);
 
   function getTreeElement() {
     if (!treeRef.current) {
@@ -234,7 +250,6 @@ export const TreeProvider = ({
       selectedPath.id = "current-path";
       selectedPath.classList.add("highlight");
     }
-
     return selectedPath;
   }
 
