@@ -5,7 +5,7 @@ import useDraggable from "../../hooks/useDraggable";
 import { useThrottle } from "../../hooks/useThrottle";
 import { useTree } from "../../hooks/useTree";
 import { TreeHierarchyNode, TreeNode } from "../../types";
-import { sanitizeId } from "../../utils/treeutils";
+import { sanitizeId } from "../../utils/genTreePathsHelper";
 import { TreeActionsToolbar } from "../tree/TreeActionsToolbar";
 
 const clickEvent = new MouseEvent("click", {

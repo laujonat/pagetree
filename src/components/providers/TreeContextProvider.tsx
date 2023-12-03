@@ -10,12 +10,12 @@ import {
 } from "react-d3-tree";
 
 import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
-import { genTreeData } from "../../utils/d3node";
+import { genTreeData } from "../../utils/genTreeNodesHelper";
 import {
   renderForeignObjectNode,
   sortPaths,
   updateCurrentNode,
-} from "../../utils/treeutils";
+} from "../../utils/genTreePathsHelper";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;

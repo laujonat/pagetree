@@ -1,5 +1,5 @@
 import { IMessage, IRelayMessageOptions } from "../types";
-import { createTreeNodes } from "../utils/d3node";
+import { createTreeNodes } from "../utils/genTreeNodesHelper";
 import Inspector from "./scripts/inspector";
 
 let isInspectorActive = false;
