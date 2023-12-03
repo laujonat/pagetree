@@ -1,6 +1,6 @@
-import Inspector from "./inspector";
-import { IMessage, IRelayMessageOptions } from "./types";
-import { createTreeNodes } from "./utils/d3node";
+import { IMessage, IRelayMessageOptions } from "../types";
+import { createTreeNodes } from "../utils/d3node";
+import Inspector from "./scripts/inspector";
 
 let isInspectorActive = false;
 
@@ -53,8 +53,7 @@ function waitForDOMReady(callback) {
       callback();
     }, 500); // Adjust the timeout to suit the page's load characteristics
   });
-
-  observer.observe(document.body, {
+  observer.observe(document, {
     childList: true,
     subtree: true,
   });
@@ -65,7 +64,7 @@ async function handleSidepanelMessages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
-  console.log("content", message);
+  console.log("content", message, sender);
   // Return early if this message isn't meant for the sidepanel document.
   if (message.target !== "sidepanel") {
     return false;
@@ -75,7 +74,7 @@ async function handleSidepanelMessages(
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case "check-document-status":
-      //   forceInspectorStop();
+      console.log("checking document status");
       waitForDOMReady(() => {
         relayMessageToExtension({
           type: "document-status-response",
@@ -85,14 +84,12 @@ async function handleSidepanelMessages(
       });
       break;
     case "fetch-current-tab-url":
-      console.warn("URL", message.data);
       relayMessageToExtension({
         type: "fetch-current-tab-url",
         target: "background",
       });
       break;
     case "current-tab-url-response":
-      console.warn("URL", message.data);
       relayMessageToExtension({
         type: "current-tab-url-response",
         data: { url: message.data.url },
@@ -104,12 +101,10 @@ async function handleSidepanelMessages(
       });
       break;
     case "extension-scan-page":
-      if (typeof document !== "undefined") {
-        relayMessageToExtension({
-          type: "update-gentree-state",
-          data: createTreeNodes(document.documentElement),
-        });
-      }
+      sendTreeData();
+      break;
+    case "resend-tree-data": // New case to handle re-sending data
+      sendTreeData();
       break;
     case "process-selected-element-context":
       relayMessageToExtension({
@@ -197,7 +192,14 @@ function forceInspectorStop() {
     throw new Error("InspectorErr");
   }
 }
-
+function sendTreeData() {
+  if (typeof document !== "undefined") {
+    relayMessageToExtension({
+      type: "update-gentree-state",
+      data: createTreeNodes(document.documentElement),
+    });
+  }
+}
 function relayMessageToExtension(options: IRelayMessageOptions): void {
   const { type, data, target = "runtime" } = options;
   chrome.runtime.sendMessage({

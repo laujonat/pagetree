@@ -49,3 +49,18 @@ interface IRelayMessageOptions {
   data?: any;
   target?: string;
 }
+
+type ContextType =
+  | "all"
+  | "page"
+  | "frame"
+  | "selection"
+  | "link"
+  | "editable"
+  | "image"
+  | "video"
+  | "audio"
+  | "launcher"
+  | "browser_action"
+  | "page_action"
+  | "action";

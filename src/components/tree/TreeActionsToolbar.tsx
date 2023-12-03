@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef } from "react";
 
 import useChrome from "../../hooks/useChrome";
 import { TreeHierarchyNode } from "../../types";
@@ -12,75 +12,12 @@ export const TreeActionsToolbar = forwardRef<
   TreeActionsToolbarProps
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >((props: TreeActionsToolbarProps, ref) => {
-  const { messageToSend, tabId } = useChrome();
-  const [tabUrl, setTabUrl] = useState<string>("");
-  const [isInspectorActive, setIsInspectorActive] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Fetch current tab URL when the component mounts
-    if (!tabId) return;
-    messageToSend(
-      {
-        action: "fetch-current-tab-url",
-      },
-      tabId
-    );
-
-    const handleMessage = (message) => {
-      // Handle response with current tab URL
-      if (message.action === "current-tab-url-response") {
-        setTabUrl(message.data.url);
-      }
-    };
-
-    chrome.runtime.onMessage.addListener(handleMessage);
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage);
-    };
-  }, [tabId]);
-
-  useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-      const tabId = tabs[0]?.id;
-      if (tabId) {
-        messageToSend(
-          {
-            action: "extension-inspector-status",
-          },
-          tabId
-        );
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    const handleMessage = async (message) => {
-      if (message.target === "runtime") {
-        if (message.action === "onload-script-inspector-status") {
-          const { active } = message.data;
-          setIsInspectorActive(active);
-        }
-        if (message.action === "script-inspector-status") {
-          const { active } = message.data;
-          setIsInspectorActive(active);
-        }
-      }
-      return true;
-    };
-
-    chrome.runtime.onMessage.addListener(handleMessage);
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage);
-    };
-  }, [setIsInspectorActive]);
+  const { messageToSend, isInspectorActive, tabUrl } = useChrome();
 
   const handleInspectorClick = async () => {
     try {
       messageToSend({
         action: "script-toggle-inspector",
-      }).then(() => {
-        setIsInspectorActive(!isInspectorActive); // Toggle the inspector status
       });
     } catch (error) {
       console.error("Error in handleClick:", error);

@@ -1,5 +1,44 @@
+import { ContextType } from "../../types";
+
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck types unavailable?
+let activeTabId;
+
+async function getTabId() {
+  const queryOptions = { active: true, currentWindow: true };
+  const [tab] = await chrome.tabs.query(queryOptions);
+  return tab.id;
+}
+
+async function getTabBadge(tabId) {
+  console.log("askljaljdsa");
+  try {
+    console.log(
+      "🚀 -----------------------------------------------------------🚀"
+    );
+    console.log("🚀 ⚛︎ file: background.ts:15 ⚛︎ getTabBadge ⚛︎ tabId:", tabId);
+    console.log(
+      "🚀 -----------------------------------------------------------🚀"
+    );
+
+    const iconFile = `../../assets/icon-active.png`;
+    fetch(chrome.runtime.getURL(iconFile))
+      .then((response) => response.blob())
+      .then((blob) => createImageBitmap(blob))
+      .then((imageBitmap) => {
+        const osc = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+        const ctx = osc.getContext("2d");
+        ctx?.drawImage(imageBitmap, 0, 0);
+        const imageData = ctx?.getImageData(0, 0, osc.width, osc.height);
+        chrome.action.setIcon({ tabId: tabId, imageData });
+        chrome.action.setBadgeText({ tabId: tabId, text: "ok" });
+      })
+      .catch((error) => console.error("Error setting icon:", error));
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// function trackOpenFromSource() {}
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -16,6 +55,42 @@ function createSelectorFromElementInfo(info) {
   return selector;
 }
 
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  activeTabId = activeInfo.tabId;
+  updateSidePanelForTab(activeTabId);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, tabInfo) => {
+  if (tabId !== activeTabId) {
+    console.info(tabId, tabInfo);
+    updateSidePanelForTab(tabId);
+  }
+});
+
+async function updateSidePanelForTab(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab.url) return;
+
+    const url = new URL(tab.url);
+    const isEnabled = shouldEnableSidePanelForURL(url);
+
+    await chrome.sidePanel.setOptions({
+      tabId,
+      path: "sidepanel.html",
+      enabled: isEnabled,
+    });
+  } catch (error) {
+    console.error("Error updating side panel for tab:", error);
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function shouldEnableSidePanelForURL(url) {
+  // Define your logic to enable/disable the side panel based on the URL
+  // For example, return true for specific sites or conditions
+  return true; // Currently, it's enabled for all URLs
+}
 /* Persistent storage data setup  */
 chrome.storage.onChanged.addListener((changes, namespace) => {
   for (const [key, { oldValue, newValue }] of Object.entries(changes)) {
@@ -30,46 +105,31 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
 chrome.action.onClicked.addListener(async function (tab) {
   console.log("chrome action clicked", tab);
-  chrome.tabs.sendMessage(tab.id, {
+  chrome.tabs.sendMessage(tab?.id as number, {
     action: "script-toggle-inspector",
     target: "sidepanel",
     source: "buttonClick",
   });
-  chrome.sidePanel.open({ tabId: tab.id });
+  //   chrome.sidePanel.open({ tabId: tab.id });
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
-  // Log the change info for debugging
   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
   // Check if the tab update is complete
   if (changeInfo.status === "complete") {
     // Set icon and badge text once the tab is completely loaded
-    const iconFile = `icons/icon-active.png`;
-    fetch(chrome.runtime.getURL(iconFile))
-      .then((response) => response.blob())
-      .then((blob) => createImageBitmap(blob))
-      .then((imageBitmap) => {
-        const osc = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-        const ctx = osc.getContext("2d");
-        ctx.drawImage(imageBitmap, 0, 0);
-        const imageData = ctx.getImageData(0, 0, osc.width, osc.height);
-
-        chrome.action.setIcon({ tabId: tabId, imageData });
-        chrome.action.setBadgeText({ tabId: tabId, text: "ok" });
-
-        // Send a message to check document status
-        chrome.tabs.sendMessage(tabId, {
-          action: "check-document-status",
-          target: "sidepanel",
-        });
-      })
-      .catch((error) => console.error("Error setting icon:", error));
+    getTabBadge(tabId);
+    chrome.tabs.sendMessage(tabId, {
+      action: "check-document-status",
+      target: "sidepanel",
+    });
   }
 });
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
-async function handleBackgroundMessages(message, { tab }) {
-  console.log(message, tab);
+async function handleBackgroundMessages(message, sender) {
+  const { tab } = sender;
+  console.log(message.action, tab.id);
   // Return early if this message isn't meant for the background script
   if (message.target !== "background") {
     return;
@@ -96,7 +156,10 @@ async function handleBackgroundMessages(message, { tab }) {
       break;
     case "update-gentree-state":
       if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, message);
+        chrome.tabs.sendMessage(tab.id, {
+          action: "check-document-status",
+          target: "sidepanel",
+        });
       }
       break;
     case "process-inspector-selected-element":
@@ -125,12 +188,6 @@ chrome.contextMenus.onClicked.addListener(genericOnClick);
 
 function genericOnClick(info, tab) {
   console.log("Tab ID:", tab.id, "clickinfo:", info);
-  chrome.sidePanel.open({ tabId: tab.id });
-  chrome.sidePanel.setOptions({
-    tabId: tab.id,
-    path: "sidepanel.html",
-    enabled: true,
-  });
   switch (info.menuItemId) {
     case "context-selector":
       chrome.tabs.sendMessage(tab.id, {
@@ -157,7 +214,14 @@ function genericOnClick(info, tab) {
 
 chrome.runtime.onInstalled.addListener(async function () {
   //   chrome.action.setBadgeText({ text: "0" });
-  const contexts = ["selection", "link", "editable", "image", "video", "audio"];
+  const contexts: ContextType[] = [
+    "selection",
+    "link",
+    "editable",
+    "image",
+    "video",
+    "audio",
+  ];
 
   chrome.contextMenus.create({
     title: "Element Selector",
@@ -167,7 +231,7 @@ chrome.runtime.onInstalled.addListener(async function () {
 
   chrome.contextMenus.create({
     title: "Visualize '%s' Element Tree",
-    contexts: [...contexts],
+    contexts: contexts,
     id: "context-element",
   });
 
@@ -207,7 +271,7 @@ chrome.runtime.onConnect.addListener(function (port) {
         console.error(e);
         if (connectedTabId) {
           chrome.tabs.reload(connectedTabId).then((result) => {
-            console.log(
+            console.error(
               "background task -> reload-active-tab on error",
               result
             );
