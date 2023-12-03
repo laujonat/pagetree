@@ -18,7 +18,7 @@ export const TreeLayout = () => {
   }, []);
 
   const renderContentBasedOnSource = () => {
-    console.log("LOADED", loaded);
+    console.log("LOADED->renderContentBasedOnSource", loaded);
     if (!loaded) {
       return <div className="loader"></div>;
     } else if (openedBy === "contextMenu") {

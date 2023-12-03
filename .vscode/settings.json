@@ -14,5 +14,6 @@
     "autoimport.showNotifications": true,
     "editor.formatOnSave": true,
     "autoimport.doubleQuotes": false,
-    "importSorter.importStringConfiguration.quoteMark": "double"
+    "importSorter.importStringConfiguration.quoteMark": "double",
+    "stylelint.configFile": ".stylelintrc.json"
 }

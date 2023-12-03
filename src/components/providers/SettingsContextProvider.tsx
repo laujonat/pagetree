@@ -33,10 +33,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     chrome.storage.sync.get(["settings"]).then((result) => {
       const updatedSettings = { ...defaultSettings, ...result.settings };
       setSettings(updatedSettings);
-      document.body.classList.toggle(
-        "dark-mode",
-        updatedSettings.darkMode === "enabled"
-      );
+      if (updatedSettings.darkMode === "enabled") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        document.documentElement.removeAttribute("data-theme");
+      }
     });
   }, []);
 
@@ -46,7 +47,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     chrome.storage.sync.set({ settings: newSettings }).then(() => {
       setSettings(newSettings);
       if (key === "darkMode") {
-        document.body.classList.toggle("dark-mode", value === "enabled");
+        document.documentElement.setAttribute(
+          "data-theme",
+          value === "enabled" ? "dark" : ""
+        );
+      } else {
+        document.documentElement.removeAttribute("data-theme");
       }
     });
   };
