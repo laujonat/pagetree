@@ -97,7 +97,7 @@ async function handleSidepanelMessages(
       break;
     case "toggle-dark-mode":
       chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
-        document.body.classList.add("dark-mode");
+        document.documentElement.setAttribute("data-theme", "dark");
       });
       break;
     case "extension-scan-page":

@@ -10,7 +10,6 @@ async function getTabId() {
 }
 
 async function getTabBadge(tabId) {
-  console.log("askljaljdsa");
   try {
     console.log(
       "🚀 -----------------------------------------------------------🚀"

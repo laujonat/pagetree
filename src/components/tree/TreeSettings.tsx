@@ -114,7 +114,7 @@ export function TreeSettings({ settings, updateSetting }) {
   return (
     <section className="tree-settings__container">
       <SettingsOption
-        label="Theme"
+        label="Extension theme"
         options={themeOptions}
         active={settings.darkMode}
         onChange={handleThemeUpdate}
