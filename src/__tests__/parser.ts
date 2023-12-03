@@ -1,8 +1,7 @@
-import { createTreeNodes } from "../utils/d3node"; // replace with actual file path
+import { createTreeNodes } from "../utils/genTreeNodesHelper";
 
 describe("scanPage", () => {
   it("should correctly scan a simple DOM structure", () => {
-    // Set up the DOM
     document.body.innerHTML = `
       <div id="parent">
         <span class="child">Child</span>
