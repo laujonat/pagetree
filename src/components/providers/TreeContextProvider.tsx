@@ -76,7 +76,7 @@ export const TreeProvider = ({
   settings,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
-  const { messageToSend } = useChrome();
+  const { messageToSend, tabId } = useChrome();
   const [selectedNode, setSelectedNode] =
     useState<HierarchyPointNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
@@ -150,11 +150,13 @@ export const TreeProvider = ({
 
   useEffect(() => {
     // signal to content script react is ready to accept data
-    messageToSend({
-      action: MessageContent.checkDocStatus,
-      target: MessageTarget.Sidepanel,
-    });
-  }, []);
+    if (tabId) {
+      messageToSend({
+        action: MessageContent.checkDocStatus,
+        target: MessageTarget.Sidepanel,
+      });
+    }
+  }, [tabId]);
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {

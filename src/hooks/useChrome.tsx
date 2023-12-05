@@ -46,10 +46,9 @@ export const useChrome = () => {
   }, []);
 
   const messageToSend = async (message, tabid?: number) => {
-    console.log(tabId, tabid, message.action);
+    console.log(tabId, tabid, JSON.stringify(message));
     try {
       const targetTabId = tabid || tabId;
-      console.log(tabid, tabId);
       if (!targetTabId) throw new Error("Tab ID is undefined");
 
       const defaultMessage = { target: MessageTarget.Sidepanel };
