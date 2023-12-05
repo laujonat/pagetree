@@ -22,7 +22,7 @@ interface WindowProviderProps {
 
 const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const refsHandlers = useRef<RefHandler[]>([]);
-  const { messageToSend } = useChrome();
+  const { messageToSend, tabId } = useChrome();
   const registerClickOutside = useCallback(
     (
       ref: MutableRefObject<HTMLElement>,
@@ -54,11 +54,21 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
     chrome.tabs.query(
       { active: true, lastFocusedWindow: true },
       async (tabs) => {
-        const tabId = tabs[0]?.id;
-        if (tabId) {
-          messageToSend({ action: MessageContent.checkDocStatus }, tabId);
-          messageToSend({ action: MessageContent.resendScanPage }, tabId);
-          messageToSend({ action: MessageContent.inspectorStatus }, tabId);
+        const tab = tabs[0]?.id;
+        if (tabId || tab) {
+          console.log("tabid", tabId);
+          messageToSend(
+            { action: MessageContent.checkDocStatus },
+            tabId || tab
+          );
+          messageToSend(
+            { action: MessageContent.resendScanPage },
+            tabId || tab
+          );
+          messageToSend(
+            { action: MessageContent.inspectorStatus },
+            tabId || tab
+          );
         }
       }
     );
