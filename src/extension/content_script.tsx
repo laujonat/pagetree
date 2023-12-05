@@ -1,9 +1,14 @@
+import { MessageContent, MessageTarget } from "../constants";
 import { IMessage, IRelayMessageOptions } from "../types";
 import { createTreeNodes } from "../utils/genTreeNodesHelper";
-import Inspector from "./scripts/inspector";
+import _Inspector from "./scripts/inspector";
 
-let isInspectorActive = false;
+type InspectorInstance = {
+  instance: _Inspector | undefined;
+};
 
+let isFirstTreeDataCall = true;
+const Inspector: InspectorInstance = { instance: undefined };
 const port = chrome.runtime.connect({ name: "pagetree-panel-extension" });
 console.info("pagetree-connect", port);
 
@@ -64,111 +69,107 @@ async function handleSidepanelMessages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
-  console.log("content", message, sender);
+  console.log("isfirstreecall", isFirstTreeDataCall);
   // Return early if this message isn't meant for the sidepanel document.
-  if (message.target !== "sidepanel") {
+  if (message.target !== MessageTarget.Sidepanel) {
     return false;
   }
 
   const { tab } = sender;
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
-    case "check-document-status":
+    case MessageContent.checkDocStatus:
       console.log("checking document status");
       waitForDOMReady(() => {
         relayMessageToExtension({
-          type: "document-status-response",
+          type: MessageContent.bgDocStatus,
           data: { isDocumentAvailable: true },
-          target: "background",
+          target: MessageTarget.Background,
         });
       });
       break;
-    case "fetch-current-tab-url":
+    case MessageContent.fetchActiveTabUrl:
       relayMessageToExtension({
-        type: "fetch-current-tab-url",
-        target: "background",
+        type: MessageContent.bgFetchActiveTabUrl,
+        target: MessageTarget.Background,
       });
       break;
-    case "current-tab-url-response":
+    case MessageContent.activeTabUrl:
       relayMessageToExtension({
-        type: "current-tab-url-response",
+        type: MessageContent.activeTabUrl,
         data: { url: message.data.url },
       });
       break;
-    case "toggle-dark-mode":
+    case MessageContent.toggleDark:
       chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
         document.documentElement.setAttribute("data-theme", "dark");
       });
       break;
-    case "extension-scan-page":
+    case MessageContent.scanPage:
       sendTreeData();
       break;
-    case "resend-tree-data": // New case to handle re-sending data
+    case MessageContent.resendScanPage:
       sendTreeData();
       break;
-    case "process-selected-element-context":
+    case MessageContent.highlightTextOption:
+      console.log(lastRightClickedElement);
       relayMessageToExtension({
-        type: "update-gentree-state",
+        type: MessageContent.updateGenTree,
         data: createTreeNodes(lastRightClickedElement),
       });
+      isFirstTreeDataCall = false;
       break;
-    case "process-selected-page-context":
+    case MessageContent.fullPageOption:
       relayMessageToExtension({
-        type: "update-gentree-state",
+        type: MessageContent.updateGenTree,
         data: createTreeNodes(document.documentElement),
       });
+      isFirstTreeDataCall = false;
       break;
-    case "process-inspector-selected-element":
+    case MessageContent.inspectorSelect:
       if (message.data) {
         const element = document.querySelector(message.data);
         relayMessageToExtension({
-          type: "update-gentree-state",
+          type: MessageContent.openSidePanel,
+          target: MessageTarget.Background,
+        });
+        toggleInspector();
+        relayMessageToExtension({
+          type: MessageContent.updateGenTree,
           data: createTreeNodes(element),
         });
+        isFirstTreeDataCall = false;
       } else {
         console.error("No selected element to process");
       }
       break;
-    case "script-toggle-inspector":
-      console.log("script toggle inspector");
-      try {
-        if (isInspectorActive) {
-          forceInspectorStop();
-        } else {
-          Inspector.activate();
-          isInspectorActive = true;
-        }
-        relayMessageToExtension({
-          type: "script-inspector-status",
-          data: {
-            active: isInspectorActive,
-          },
-        });
-      } catch (e) {
-        forceInspectorStop();
-        throw new Error("InspectorErr");
-      }
+    case MessageContent.inspectorToggle:
+      toggleInspector();
       break;
-    case "extension-inspector-status":
+    case MessageContent.inspectorStatus:
       console.log("checking inspector status");
+      console.log(
+        "checking inspector status",
+        Inspector?.instance?.isActiveStatus
+      );
       relayMessageToExtension({
-        type: "onload-script-inspector-status",
+        type: MessageContent.inspectorStatus,
         data: {
-          active: isInspectorActive,
+          active: Inspector.instance?.isActiveStatus,
         },
+        target: MessageTarget.Runtime,
       });
       break;
-    case "definite-stop-inspector":
+    case MessageContent.inspectorForceStop:
       console.log("Force deactivate inspector", sender);
       forceInspectorStop();
       break;
-    case "extension-reload-content":
+    case MessageContent.reloadExtension:
       relayMessageToExtension({
-        type: "reload-active-tab",
+        type: MessageContent.reloadActiveTab,
         data: tab?.id as number,
-        target: "background",
+        target: MessageTarget.Background,
       });
-      //   return true;
       break;
     default:
       console.warn(`Unexpected message type received: '${message.action}'.`);
@@ -176,15 +177,37 @@ async function handleSidepanelMessages(
   }
 }
 
-function forceInspectorStop() {
+function toggleInspector() {
   try {
-    if (isInspectorActive) {
-      Inspector.deactivate();
-      isInspectorActive = false;
+    if (Inspector.instance && Inspector.instance.isActiveStatus) {
+      Inspector.instance.deactivate();
+    } else {
+      if (!Inspector.instance) {
+        Inspector.instance = new _Inspector();
+      }
+      Inspector.instance.activate();
+    }
+    relayMessageToExtension({
+      type: MessageContent.inspectorStatus,
+      data: {
+        active: Inspector.instance?.isActiveStatus,
+      },
+    });
+  } catch (e) {
+    forceInspectorStop();
+    throw new Error("InspectorErr");
+  }
+}
+
+function forceInspectorStop() {
+  console.log("forcing stop");
+  try {
+    if (Inspector.instance && Inspector.instance.isActiveStatus) {
+      Inspector.instance.deactivate();
       relayMessageToExtension({
-        type: "onload-script-inspector-status",
+        type: MessageContent.inspectorStatus,
         data: {
-          active: isInspectorActive,
+          active: Inspector.instance.isActiveStatus,
         },
       });
     }
@@ -192,16 +215,18 @@ function forceInspectorStop() {
     throw new Error("InspectorErr");
   }
 }
+
 function sendTreeData() {
   if (typeof document !== "undefined") {
     relayMessageToExtension({
-      type: "update-gentree-state",
+      type: MessageContent.updateGenTree,
       data: createTreeNodes(document.documentElement),
     });
   }
 }
+
 function relayMessageToExtension(options: IRelayMessageOptions): void {
-  const { type, data, target = "runtime" } = options;
+  const { type, data, target = MessageTarget.Runtime } = options;
   chrome.runtime.sendMessage({
     action: type,
     target,

@@ -9,6 +9,7 @@ import {
   TreeProps,
 } from "react-d3-tree";
 
+import { MessageContent, MessageTarget } from "../../constants";
 import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/genTreeNodesHelper";
 import {
@@ -74,6 +75,7 @@ export const TreeProvider = ({
   settings,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
+  //   const { messageToSend } = useChrome();
   const [selectedNode, setSelectedNode] =
     useState<HierarchyPointNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
@@ -145,9 +147,7 @@ export const TreeProvider = ({
     },
   });
 
-  useEffect(() => {
-    console.log("loaded", loaded);
-  }, [loaded]);
+  useEffect(() => {}, [loaded]);
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {
@@ -169,7 +169,6 @@ export const TreeProvider = ({
       ...newState,
       dataKey: isNewTree ? `tree-${Date.now()}` : prevState.dataKey,
     }));
-    // setLoaded(true);
   };
 
   const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
@@ -209,16 +208,22 @@ export const TreeProvider = ({
 
   useEffect(() => {
     const handleMessage = async (message) => {
-      console.log("handling message", message);
-      if (message.target === "runtime") {
-        if (message.action === "update-gentree-state") {
-          console.warn("updating");
+      console.group(message.action);
+      console.log(
+        "handling message",
+
+        message.action
+      );
+
+      if (message.target === MessageTarget.Runtime) {
+        if (message.action === MessageContent.updateGenTree) {
           const r3dtNodes = await genTreeData(message.data);
           await updateTreeState({ data: r3dtNodes }, true);
           setLoaded(true);
           setShouldDispatchClick(true);
         }
       }
+      console.groupEnd();
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
@@ -227,7 +232,7 @@ export const TreeProvider = ({
     };
   }, [updateTreeState, setLoaded, setShouldDispatchClick]);
 
-  function getTreeElement() {
+  function getTreeElement(): SVGElement {
     if (!treeRef.current) {
       throw new Error("RefErr"); // throw keyword is used here
     }
@@ -236,15 +241,15 @@ export const TreeProvider = ({
     )[0] as SVGElement;
   }
 
-  function getRootElementFromTree() {
+  function getRootElementFromTree(): SVGElement {
     return getTreeElement().getElementsByTagName("g")[0] as SVGElement;
   }
 
-  function getRootForeignObject() {
+  function getRootForeignObject(): SVGElement {
     return getRootElementFromTree().getElementsByTagName("foreignObject")[0];
   }
 
-  function highlightSelectedPath(paths, selectedChildIndex) {
+  function highlightSelectedPath(paths, selectedChildIndex): Element {
     const selectedPath = paths[selectedChildIndex];
     if (selectedPath) {
       selectedPath.id = "current-path";
@@ -253,11 +258,11 @@ export const TreeProvider = ({
     return selectedPath;
   }
 
-  function selectNodeDescendantPaths() {
+  function selectNodeDescendantPaths(): Element[] {
     if (!(treeElement instanceof SVGElement)) {
       throw new Error("TreeReferenceError");
     }
-    //@ts-ignore asd
+
     const selectedNodeChildCount = selectedNode.data.children.length;
     // Retrieve the last 'selectedNodeChildCount' number of link paths
     const linkPaths = Array.from(
@@ -267,7 +272,7 @@ export const TreeProvider = ({
     return relevantPaths;
   }
 
-  function removeDescendantPathStyles() {
+  function removeDescendantPathStyles(): Element[] {
     const paths = selectNodeDescendantPaths();
     paths.forEach((path) => {
       path.classList.remove("highlight");
@@ -277,7 +282,7 @@ export const TreeProvider = ({
     return paths;
   }
 
-  const highlightPathToNode = (rd3tNode, evt, orientation) => {
+  const highlightPathToNode = (rd3tNode, evt, orientation): boolean => {
     if (!settings.shouldCollapseNeighborNodes) return false;
     // Ensure treeElement is an SVGElement before proceeding
     if (treeElement instanceof SVGElement) {
@@ -314,9 +319,10 @@ export const TreeProvider = ({
     }
     // Stop the event from bubbling up to avoid unintended effects
     evt.stopPropagation();
+    return true;
   };
 
-  const removeHighlightPathToNode = (evt) => {
+  const removeHighlightPathToNode = (evt): void => {
     try {
       removeDescendantPathStyles();
     } catch (e) {
@@ -326,35 +332,35 @@ export const TreeProvider = ({
   };
 
   const value = {
+    highlightPathToNode,
     loaded,
-    setLoaded,
-    treeState,
-    selectedNode,
     onNodeClick,
+    removeHighlightPathToNode,
+    selectedNode,
+    setLoaded,
     setOnNodeClick,
     treeRef,
-    highlightPathToNode,
-    removeHighlightPathToNode,
-    updateTreeState,
+    treeState,
     updateSelectedNode,
+    updateTreeState,
   };
 
   return (
     <TreeContext.Provider
       value={{
+        highlightPathToNode: value.highlightPathToNode,
         loaded: value.loaded,
-        setLoaded: value.setLoaded,
-        treeState: value.treeState,
-        selectedNode: value.selectedNode,
         onNodeClick: value.onNodeClick,
+        removeHighlightPathToNode: value.removeHighlightPathToNode,
+        selectedNode: value.selectedNode,
+        setLoaded: value.setLoaded,
         setOnNodeClick: value.setOnNodeClick,
         treeRef: value.treeRef as unknown as
           | React.LegacyRef<SVGElement>
           | undefined,
-        highlightPathToNode: value.highlightPathToNode,
-        removeHighlightPathToNode: value.removeHighlightPathToNode,
-        updateTreeState: value.updateTreeState,
+        treeState: value.treeState,
         updateSelectedNode: value.updateSelectedNode as UpdateNodeFunction,
+        updateTreeState: value.updateTreeState,
       }}
     >
       {children}

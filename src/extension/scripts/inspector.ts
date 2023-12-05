@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Prism from "prismjs";
 
+import { MessageContent, MessageTarget } from "../../constants";
+
 // Original implementation:
 // https://github.com/ilyashubin/hover-inspect/blob/master/app/hoverinspect.js
 class Inspector {
@@ -18,12 +20,15 @@ class Inspector {
   width!: number;
   height!: number;
   stringified: any;
+  private isActive: boolean;
+
   constructor() {
     this.highlight = this.highlight.bind(this);
     this.log = this.log.bind(this);
     this.codeOutput = this.codeOutput.bind(this);
     this.layout = this.layout.bind(this);
     this.handleResize = this.handleResize.bind(this);
+    this.isActive = false;
 
     this.$target = document.body;
     this.$cacheEl = document.body;
@@ -32,6 +37,7 @@ class Inspector {
     this.serializer = new XMLSerializer();
     this.forbidden = [this.$cacheEl, document.body, document.documentElement];
   }
+
   getNodes() {
     const path = chrome.runtime.getURL("template.html");
 
@@ -90,9 +96,9 @@ class Inspector {
 
       // Send this information to the background script or elsewhere
       chrome.runtime.sendMessage({
-        action: "process-inspector-selected-element",
+        action: MessageContent.inspectorSelect,
         data: elementInfo,
-        target: "background",
+        target: MessageTarget.Background,
       });
     }
   }
@@ -255,6 +261,7 @@ class Inspector {
 
   activate() {
     this.getNodes();
+    this.isActive = true;
   }
 
   deactivate() {
@@ -266,8 +273,13 @@ class Inspector {
         document.body.removeChild(this.$host);
       }, 600);
     }
+    this.isActive = false;
+  }
+
+  public get isActiveStatus(): boolean {
+    return this.isActive;
   }
 }
 
-const _Inspector = new Inspector();
-export default _Inspector;
+// const _Inspector = new Inspector();
+export default Inspector;

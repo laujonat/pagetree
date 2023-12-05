@@ -12,11 +12,12 @@ const _resolve = {
 }
 module.exports = {
     entry: {
-        sidepanel: path.join(srcDir, "extension/sidepanel.tsx"),
-        options: path.join(srcDir, "extension/options.tsx"),
         background: path.join(srcDir, "extension/background/main.ts"),
-        script: path.join(srcDir, "extension/scripts/inspector.ts"),
+        'toggle-icon': path.join(srcDir, "extension/background/toggle-icon.ts"),
         content_script: path.join(srcDir, "extension/content_script.tsx"),
+        sidepanel: path.join(srcDir, "extension/sidepanel.tsx"),
+        script: path.join(srcDir, "extension/scripts/inspector.ts"),
+        options: path.join(srcDir, "extension/options.tsx"),
     },
     output: {
         path: path.join(__dirname, "../dist/js"),

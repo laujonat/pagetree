@@ -1,6 +1,8 @@
 import { MutableRefObject } from "react";
 import { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
+import { MessageContent, MessageTarget } from "./constants";
+
 interface TreeNode extends RawNodeDatum {
   tag?: string;
   id?: string;
@@ -37,17 +39,18 @@ interface Dimension {
 type ContentTargetType = "runtime" | "background";
 
 interface IMessage {
-  target: "sidepanel" | "popup";
+  target: MessageTarget.Sidepanel | "popup";
   action: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
 }
+type ValueOf<T> = T[keyof T];
 
 interface IRelayMessageOptions {
-  type: string;
+  type: ValueOf<MessageContent>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
-  target?: string;
+  target?: MessageTarget;
 }
 
 type ContextType =

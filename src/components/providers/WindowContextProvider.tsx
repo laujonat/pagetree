@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useClickOutside } from "use-events";
 
+import { MessageContent } from "../../constants";
 import useChrome from "../../hooks/useChrome";
 import { RefHandler } from "../../types";
 
@@ -49,31 +50,26 @@ const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
     }
   );
 
+  function onUpdateRender() {
+    chrome.tabs.query(
+      { active: true, lastFocusedWindow: true },
+      async (tabs) => {
+        const tabId = tabs[0]?.id;
+        if (tabId) {
+          messageToSend({ action: MessageContent.checkDocStatus }, tabId);
+          messageToSend({ action: MessageContent.resendScanPage }, tabId);
+          messageToSend({ action: MessageContent.inspectorStatus }, tabId);
+        }
+      }
+    );
+  }
+
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
-      //   console.warn("Tab reopened, refetch the data!");
-      chrome.tabs.query(
-        { active: true, lastFocusedWindow: true },
-        async (tabs) => {
-          const tabId = tabs[0]?.id;
-          if (tabId) {
-            messageToSend({ action: "check-document-status" }, tabId);
-          }
-        }
-      );
+      onUpdateRender();
+    } else if (document.visibilityState === "hidden") {
+      console.log("hidden");
     }
-
-    // if (document.visibilityState === "hidden") {
-    //   chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-    //     const tabId = tabs[0]?.id;
-    //     if (tabId) {
-    //       messageToSend(
-    //         { action: "definite-stop-inspector", target: "background" },
-    //         tabId
-    //       );
-    //     }
-    //   });
-    // }
   };
 
   useLayoutEffect(() => {

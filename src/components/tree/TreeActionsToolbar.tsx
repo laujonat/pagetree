@@ -1,5 +1,6 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 
+import { MessageContent } from "../../constants";
 import useChrome from "../../hooks/useChrome";
 import { TreeHierarchyNode } from "../../types";
 
@@ -14,10 +15,14 @@ export const TreeActionsToolbar = forwardRef<
 >((props: TreeActionsToolbarProps, ref) => {
   const { messageToSend, isInspectorActive, tabUrl } = useChrome();
 
+  useEffect(() => {
+    console.log(isInspectorActive);
+  }, [isInspectorActive]);
+
   const handleInspectorClick = async () => {
     try {
       messageToSend({
-        action: "script-toggle-inspector",
+        action: MessageContent.inspectorToggle,
       });
     } catch (error) {
       console.error("Error in handleClick:", error);
