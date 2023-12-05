@@ -1,24 +1,11 @@
+import { ContextMenuId, MessageContent, MessageTarget } from "../../constants";
 import { ContextType } from "../../types";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 let activeTabId;
 
-async function getTabId() {
-  const queryOptions = { active: true, currentWindow: true };
-  const [tab] = await chrome.tabs.query(queryOptions);
-  return tab.id;
-}
-
 async function getTabBadge(tabId) {
   try {
-    console.log(
-      "🚀 -----------------------------------------------------------🚀"
-    );
-    console.log("🚀 ⚛︎ file: background.ts:15 ⚛︎ getTabBadge ⚛︎ tabId:", tabId);
-    console.log(
-      "🚀 -----------------------------------------------------------🚀"
-    );
-
     const iconFile = `../../assets/icon-active.png`;
     fetch(chrome.runtime.getURL(iconFile))
       .then((response) => response.blob())
@@ -36,8 +23,6 @@ async function getTabBadge(tabId) {
     console.error(error);
   }
 }
-
-// function trackOpenFromSource() {}
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -105,8 +90,8 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 chrome.action.onClicked.addListener(async function (tab) {
   console.log("chrome action clicked", tab);
   chrome.tabs.sendMessage(tab?.id as number, {
-    action: "script-toggle-inspector",
-    target: "sidepanel",
+    action: MessageContent.inspectorToggle,
+    target: MessageTarget.Sidepanel,
     source: "buttonClick",
   });
   //   chrome.sidePanel.open({ tabId: tab.id });
@@ -114,13 +99,11 @@ chrome.action.onClicked.addListener(async function (tab) {
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
-  // Check if the tab update is complete
   if (changeInfo.status === "complete") {
-    // Set icon and badge text once the tab is completely loaded
     getTabBadge(tabId);
     chrome.tabs.sendMessage(tabId, {
-      action: "check-document-status",
-      target: "sidepanel",
+      action: MessageContent.checkDocStatus,
+      target: MessageTarget.Sidepanel,
     });
   }
 });
@@ -129,50 +112,66 @@ chrome.runtime.onMessage.addListener(handleBackgroundMessages);
 
 async function handleBackgroundMessages(message, sender) {
   const { tab } = sender;
-  console.log(message.action, tab.id);
+  console.log(message);
+  //   console.log(message.action, tab.id);
   // Return early if this message isn't meant for the background script
-  if (message.target !== "background") {
+  if (message.target !== MessageTarget.Background) {
     return;
   }
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
-    case "fetch-current-tab-url":
-      console.warn("URL", tab?.url);
+    case MessageContent.bgFetchActiveTabUrl:
+      console.warn("background", tab?.url, MessageContent.bgFetchActiveTabUrl);
       if (tab?.url) {
         chrome.tabs.sendMessage(tab.id, {
-          action: "current-tab-url-response",
-          target: "sidepanel",
+          action: MessageContent.activeTabUrl,
+          target: MessageTarget.Sidepanel,
           data: { url: tab?.url },
         });
       }
       break;
-    case "document-status-response":
+    case MessageContent.bgDocStatus:
       if (message.data.isDocumentAvailable) {
         chrome.tabs.sendMessage(tab.id, {
-          action: "extension-scan-page",
-          target: "sidepanel",
+          action: MessageContent.scanPage,
+          target: MessageTarget.Sidepanel,
         });
       }
       break;
-    case "update-gentree-state":
+    // case MessageContent.updateGenTree:
+    //   console.log("update gen tree from bg");
+    //   if (tab.id) {
+    //     chrome.tabs.sendMessage(tab.id, {
+    //       action: MessageContent.checkDocStatus,
+    //       target: MessageTarget.Sidepanel,
+    //     });
+    //   }
+    //   break;
+    case MessageContent.openSidePanel:
       if (tab.id) {
-        chrome.tabs.sendMessage(tab.id, {
-          action: "check-document-status",
-          target: "sidepanel",
-        });
+        // @ts-ignore
+        chrome.sidePanel.open({ tabId: tab.id });
       }
       break;
-    case "process-inspector-selected-element":
+    case MessageContent.inspectorSelect:
       if (tab.id) {
         const elementSelector = createSelectorFromElementInfo(message.data);
         chrome.tabs.sendMessage(tab.id, {
-          action: "process-inspector-selected-element",
-          target: "sidepanel",
+          action: MessageContent.inspectorSelect,
+          target: MessageTarget.Sidepanel,
           data: elementSelector,
         });
       }
       break;
-    case "reload-active-tab":
+    case MessageContent.inspectorStatus:
+      if (tab.id) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: MessageContent.inspectorStatus,
+          target: MessageTarget.Sidepanel,
+        });
+      }
+      break;
+    case MessageContent.reloadExtension:
       if (tab.id) {
         chrome.tabs.reload(tab?.id as number).then((result) => {
           console.log("background task -> reload-active-tab", result);
@@ -189,22 +188,26 @@ chrome.contextMenus.onClicked.addListener(genericOnClick);
 function genericOnClick(info, tab) {
   console.log("Tab ID:", tab.id, "clickinfo:", info);
   switch (info.menuItemId) {
-    case "context-selector":
+    case ContextMenuId.selector:
       chrome.tabs.sendMessage(tab.id, {
-        action: "script-toggle-inspector",
-        target: "sidepanel",
+        action: MessageContent.inspectorToggle,
+        target: MessageTarget.Sidepanel,
       });
       break;
-    case "context-page":
+    case ContextMenuId.page:
+      // @ts-ignore method exists
+      chrome.sidePanel.open({ tabId: tab.id });
       chrome.tabs.sendMessage(tab.id, {
-        action: "process-selected-page-context",
-        target: "sidepanel",
+        action: MessageContent.fullPageOption,
+        target: MessageTarget.Sidepanel,
       });
       break;
-    case "context-element":
+    case ContextMenuId.element:
+      // @ts-ignore method exists
+      chrome.sidePanel.open({ tabId: tab.id });
       chrome.tabs.sendMessage(tab.id, {
-        action: "process-selected-element-context",
-        target: "sidepanel",
+        action: MessageContent.highlightTextOption,
+        target: MessageTarget.Sidepanel,
       });
       break;
     default:
@@ -226,19 +229,19 @@ chrome.runtime.onInstalled.addListener(async function () {
   chrome.contextMenus.create({
     title: "Element Selector",
     contexts: ["all"],
-    id: "context-selector",
+    id: ContextMenuId.selector,
   });
 
   chrome.contextMenus.create({
     title: "Visualize '%s' Element Tree",
     contexts: contexts,
-    id: "context-element",
+    id: ContextMenuId.element,
   });
 
   chrome.contextMenus.create({
     title: "Visualize Page Document Tree",
     contexts: ["all"],
-    id: "context-page",
+    id: ContextMenuId.page,
   });
 });
 let connectedTabId;
@@ -251,8 +254,8 @@ chrome.runtime.onConnect.addListener(function (port) {
       connectedTabId = port.sender?.tab?.id as number; // Store the connected tab ID
       if (connectedTabId !== undefined) {
         chrome.tabs.sendMessage(connectedTabId, {
-          action: "check-document-status",
-          target: "sidepanel",
+          action: MessageContent.checkDocStatus,
+          target: MessageTarget.Sidepanel,
         });
       } else {
         console.error("Invalid tab ID");
@@ -264,8 +267,8 @@ chrome.runtime.onConnect.addListener(function (port) {
       console.log("background port disconnecting", port.name);
       try {
         chrome.tabs.sendMessage(connectedTabId, {
-          action: "definite-stop-inspector",
-          target: "sidepanel",
+          action: MessageContent.inspectorStatus,
+          target: MessageTarget.Sidepanel,
         });
       } catch (e) {
         console.error(e);

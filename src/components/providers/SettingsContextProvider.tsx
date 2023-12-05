@@ -42,17 +42,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   const updateSetting = (key: string, value) => {
-    // Update settings state
     const newSettings = { ...settings, [key]: value };
     chrome.storage.sync.set({ settings: newSettings }).then(() => {
       setSettings(newSettings);
       if (key === "darkMode") {
-        document.documentElement.setAttribute(
-          "data-theme",
-          value === "enabled" ? "dark" : ""
-        );
-      } else {
-        document.documentElement.removeAttribute("data-theme");
+        if (value === "enabled") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+        }
       }
     });
   };

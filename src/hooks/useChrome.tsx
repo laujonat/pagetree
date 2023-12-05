@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { MessageContent, MessageTarget } from "../constants";
+
 export const useChrome = () => {
   const [tabId, setTabId] = useState<number | null>(null);
   const [tabUrl, setTabUrl] = useState<string>("");
@@ -20,7 +22,8 @@ export const useChrome = () => {
         status: "complete",
       };
       const [tab] = await chrome.tabs.query(queryOptions);
-      if (tab?.id) {
+      console.log("URL", tabUrl, "tab url", tab?.url);
+      if (tab?.id && tab?.url) {
         setTabId(tab.id);
         setTabUrl(tab.url || "");
       }
@@ -40,14 +43,16 @@ export const useChrome = () => {
 
     chrome.tabs.onActivated.addListener(onTabChange);
     return () => chrome.tabs.onActivated.removeListener(onTabChange);
-  }, [tabId]);
+  }, []);
 
   const messageToSend = async (message, tabid?: number) => {
+    console.log(tabId, tabid, message.action);
     try {
       const targetTabId = tabid || tabId;
+      console.log(tabid, tabId);
       if (!targetTabId) throw new Error("Tab ID is undefined");
 
-      const defaultMessage = { target: "sidepanel" };
+      const defaultMessage = { target: MessageTarget.Sidepanel };
       const finalMessage = { ...defaultMessage, ...message };
       const response = await chrome.tabs.sendMessage(targetTabId, finalMessage);
       return response;
@@ -60,16 +65,15 @@ export const useChrome = () => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleMessage = (message, sender, sendResponse) => {
-      if (message.target === "runtime") {
-        if (message.action === "onload-script-inspector-status") {
-          const { active } = message.data;
-          setIsInspectorActive(active);
+      console.log("handlemesage usage chrome", message);
+      if (message.target === MessageTarget.Runtime) {
+        switch (message.action) {
+          case MessageContent.inspectorStatus:
+            setIsInspectorActive(message.data.active);
+            break;
+          default:
+            break;
         }
-        if (message.action === "script-inspector-status") {
-          const { active } = message.data;
-          setIsInspectorActive(active);
-        }
-        // Additional message handling logic can be added here
       }
     };
     chrome.runtime.onMessage.addListener(handleMessage);

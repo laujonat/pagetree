@@ -3,6 +3,7 @@ import { Ref, useEffect, useState } from "react";
 import useChrome from "../../hooks/useChrome";
 import { useSettings } from "../../hooks/useSettings";
 import { useTree } from "../../hooks/useTree";
+import { IconLoading } from "../../icons";
 import { DevToolsElement } from "../common/Header";
 import { Tabs } from "../common/Tabs";
 import { TreeComponent } from "./TreeComponent";
@@ -18,9 +19,8 @@ export const TreeLayout = () => {
   }, []);
 
   const renderContentBasedOnSource = () => {
-    console.log("LOADED->renderContentBasedOnSource", loaded);
     if (!loaded) {
-      return <div className="loader"></div>;
+      return <IconLoading />;
     } else if (openedBy === "contextMenu") {
       return <div>Select an element to visualize the tree.</div>;
     } else {
