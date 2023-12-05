@@ -253,10 +253,10 @@ chrome.runtime.onConnect.addListener(function (port) {
     if (port) {
       connectedTabId = port.sender?.tab?.id as number; // Store the connected tab ID
       if (connectedTabId !== undefined) {
-        chrome.tabs.sendMessage(connectedTabId, {
-          action: MessageContent.checkDocStatus,
-          target: MessageTarget.Sidepanel,
-        });
+        // chrome.tabs.sendMessage(connectedTabId, {
+        //   action: MessageContent.checkDocStatus,
+        //   target: MessageTarget.Sidepanel,
+        // });
       } else {
         console.error("Invalid tab ID");
       }
