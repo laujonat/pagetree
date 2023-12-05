@@ -64,7 +64,6 @@ export const useChrome = () => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleMessage = (message, sender, sendResponse) => {
-      console.log("handlemesage usage chrome", message);
       if (message.target === MessageTarget.Runtime) {
         switch (message.action) {
           case MessageContent.inspectorStatus:

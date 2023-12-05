@@ -1,7 +1,6 @@
-import { createContext, ReactNode, useEffect, useState } from "react";
-import { TreeProps } from "react-d3-tree";
+import { createContext, useEffect, useState } from "react";
 
-interface ISettings extends Partial<TreeProps> {}
+import { ISettings } from "../../types";
 
 interface ITheme {
   darkMode: string | boolean;
@@ -9,7 +8,7 @@ interface ITheme {
 
 export interface SettingsContextType {
   settings: ISettings;
-  updateSetting: (key: string, newSettings: Partial<ISettings>) => void;
+  updateSetting: (key: keyof ISettings, value: ISettings) => void;
 }
 
 const defaultSettings: ISettings & ITheme = {
@@ -24,27 +23,37 @@ export const SettingsContext = createContext<SettingsContextType>({
   updateSetting: () => {},
 });
 
-export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [settings, setSettings] = useState<ISettings>(defaultSettings);
 
   useEffect(() => {
-    chrome.storage.sync.get(["settings"]).then((result) => {
-      const updatedSettings = { ...defaultSettings, ...result.settings };
-      setSettings(updatedSettings);
-      if (updatedSettings.darkMode === "enabled") {
-        document.documentElement.setAttribute("data-theme", "dark");
-      } else {
-        document.documentElement.removeAttribute("data-theme");
+    chrome.storage.sync.get(["settings"], (result) => {
+      console.log("RESULT", result);
+      // Ensure that result.settings is of type ISettings
+      if (result.settings && typeof result.settings === "object") {
+        const updatedSettings: ISettings = {
+          ...defaultSettings,
+          ...result.settings,
+        };
+        setSettings(updatedSettings);
+
+        if (updatedSettings.darkMode === "enabled") {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+        }
       }
     });
   }, []);
 
-  const updateSetting = (key: string, value) => {
-    const newSettings = { ...settings, [key]: value };
-    chrome.storage.sync.set({ settings: newSettings }).then(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updateSetting = (key: keyof ISettings, value: any) => {
+    const newSettings = { ...settings, [`${key}`]: value };
+    chrome.storage.sync.set({ settings: newSettings }, () => {
       setSettings(newSettings);
+
       if (key === "darkMode") {
         if (value === "enabled") {
           document.documentElement.setAttribute("data-theme", "dark");

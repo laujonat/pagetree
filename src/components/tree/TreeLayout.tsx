@@ -1,4 +1,5 @@
 import { Ref, useEffect, useState } from "react";
+import Tree from "react-d3-tree";
 
 import useChrome from "../../hooks/useChrome";
 import { useSettings } from "../../hooks/useSettings";
@@ -14,6 +15,7 @@ export const TreeLayout = () => {
   const { settings, updateSetting } = useSettings();
   const { openedBy } = useChrome();
   const [ref, setRef] = useState<Ref<SVGElement> | undefined>();
+
   useEffect(() => {
     setRef(treeRef as Ref<SVGElement>);
   }, []);
@@ -31,7 +33,7 @@ export const TreeLayout = () => {
               {selectedNode?.data && <DevToolsElement {...selectedNode.data} />}
             </div>
           </div>
-          <TreeComponent ref={ref} />
+          <TreeComponent ref={ref as Ref<Tree>} />
         </div>
       );
     }

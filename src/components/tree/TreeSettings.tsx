@@ -86,6 +86,8 @@ export function TreeSettings({ settings, updateSetting }) {
   };
 
   const handleUpdatePathFunc = (newPathFunction: string) => {
+    console.log("NEW PATH FUNCTION", newPathFunction);
+    console.log(chrome.storage);
     updateSetting("pathFunc", newPathFunction);
   };
 

@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
+import { TreeNodeDatum } from "react-d3-tree";
+
 import { TreeNode } from "../types";
 
 export function createTreeNodes(root: Element): TreeNode {
@@ -85,4 +87,13 @@ export const genTreeData = (node: TreeNode) => {
     nodeSvgShape: nodeSvgShape,
     children: node.children ? node.children.map(genTreeData) : [],
   };
+};
+
+export const expand = (d: TreeNodeDatum) => {
+  if (d.children && d.__rd3t.level < 3) {
+    // or d.name.indexOf("SpecialNode") > -1 or d.category == "expandable" or d.parent.name == "somename"  etc
+    d.children = d._children;
+    d.children.forEach(expand);
+    d._children = null;
+  }
 };
