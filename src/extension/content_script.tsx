@@ -1,10 +1,10 @@
 import { MessageContent, MessageTarget } from "../constants";
 import { IMessage, IRelayMessageOptions } from "../types";
 import { createTreeNodes } from "../utils/genTreeNodesHelper";
-import _Inspector from "./scripts/inspector";
+import { Inspector as InspectorScript } from "./scripts/inspector";
 
 type InspectorInstance = {
-  instance: _Inspector | undefined;
+  instance: InspectorScript | undefined;
 };
 
 let treeData;
@@ -70,8 +70,9 @@ async function handleSidepanelMessages(
   sendResponse: (response?: any) => void
 ) {
   console.log(
-    chrome.storage.local.get(["settings"], (result) => {
-      console.log(result);
+    chrome.storage.sync.get(["settings"], (result) => {
+      console.log("here");
+      console.log(result.key);
     })
   );
   // Return early if this message isn't meant for the sidepanel document.
@@ -107,6 +108,17 @@ async function handleSidepanelMessages(
     case MessageContent.toggleDark:
       chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
         document.documentElement.setAttribute("data-theme", "dark");
+      });
+      break;
+    case MessageContent.colorScheme:
+      console.log("color scheme", message.data);
+      chrome.storage.sync.set({ darkMode: message.data }).then(() => {
+        const prefersDark = message.data === "enabled";
+        if (prefersDark) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+        }
       });
       break;
     case MessageContent.scanPage:
@@ -187,10 +199,14 @@ function toggleInspector() {
       Inspector.instance.deactivate();
     } else {
       if (!Inspector.instance) {
-        Inspector.instance = new _Inspector();
+        Inspector.instance = new InspectorScript();
       }
       Inspector.instance.activate();
     }
+    relayMessageToExtension({
+      type: MessageContent.inspectorBadgeActivate,
+      target: MessageTarget.Background,
+    });
     relayMessageToExtension({
       type: MessageContent.inspectorStatus,
       data: {

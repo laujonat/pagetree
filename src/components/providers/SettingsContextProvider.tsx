@@ -30,7 +30,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     chrome.storage.sync.get(["settings"], (result) => {
-      console.log("RESULT", result);
       // Ensure that result.settings is of type ISettings
       if (result.settings && typeof result.settings === "object") {
         const updatedSettings: ISettings = {

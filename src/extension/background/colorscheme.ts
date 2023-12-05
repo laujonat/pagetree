@@ -1,8 +1,11 @@
-import { MessageKey } from "../../constants";
+import { MessageKey, MessageTarget } from "../../constants";
 
 const setColorScheme = (perfersDark: boolean) => {
+  console.log(perfersDark);
   void chrome.runtime.sendMessage({
-    [MessageKey.colorScheme]: perfersDark ? "dark" : "light",
+    action: MessageKey.colorScheme,
+    target: MessageTarget.Sidepanel,
+    data: perfersDark ? "enabled" : "disabled",
   });
 };
 

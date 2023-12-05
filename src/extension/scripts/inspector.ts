@@ -3,9 +3,9 @@ import Prism from "prismjs";
 
 import { MessageContent, MessageTarget } from "../../constants";
 
-// Original implementation:
+// This code builds on top of:
 // https://github.com/ilyashubin/hover-inspect/blob/master/app/hoverinspect.js
-class Inspector {
+export class Inspector {
   $target: HTMLElement;
   $cacheEl: HTMLElement;
   $cacheElMain: HTMLElement;

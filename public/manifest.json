@@ -28,7 +28,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "js/toggle-icon.js"
+                "js/colorscheme.js"
             ],
             "all_frames": true
         }

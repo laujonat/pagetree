@@ -1,17 +1,16 @@
-import {
-  ContextMenuId,
-  contexts,
-  MessageContent,
-  MessageTarget,
-} from "../../constants";
+import { ContextMenuId, contexts, MessageContent, MessageTarget } from "../../constants";
+import { Badge as BadgeAction } from "./badge";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 let activeTab;
 let connectedTab;
 
+let badge;
+
 chrome.runtime.onConnect.addListener(function (port) {
   if (port && port.name === "pagetree-panel-extension") {
     connectedTab = port.sender?.tab?.id as number;
+
     if (connectedTab === undefined) {
       console.warn("Invalid tab ID");
     }
@@ -69,7 +68,9 @@ chrome.sidePanel
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   activeTab = activeInfo.tabId;
+  badge = new BadgeAction(activeTab);
   handleOnTabUpdate(activeTab);
+  badge.stop();
 });
 
 /* Persistent storage data setup  */
@@ -84,20 +85,20 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-chrome.action.onClicked.addListener(function (tab) {
-  console.log("chrome action clicked", tab);
-  chrome.tabs.sendMessage(tab?.id as number, {
-    action: MessageContent.inspectorToggle,
-    target: MessageTarget.Sidepanel,
-    source: "buttonClick",
-  });
-});
+// chrome.action.onClicked.addListener(function (tab) {
+//   console.log("chrome action clicked", tab);
+//   chrome.tabs.sendMessage(tab?.id as number, {
+//     action: MessageContent.inspectorToggle,
+//     target: MessageTarget.Sidepanel,
+//     source: "buttonClick",
+//   });
+// });
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
+
   if (changeInfo.status === "complete") {
-    getTabBadge(tabId);
     chrome.tabs.sendMessage(tabId, {
       action: MessageContent.checkDocStatus,
       target: MessageTarget.Sidepanel,
@@ -119,6 +120,7 @@ function handleInspectorClick(info) {
   if (info.classes) {
     selector += `.${info.classes.split(" ").join(".")}`;
   }
+
   return selector;
 }
 
@@ -152,7 +154,7 @@ function handleContextMenuClick(info, tab) {
   }
 }
 
-function handleBackgroundMessages(message, sender) {
+async function handleBackgroundMessages(message, sender) {
   const { tab } = sender;
   // Return early if this message isn't meant for the background script
   if (message.target !== MessageTarget.Background) {
@@ -161,6 +163,10 @@ function handleBackgroundMessages(message, sender) {
   if (!tab.id || !tab.url) {
     return;
   }
+  if (!badge) {
+    badge = new BadgeAction(tab.id);
+  }
+
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
     case MessageContent.bgFetchActiveTabUrl:
@@ -183,7 +189,22 @@ function handleBackgroundMessages(message, sender) {
       // @ts-ignore
       chrome.sidePanel.open({ tabId: tab.id });
       break;
+    case MessageContent.inspectorBadgeActivate:
+      badge.start();
+      badge.setText("ON");
+      break;
     case MessageContent.inspectorSelect:
+      try {
+        await chrome.tabs.sendMessage(tab.id, {
+          action: MessageContent.inspectorSelect,
+          target: MessageTarget.Sidepanel,
+          data: handleInspectorClick(message.data),
+        });
+      } finally {
+        badge.stop();
+      }
+      break;
+    case MessageContent.colorScheme:
       chrome.tabs.sendMessage(tab.id, {
         action: MessageContent.inspectorSelect,
         target: MessageTarget.Sidepanel,
@@ -206,7 +227,7 @@ function handleBackgroundMessages(message, sender) {
   }
 }
 
-function getTabBadge(tabId) {
+function setActiveBadge(tabId) {
   try {
     const iconFile = `../../assets/icon-active.png`;
     fetch(chrome.runtime.getURL(iconFile))
@@ -218,7 +239,7 @@ function getTabBadge(tabId) {
         ctx?.drawImage(imageBitmap, 0, 0);
         const imageData = ctx?.getImageData(0, 0, osc.width, osc.height);
         chrome.action.setIcon({ tabId: tabId, imageData });
-        chrome.action.setBadgeText({ tabId: tabId, text: "ok" });
+        chrome.action.setBadgeText({ tabId: tabId, text: "ON" });
       })
       .catch((error) => console.error("Error setting icon:", error));
   } catch (error) {
@@ -230,6 +251,7 @@ async function handleOnTabUpdate(tabId) {
   try {
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url) return;
+    badge.pause();
 
     const url = new URL(tab.url);
     const isEnabled = shouldEnableSidePanelForURL(url);
