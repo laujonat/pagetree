@@ -10,6 +10,7 @@ import {
 } from "react-d3-tree";
 
 import { MessageContent, MessageTarget } from "../../constants";
+import useChrome from "../../hooks/useChrome";
 import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/genTreeNodesHelper";
 import {
@@ -75,7 +76,7 @@ export const TreeProvider = ({
   settings,
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
-  //   const { messageToSend } = useChrome();
+  const { messageToSend } = useChrome();
   const [selectedNode, setSelectedNode] =
     useState<HierarchyPointNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
@@ -147,7 +148,13 @@ export const TreeProvider = ({
     },
   });
 
-  useEffect(() => {}, [loaded]);
+  useEffect(() => {
+    // signal to content script react is ready to accept data
+    messageToSend({
+      action: MessageContent.checkDocStatus,
+      target: MessageTarget.Sidepanel,
+    });
+  }, []);
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {

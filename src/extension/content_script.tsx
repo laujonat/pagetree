@@ -8,6 +8,7 @@ type InspectorInstance = {
 };
 
 let isFirstTreeDataCall = true;
+let treeData;
 const Inspector: InspectorInstance = { instance: undefined };
 const port = chrome.runtime.connect({ name: "pagetree-panel-extension" });
 console.info("pagetree-connect", port);
@@ -113,6 +114,7 @@ async function handleSidepanelMessages(
       break;
     case MessageContent.highlightTextOption:
       console.log(lastRightClickedElement);
+      treeData = createTreeNodes(lastRightClickedElement);
       relayMessageToExtension({
         type: MessageContent.updateGenTree,
         data: createTreeNodes(lastRightClickedElement),
@@ -120,15 +122,17 @@ async function handleSidepanelMessages(
       isFirstTreeDataCall = false;
       break;
     case MessageContent.fullPageOption:
-      relayMessageToExtension({
-        type: MessageContent.updateGenTree,
-        data: createTreeNodes(document.documentElement),
-      });
+      treeData = createTreeNodes(document.documentElement);
+      //   relayMessageToExtension({
+      //     type: MessageContent.updateGenTree,
+      //     data: createTreeNodes(document.documentElement),
+      //   });
       isFirstTreeDataCall = false;
       break;
     case MessageContent.inspectorSelect:
       if (message.data) {
         const element = document.querySelector(message.data);
+        treeData = createTreeNodes(element);
         relayMessageToExtension({
           type: MessageContent.openSidePanel,
           target: MessageTarget.Background,
@@ -136,7 +140,7 @@ async function handleSidepanelMessages(
         toggleInspector();
         relayMessageToExtension({
           type: MessageContent.updateGenTree,
-          data: createTreeNodes(element),
+          data: treeData,
         });
         isFirstTreeDataCall = false;
       } else {
@@ -218,9 +222,12 @@ function forceInspectorStop() {
 
 function sendTreeData() {
   if (typeof document !== "undefined") {
+    if (!treeData) {
+      treeData = createTreeNodes(document.documentElement);
+    }
     relayMessageToExtension({
       type: MessageContent.updateGenTree,
-      data: createTreeNodes(document.documentElement),
+      data: treeData,
     });
   }
 }
