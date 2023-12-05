@@ -32,6 +32,7 @@ export const enum MessageContent {
   fullPageOption = "process-selected-page-context",
   // Inspector actions
   inspectorSelect = "process-inspector-selected-element",
+  inspectorBadgeActivate = "inspector-badge-activate",
   inspectorToggle = "script-toggle-inspector",
   inspectorStatus = "extension-inspector-status",
   //   updateGenTree = "update-gentree-state",
@@ -57,6 +58,8 @@ export const MessageAction: ActionMappings = {
     [MessageContent.inspectorSelect]: MessageContent.inspectorSelect,
     [MessageContent.inspectorStatus]: MessageContent.inspectorStatus,
     [MessageContent.inspectorToggle]: MessageContent.inspectorToggle,
+    [MessageContent.inspectorBadgeActivate]:
+      MessageContent.inspectorBadgeActivate,
     [MessageContent.openSidePanel]: MessageContent.openSidePanel,
     [MessageContent.reloadExtension]: MessageContent.reloadExtension,
     [MessageContent.resendScanPage]: MessageContent.resendScanPage,

@@ -203,11 +203,13 @@ export const TreeProvider = ({
   }, [settings.orientation, translate, loaded]);
 
   useEffect(() => {
-    console.warn(settings);
-    // setTreeState((prevState) => ({
-    //   ...prevState,
-    //   ...settings,
-    // }));
+    console.log({ ...settings });
+    setTreeState((prevState) => ({
+      ...prevState,
+      orientation: settings.orientation,
+      pathFunc: settings.pathFunc,
+      shouldCollapseNeighborNodes: settings.shouldCollapseNeighborNodes,
+    }));
   }, [settings]);
 
   const [shouldDispatchClick, setShouldDispatchClick] = useState(false);
@@ -223,13 +225,6 @@ export const TreeProvider = ({
 
   useEffect(() => {
     const handleMessage = async (message) => {
-      console.group(message.action);
-      console.log(
-        "handling message",
-
-        message.action
-      );
-
       if (message.target === MessageTarget.Runtime) {
         if (message.action === MessageContent.updateGenTree) {
           const r3dtNodes = await genTreeData(message.data);
@@ -238,7 +233,6 @@ export const TreeProvider = ({
           setShouldDispatchClick(true);
         }
       }
-      console.groupEnd();
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
