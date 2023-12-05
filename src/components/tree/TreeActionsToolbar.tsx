@@ -2,6 +2,7 @@ import { forwardRef, useEffect } from "react";
 
 import { MessageContent } from "../../constants";
 import useChrome from "../../hooks/useChrome";
+import { useTree } from "../../hooks/useTree";
 import { TreeHierarchyNode } from "../../types";
 
 interface TreeActionsToolbarProps {
@@ -14,6 +15,7 @@ export const TreeActionsToolbar = forwardRef<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >((props: TreeActionsToolbarProps, ref) => {
   const { messageToSend, isInspectorActive, tabUrl } = useChrome();
+  const { expandAllNodes } = useTree();
 
   useEffect(() => {
     console.log(isInspectorActive);
@@ -42,7 +44,7 @@ export const TreeActionsToolbar = forwardRef<
           </button>
         </div>
         <div className="tree-actions__action expand-elements">
-          <button aria-label="Expand tree elements">
+          <button aria-label="Expand tree elements" onClick={expandAllNodes}>
             <ExpandAllIcon />
           </button>
         </div>

@@ -1,5 +1,5 @@
 import { MutableRefObject } from "react";
-import { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
+import { Orientation, PathFunctionOption, RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
 import { MessageContent, MessageTarget } from "./constants";
 
@@ -24,6 +24,10 @@ interface RefHandler {
   ref: MutableRefObject<HTMLElement>;
   handler: (event: MouseEvent) => void;
 }
+
+export type TreeComponentRef = {
+  svgInstanceRef: string | null;
+};
 
 interface Point {
   x: number;
@@ -67,3 +71,20 @@ type ContextType =
   | "browser_action"
   | "page_action"
   | "action";
+
+// contexts.ts
+// contexts.ts
+export type ContextMenuType =
+  | "selection"
+  | "link"
+  | "editable"
+  | "image"
+  | "video"
+  | "audio";
+
+interface ISettings {
+  orientation: Orientation | undefined;
+  shouldCollapseNeighborNodes: boolean;
+  pathFunc: PathFunctionOption;
+  darkMode: string;
+}

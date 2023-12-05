@@ -7,7 +7,6 @@ type InspectorInstance = {
   instance: _Inspector | undefined;
 };
 
-let isFirstTreeDataCall = true;
 let treeData;
 const Inspector: InspectorInstance = { instance: undefined };
 const port = chrome.runtime.connect({ name: "pagetree-panel-extension" });
@@ -70,7 +69,11 @@ async function handleSidepanelMessages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
-  console.log("isfirstreecall", isFirstTreeDataCall);
+  console.log(
+    chrome.storage.local.get(["settings"], (result) => {
+      console.log(result);
+    })
+  );
   // Return early if this message isn't meant for the sidepanel document.
   if (message.target !== MessageTarget.Sidepanel) {
     return false;
@@ -117,17 +120,15 @@ async function handleSidepanelMessages(
       treeData = createTreeNodes(lastRightClickedElement);
       relayMessageToExtension({
         type: MessageContent.updateGenTree,
-        data: createTreeNodes(lastRightClickedElement),
+        data: treeData,
       });
-      isFirstTreeDataCall = false;
       break;
     case MessageContent.fullPageOption:
       treeData = createTreeNodes(document.documentElement);
-      //   relayMessageToExtension({
-      //     type: MessageContent.updateGenTree,
-      //     data: createTreeNodes(document.documentElement),
-      //   });
-      isFirstTreeDataCall = false;
+      relayMessageToExtension({
+        type: MessageContent.updateGenTree,
+        data: treeData,
+      });
       break;
     case MessageContent.inspectorSelect:
       if (message.data) {
@@ -142,7 +143,6 @@ async function handleSidepanelMessages(
           type: MessageContent.updateGenTree,
           data: treeData,
         });
-        isFirstTreeDataCall = false;
       } else {
         console.error("No selected element to process");
       }

@@ -1,5 +1,9 @@
-import { ContextMenuId, MessageContent, MessageTarget } from "../../constants";
-import { ContextType } from "../../types";
+import {
+  ContextMenuId,
+  contexts,
+  MessageContent,
+  MessageTarget,
+} from "../../constants";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 let activeTab;
@@ -40,15 +44,6 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
     chrome.runtime.setUninstallURL("https://example.com/extension-survey");
   }
-  const contexts: ContextType[] = [
-    "selection",
-    "link",
-    "editable",
-    "image",
-    "video",
-    "audio",
-  ];
-
   chrome.contextMenus.create({
     title: "Element Selector",
     contexts: ["all"],
@@ -76,13 +71,6 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
   activeTab = activeInfo.tabId;
   handleOnTabUpdate(activeTab);
 });
-
-// chrome.tabs.onUpdated.addListener((tabId, tabInfo) => {
-//   if (tabId !== activeTab) {
-//     console.info(tabId, tabInfo);
-//     handleOnTabUpdate(tabId);
-//   }
-// });
 
 /* Persistent storage data setup  */
 chrome.storage.onChanged.addListener((changes, namespace) => {
@@ -164,7 +152,7 @@ function handleContextMenuClick(info, tab) {
   }
 }
 
-async function handleBackgroundMessages(message, sender) {
+function handleBackgroundMessages(message, sender) {
   const { tab } = sender;
   // Return early if this message isn't meant for the background script
   if (message.target !== MessageTarget.Background) {
@@ -218,25 +206,7 @@ async function handleBackgroundMessages(message, sender) {
   }
 }
 
-async function handleOnTabUpdate(tabId) {
-  try {
-    const tab = await chrome.tabs.get(tabId);
-    if (!tab.url) return;
-
-    const url = new URL(tab.url);
-    const isEnabled = shouldEnableSidePanelForURL(url);
-
-    await chrome.sidePanel.setOptions({
-      tabId,
-      path: "sidepanel.html",
-      enabled: isEnabled,
-    });
-  } catch (error) {
-    console.error("Error updating side panel for tab:", error);
-  }
-}
-
-async function getTabBadge(tabId) {
+function getTabBadge(tabId) {
   try {
     const iconFile = `../../assets/icon-active.png`;
     fetch(chrome.runtime.getURL(iconFile))
@@ -253,5 +223,23 @@ async function getTabBadge(tabId) {
       .catch((error) => console.error("Error setting icon:", error));
   } catch (error) {
     console.error(error);
+  }
+}
+
+async function handleOnTabUpdate(tabId) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab.url) return;
+
+    const url = new URL(tab.url);
+    const isEnabled = shouldEnableSidePanelForURL(url);
+
+    await chrome.sidePanel.setOptions({
+      tabId,
+      path: "sidepanel.html",
+      enabled: isEnabled,
+    });
+  } catch (error) {
+    console.error("Error updating side panel for tab:", error);
   }
 }

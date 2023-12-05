@@ -3,6 +3,7 @@ import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
 import HeaderComponent from "../components/common/Header";
+import { ErrorBoundary } from "../components/errors/ErrorBoundary";
 import { SettingsProvider } from "../components/providers/SettingsContextProvider";
 import { TreeProvider } from "../components/providers/TreeContextProvider";
 import WindowProvider from "../components/providers/WindowContextProvider";
@@ -43,10 +44,12 @@ const root = createRoot(document.getElementById("root")!);
 
 root.render(
   <StrictMode>
-    <WindowProvider>
-      <SettingsProvider>
-        <Sidepanel />
-      </SettingsProvider>
-    </WindowProvider>
+    <ErrorBoundary report={console.error}>
+      <WindowProvider>
+        <SettingsProvider>
+          <Sidepanel />
+        </SettingsProvider>
+      </WindowProvider>
+    </ErrorBoundary>
   </StrictMode>
 );

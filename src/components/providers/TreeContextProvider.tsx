@@ -1,26 +1,19 @@
 /* eslint-disable no-inner-declarations */
 import { HierarchyPointNode } from "d3";
-import { createContext, LegacyRef, useEffect, useRef, useState } from "react";
-import {
-  Orientation,
-  Point,
-  Tree,
-  TreeNodeDatum,
-  TreeProps,
-} from "react-d3-tree";
+import { createContext, LegacyRef, Ref, useEffect, useRef, useState } from "react";
+import { Orientation, Point, Tree, TreeNodeDatum, TreeProps } from "react-d3-tree";
 
 import { MessageContent, MessageTarget } from "../../constants";
 import useChrome from "../../hooks/useChrome";
-import { Dimension, TreeHierarchyNode, TreeNode } from "../../types";
+import { Dimension, ISettings, TreeHierarchyNode, TreeNode } from "../../types";
 import { genTreeData } from "../../utils/genTreeNodesHelper";
 import {
-  renderForeignObjectNode,
-  sortPaths,
-  updateCurrentNode,
+    renderForeignObjectNode, sortPaths, updateCurrentNode
 } from "../../utils/genTreePathsHelper";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
+type UpdateTreeRef = (e: Ref<Tree>) => void;
 type HighlightPathFunction = (
   rd3tNode: TreeNode,
   evt: React.MouseEvent,
@@ -28,6 +21,7 @@ type HighlightPathFunction = (
 ) => void;
 type RemoveHighlightPathFunction = (evt: React.MouseEvent) => void;
 type SetLoadedFunction = (a: boolean) => void;
+type HandleExpandFunction = (e: React.MouseEvent) => void;
 type OnNodeClickFunction = (
   a: HierarchyPointNode<TreeNodeDatum>,
   event: React.MouseEvent
@@ -35,6 +29,8 @@ type OnNodeClickFunction = (
 type SetNodeClickFunction = (func: OnNodeClickFunction) => void;
 
 export type ProviderValue = {
+  isExpanded: boolean;
+  expandAllNodes: HandleExpandFunction;
   treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
   selectedNode?: TreeHierarchyNode;
   loaded: boolean;
@@ -45,6 +41,7 @@ export type ProviderValue = {
   onNodeClick: OnNodeClickFunction;
   setOnNodeClick: SetNodeClickFunction;
   updateTreeState: UpdateTreeFunction;
+  updateTreeRef: UpdateTreeRef;
   updateSelectedNode: UpdateNodeFunction;
 };
 
@@ -54,7 +51,7 @@ export type ContextValue = DefaultValue | ProviderValue;
 
 interface TreeProviderProps {
   children: React.ReactNode;
-  settings: Partial<TreeProps>;
+  settings: ISettings;
   translate: Point;
   dimensions?: Dimension; // dimensions can be optional if it might not be set initially
   setTranslate: (newTranslate: Point) => void;
@@ -77,6 +74,8 @@ export const TreeProvider = ({
 }: TreeProviderProps) => {
   const [loaded, setLoaded] = useState(false);
   const { messageToSend, tabId } = useChrome();
+  const [expandNodes, setExpandNodes] = useState(false);
+
   const [selectedNode, setSelectedNode] =
     useState<HierarchyPointNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
@@ -169,6 +168,10 @@ export const TreeProvider = ({
     }
   }, [treeRef.current, setLoaded]);
 
+  const updateTreeRef = (ref) => {
+    treeRef.current = ref;
+  };
+
   const updateTreeState = async (
     newState: Partial<TreeProps>,
     isNewTree: boolean = false
@@ -200,20 +203,23 @@ export const TreeProvider = ({
   }, [settings.orientation, translate, loaded]);
 
   useEffect(() => {
-    setTreeState((prevState) => ({
-      ...prevState,
-      ...settings,
-    }));
+    console.warn(settings);
+    // setTreeState((prevState) => ({
+    //   ...prevState,
+    //   ...settings,
+    // }));
   }, [settings]);
 
   const [shouldDispatchClick, setShouldDispatchClick] = useState(false);
 
   useEffect(() => {
-    if (shouldDispatchClick && treeRef.current) {
-      getRootForeignObject().dispatchEvent(clickEvent);
-      setShouldDispatchClick(false); // Reset the flag
+    if (!expandNodes) {
+      if (shouldDispatchClick && treeRef.current) {
+        getRootForeignObject().dispatchEvent(clickEvent);
+        setShouldDispatchClick(false); // Reset the flag
+      }
     }
-  }, [treeState.data, shouldDispatchClick]); // Run when tree data or shouldDispatchClick changes
+  }, [treeState.data, shouldDispatchClick, expandNodes]); // Run when tree data or shouldDispatchClick changes
 
   useEffect(() => {
     const handleMessage = async (message) => {
@@ -240,6 +246,11 @@ export const TreeProvider = ({
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
   }, [updateTreeState, setLoaded, setShouldDispatchClick]);
+
+  const handleExpandAllEvent = (e) => {
+    console.log(e);
+    setExpandNodes(!expandNodes);
+  };
 
   function getTreeElement(): SVGElement {
     if (!treeRef.current) {
@@ -341,6 +352,8 @@ export const TreeProvider = ({
   };
 
   const value = {
+    expandNodes,
+    expandAllNodes: handleExpandAllEvent,
     highlightPathToNode,
     loaded,
     onNodeClick,
@@ -351,12 +364,15 @@ export const TreeProvider = ({
     treeRef,
     treeState,
     updateSelectedNode,
+    updateTreeRef,
     updateTreeState,
   };
 
   return (
     <TreeContext.Provider
       value={{
+        isExpanded: value.expandNodes,
+        expandAllNodes: value.expandAllNodes,
         highlightPathToNode: value.highlightPathToNode,
         loaded: value.loaded,
         onNodeClick: value.onNodeClick,
@@ -369,6 +385,7 @@ export const TreeProvider = ({
           | undefined,
         treeState: value.treeState,
         updateSelectedNode: value.updateSelectedNode as UpdateNodeFunction,
+        updateTreeRef: value.updateTreeRef,
         updateTreeState: value.updateTreeState,
       }}
     >

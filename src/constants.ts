@@ -1,3 +1,5 @@
+import { ContextMenuType } from "./types";
+
 export const enum MessageKey {
   action = "action",
   colorScheme = "colorScheme",
@@ -77,3 +79,12 @@ export const enum MessageFrom {
   Content,
   Context,
 }
+
+export const contexts: ContextMenuType[] = [
+  "selection",
+  "link",
+  "editable",
+  "image",
+  "video",
+  "audio",
+];
