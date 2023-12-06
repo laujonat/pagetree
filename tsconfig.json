@@ -8,7 +8,7 @@
         "noImplicitAny": false,
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "module": "ES6",
         "esModuleInterop": true,
         "sourceMap": false,
@@ -30,7 +30,11 @@
     "exclude": [
         "**/*.test.ts",
         "dist",
+        ".git",
         "webpack",
+        "webpack/webpack.prod.js",
+        "webpack/webpack.common.js",
+        "webpack/webpack.dev.js",
         "jest.config.js" // Exclude the Jest config file
     ]
 }

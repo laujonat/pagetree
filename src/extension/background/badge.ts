@@ -1,5 +1,5 @@
 const DEFAULT_COLOR = "#c5221f";
-const RECORDING_COLOR = "#FF0000";
+const RECORDING_COLOR = "#44ADF9";
 
 const DEFAULT = "../../assets/icon48.png";
 const INSPECTOR_ACTIVE = "../../assets/icon-active.png";
