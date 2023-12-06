@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+// @ts-nocheck
 const webpack = require("webpack");
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 
 const srcDir = path.join(__dirname, "..", "src");
-const _resolve = {
-    extensions: [".ts", ".tsx", ".js"],
-    modules: [
-        path.resolve(__dirname, 'node_modules'),
-        'node_modules'
-    ]
-}
+
+const resolveExtensions = [".ts", ".tsx", ".js"];
+const resolveModules = [
+    path.resolve(__dirname, 'node_modules'),
+    'node_modules'
+];
+
 module.exports = {
     entry: {
         background: path.join(srcDir, "extension/background/main.ts"),
@@ -24,11 +26,12 @@ module.exports = {
         filename: "[name].js",
     },
     optimization: {
-        splitChunks: {
-            name: "vendor",
+        minimizer: [],
+        splitChunks: {  // Add a default splitChunks configuration
             chunks(chunk) {
                 return chunk.name !== "background";
             },
+            name: 'vendor',
         },
     },
     module: {
@@ -44,7 +47,10 @@ module.exports = {
             },
         ],
     },
-    resolve: _resolve,
+    resolve: {
+        extensions: resolveExtensions,
+        modules: resolveModules,
+    },
     plugins: [
         new CopyPlugin({
             patterns: [
