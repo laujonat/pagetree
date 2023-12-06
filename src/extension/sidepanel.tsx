@@ -2,8 +2,8 @@ import { StrictMode } from "react";
 import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
-import HeaderComponent from "../components/common/Header";
-import { ErrorBoundary } from "../components/errors/ErrorBoundary";
+import { ErrorBoundary } from "../components/errorBoundary/ErrorBoundary";
+import HeaderComponent from "../components/features/Navbar";
 import { SettingsProvider } from "../components/providers/SettingsContextProvider";
 import { TreeProvider } from "../components/providers/TreeContextProvider";
 import WindowProvider from "../components/providers/WindowContextProvider";

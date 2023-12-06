@@ -1,11 +1,12 @@
 import { useId, useRef } from "react";
-import { Orientation } from "react-d3-tree";
+import { Orientation, TreeNodeDatum } from "react-d3-tree";
 
-import useDraggable from "../../hooks/useDraggable";
-import { useThrottle } from "../../hooks/useThrottle";
-import { useTree } from "../../hooks/useTree";
-import { TreeHierarchyNode, TreeNode } from "../../types";
-import { sanitizeId } from "../../utils/genTreePathsHelper";
+import { useDraggable } from "@/hooks/useDraggable";
+import { useThrottle } from "@/hooks/useThrottle";
+import { useTree } from "@/hooks/useTree";
+import { TreeHierarchyNode, TreeNode } from "@/types";
+import { sanitizeId } from "@/utils/genTreePathsHelper";
+
 import { TreeActionsToolbar } from "../tree/TreeActionsToolbar";
 
 const clickEvent = new MouseEvent("click", {
@@ -14,7 +15,7 @@ const clickEvent = new MouseEvent("click", {
   cancelable: true,
 });
 
-export const DevToolsElement = (props: TreeNode) => {
+export const DevToolsElement = (props: TreeNodeDatum & TreeNode) => {
   const { attrs, children, name } = props;
   const elementStyle = {
     color: "var(--webkit-tag-name)",

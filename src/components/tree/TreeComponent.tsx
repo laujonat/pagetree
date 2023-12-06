@@ -1,8 +1,8 @@
 import { forwardRef, Ref, useEffect, useRef, useState } from "react";
 import { Tree } from "react-d3-tree";
 
-import { useTree } from "../../hooks/useTree";
-import { TreeComponentRef } from "../../types";
+import { useTree } from "@/hooks/useTree";
+import { TreeComponentRef } from "@/types";
 
 interface TreeComponentProps {}
 

@@ -1,23 +1,26 @@
 // @ts-nocheck
 const { merge } = require('webpack-merge');
+const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const common = require('./webpack.common.js');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 const customOptimization = {
-    optimization: {
-        minimize: true,
-        minimizer: [
-            new TerserPlugin({
-                test: /\.js(\?.*)?$/i,
-            }),
-        ],
-    },
+    minimize: true,
+    minimizer: [
+        new TerserPlugin({
+            terserOptions: {
+                compress: {
+                    drop_console: true,
+                },
+            },
+        }),
+        new CssMinimizerPlugin({}),
+    ],
 };
 
 module.exports = merge(common, {
     mode: 'production',
     optimization: {
-        ...common.optimization,  // Merge common optimization settings
         ...customOptimization,   // Merge custom optimization settings
     },
 });

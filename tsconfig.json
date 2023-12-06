@@ -1,40 +1,48 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "allowJs": true,
-        "declaration": true,
         "strict": true,
-        "target": "ESNext",
+        "declaration": false,
+        "target": "ESNext", // Corrected target option
+        "baseUrl": "./",
+        "skipLibCheck": true,
         "noImplicitAny": false,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "bundler",
-        "module": "ES6",
+        "moduleResolution": "node",
         "esModuleInterop": true,
+        "experimentalDecorators": false,
         "sourceMap": false,
-        "rootDir": "./src",
         "outDir": "dist/js",
         "noEmitOnError": true,
         "jsx": "react-jsx",
-        "typeRoots": [
-            "node_modules/@types",
-            "src/types.d.ts"
-        ],
         "lib": [
             "DOM",
             "ES6",
-            "ES2022.Object"
+            "ES2022"
         ],
-        "declarationMap": true
+        "noEmit": true,
+        "paths": {
+            "@/*": [
+                "src/*"
+            ]
+        }
+    },
+    "ts-node": {
+        // these options are overrides used only by ts-node
+        // same as the --compilerOptions flag and the TS_NODE_COMPILER_OPTIONS environment variable
+        "compilerOptions": {
+            "module": "commonjs"
+        }
     },
     "exclude": [
-        "**/*.test.ts",
         "dist",
+        "node_modules",
         ".git",
         "webpack",
-        "webpack/webpack.prod.js",
-        "webpack/webpack.common.js",
-        "webpack/webpack.dev.js",
-        "jest.config.js" // Exclude the Jest config file
+        "jest.config.js", // Exclude the Jest config file
+        "**/*.test.ts",
     ]
 }

@@ -1,4 +1,9 @@
-import { ContextMenuId, contexts, MessageContent, MessageTarget } from "../../constants";
+import {
+  ContextMenuId,
+  contexts,
+  MessageContent,
+  MessageTarget,
+} from "../../constants";
 import { Badge as BadgeAction } from "./badge";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
@@ -224,26 +229,6 @@ async function handleBackgroundMessages(message, sender) {
       break;
     default:
       console.warn(`Unexpected message type received: '${message.action}'.`);
-  }
-}
-
-function setActiveBadge(tabId) {
-  try {
-    const iconFile = `../../assets/icon-active.png`;
-    fetch(chrome.runtime.getURL(iconFile))
-      .then((response) => response.blob())
-      .then((blob) => createImageBitmap(blob))
-      .then((imageBitmap) => {
-        const osc = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-        const ctx = osc.getContext("2d");
-        ctx?.drawImage(imageBitmap, 0, 0);
-        const imageData = ctx?.getImageData(0, 0, osc.width, osc.height);
-        chrome.action.setIcon({ tabId: tabId, imageData });
-        chrome.action.setBadgeText({ tabId: tabId, text: "ON" });
-      })
-      .catch((error) => console.error("Error setting icon:", error));
-  } catch (error) {
-    console.error(error);
   }
 }
 

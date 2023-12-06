@@ -1,12 +1,13 @@
 import { Ref, useEffect, useState } from "react";
 import Tree from "react-d3-tree";
 
-import useChrome from "../../hooks/useChrome";
-import { useSettings } from "../../hooks/useSettings";
-import { useTree } from "../../hooks/useTree";
-import { IconLoading } from "../../icons";
-import { DevToolsElement } from "../common/Header";
-import { Tabs } from "../common/Tabs";
+import useChrome from "@/hooks/useChrome";
+import { useSettings } from "@/hooks/useSettings";
+import { useTree } from "@/hooks/useTree";
+import { IconLoading } from "@/icons";
+
+import { DevToolsElement } from "../features/Navbar";
+import { Tabs } from "../features/PanelTabs";
 import { TreeComponent } from "./TreeComponent";
 import { TreeSettings } from "./TreeSettings";
 

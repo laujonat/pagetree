@@ -1,7 +1,7 @@
 import { RefObject, useLayoutEffect, useRef, useState } from "react";
 import { Point } from "react-d3-tree";
 
-import { Dimension } from "../types";
+import { Dimension } from "@/types";
 
 type Orientation = "horizontal" | "vertical";
 

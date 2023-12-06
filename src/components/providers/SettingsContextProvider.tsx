@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 
-import { ISettings } from "../../types";
+import { ISettings } from "@/types";
 
 interface ITheme {
   darkMode: string | boolean;
