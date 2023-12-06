@@ -6,7 +6,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useTree } from "@/hooks/useTree";
 import { IconLoading } from "@/icons";
 
-import { DevToolsElement } from "../features/Navbar";
+import { DevToolsElement } from "../features/Element";
 import { Tabs } from "../features/PanelTabs";
 import { TreeComponent } from "./TreeComponent";
 import { TreeSettings } from "./TreeSettings";
@@ -20,9 +20,6 @@ export const TreeLayout = () => {
   useEffect(() => {
     setRef(treeRef as Ref<SVGElement>);
   }, []);
-  useEffect(() => {
-    console.log("SETTINGS", settings);
-  }, [settings]);
 
   const renderContentBasedOnSource = () => {
     if (!loaded) {
