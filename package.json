@@ -3,8 +3,9 @@
     "version": "1.0.0",
     "description": "Visualize distribution of DOM nodes in the document tree",
     "scripts": {
-        "watch": "webpack --config build/webpack.config.dev.ts --watch",
-        "build": "webpack --config webpack/webpack.prod.js",
+        "watch": "cross-env NODE_ENV=development webpack --config build/webpack.config.dev.ts --watch",
+        "build": "cross-env NODE_ENV=production webpack --config build/webpack.config.prod.ts",
+        "stats": "cross-env NODE_ENV=production webpack --config build/webpack.analysis.ts",
         "clean": "rimraf dist",
         "test": "npx jest",
         "lint": "run-p lint:ts lint:es lint:style lint:prettier",

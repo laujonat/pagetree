@@ -4,12 +4,13 @@ import {
   MutableRefObject,
   ReactNode,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
 } from "react";
 import { useClickOutside } from "use-events";
 
-import { MessageContent } from "../../constants";
+import { MessageContent, MessageTarget } from "../../constants";
 import useChrome from "../../hooks/useChrome";
 import { RefHandler } from "../../types";
 
@@ -23,6 +24,23 @@ interface WindowProviderProps {
 const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const refsHandlers = useRef<RefHandler[]>([]);
   const { messageToSend, tabId } = useChrome();
+
+  useEffect(() => {
+    chrome.tabs.query(
+      { active: true, lastFocusedWindow: true },
+      async (tabs) => {
+        const tab = tabs[0]?.id;
+        messageToSend(
+          {
+            action: MessageContent.checkFirstTime,
+            target: MessageTarget.Sidepanel,
+          },
+          tab
+        );
+      }
+    );
+  }, []);
+
   const registerClickOutside = useCallback(
     (
       ref: MutableRefObject<HTMLElement>,

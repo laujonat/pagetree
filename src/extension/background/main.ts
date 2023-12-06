@@ -9,7 +9,6 @@ import { Badge as BadgeAction } from "./badge";
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 let activeTab;
 let connectedTab;
-
 let badge;
 
 chrome.runtime.onConnect.addListener(function (port) {
@@ -90,18 +89,10 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
   }
 });
 
-// chrome.action.onClicked.addListener(function (tab) {
-//   console.log("chrome action clicked", tab);
-//   chrome.tabs.sendMessage(tab?.id as number, {
-//     action: MessageContent.inspectorToggle,
-//     target: MessageTarget.Sidepanel,
-//     source: "buttonClick",
-//   });
-// });
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
-  console.log("Tab ID:", tabId, "Change Info:", changeInfo);
+  //   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
 
   if (changeInfo.status === "complete") {
     chrome.tabs.sendMessage(tabId, {
@@ -130,7 +121,7 @@ function handleInspectorClick(info) {
 }
 
 function handleContextMenuClick(info, tab) {
-  console.log("Tab ID:", tab.id, "clickinfo:", info);
+  //   console.log("Tab ID:", tab.id, "clickinfo:", info);
   switch (info.menuItemId) {
     case ContextMenuId.selector:
       chrome.tabs.sendMessage(tab.id, {
@@ -161,15 +152,18 @@ function handleContextMenuClick(info, tab) {
 
 async function handleBackgroundMessages(message, sender) {
   const { tab } = sender;
+  console.log("background action", message.action);
   // Return early if this message isn't meant for the background script
   if (message.target !== MessageTarget.Background) {
     return;
   }
+
   if (!tab.id || !tab.url) {
     return;
   }
   if (!badge) {
     badge = new BadgeAction(tab.id);
+    badge.stop();
   }
 
   // Dispatch the message to an appropriate handler.
@@ -211,9 +205,9 @@ async function handleBackgroundMessages(message, sender) {
       break;
     case MessageContent.colorScheme:
       chrome.tabs.sendMessage(tab.id, {
-        action: MessageContent.inspectorSelect,
+        action: MessageContent.colorScheme,
         target: MessageTarget.Sidepanel,
-        data: handleInspectorClick(message.data),
+        data: message.data,
       });
       break;
     case MessageContent.inspectorStatus:

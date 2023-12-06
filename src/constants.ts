@@ -20,7 +20,6 @@ export const enum MessageContent {
   reloadExtension = "extension-reload-content",
   resendScanPage = "rescan-tree-data",
   scanPage = "extension-scan-page",
-  toggleDark = "toggle-dark-mode",
   updateGenTree = "update-gentree-state",
   openSidePanel = "open-side-panel",
   treeReady = "document-tree-loaded",
@@ -38,39 +37,9 @@ export const enum MessageContent {
   //   updateGenTree = "update-gentree-state",
   inspectorForceStop = "definite-stop-inspector",
   colorScheme = "colorSchemes",
+  checkFirstTime = "check-first-time-colorschema",
+  firstTimeResponse = "first-time-colorschema-response",
 }
-
-type ActionMappings = {
-  [key in MessageKey]: Partial<Record<MessageContent, string>>;
-};
-
-export const MessageAction: ActionMappings = {
-  [MessageKey.action]: {
-    [MessageContent.activeTabUrl]: MessageContent.activeTabUrl,
-    [MessageContent.bgDocStatus]: MessageContent.bgDocStatus,
-    [MessageContent.bgFetchActiveTabUrl]: MessageContent.bgFetchActiveTabUrl,
-    [MessageContent.checkDocStatus]: MessageContent.checkDocStatus,
-    [MessageContent.colorScheme]: MessageContent.colorScheme,
-    [MessageContent.fetchActiveTabUrl]: MessageContent.fetchActiveTabUrl,
-    [MessageContent.fullPageOption]: MessageContent.fullPageOption,
-    [MessageContent.highlightTextOption]: MessageContent.highlightTextOption,
-    [MessageContent.inspectorForceStop]: MessageContent.inspectorForceStop,
-    [MessageContent.inspectorSelect]: MessageContent.inspectorSelect,
-    [MessageContent.inspectorStatus]: MessageContent.inspectorStatus,
-    [MessageContent.inspectorToggle]: MessageContent.inspectorToggle,
-    [MessageContent.inspectorBadgeActivate]:
-      MessageContent.inspectorBadgeActivate,
-    [MessageContent.openSidePanel]: MessageContent.openSidePanel,
-    [MessageContent.reloadExtension]: MessageContent.reloadExtension,
-    [MessageContent.resendScanPage]: MessageContent.resendScanPage,
-    [MessageContent.scanPage]: MessageContent.scanPage,
-    [MessageContent.toggleDark]: MessageContent.toggleDark,
-    [MessageContent.updateGenTree]: MessageContent.updateGenTree,
-  },
-  [MessageKey.colorScheme]: {
-    [MessageContent.colorScheme]: MessageContent.colorScheme,
-  },
-};
 
 export const enum MessageTarget {
   Sidepanel = "sidepanel",

@@ -1,4 +1,4 @@
-import { forwardRef, useEffect } from "react";
+import { forwardRef } from "react";
 
 import { MessageContent } from "../../constants";
 import useChrome from "../../hooks/useChrome";
@@ -16,10 +16,6 @@ export const TreeActionsToolbar = forwardRef<
 >((props: TreeActionsToolbarProps, ref) => {
   const { messageToSend, isInspectorActive, tabUrl } = useChrome();
   const { expandAllNodes } = useTree();
-
-  useEffect(() => {
-    console.log(isInspectorActive);
-  }, [isInspectorActive]);
 
   const handleInspectorClick = async () => {
     try {

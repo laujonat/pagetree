@@ -20,6 +20,9 @@ export const TreeLayout = () => {
   useEffect(() => {
     setRef(treeRef as Ref<SVGElement>);
   }, []);
+  useEffect(() => {
+    console.log("SETTINGS", settings);
+  }, [settings]);
 
   const renderContentBasedOnSource = () => {
     if (!loaded) {

@@ -2,8 +2,8 @@
   --background-dark-accent: #222222;
   --background-dark-item: #282828;
   --background-dark: #121212;
-  --background-light-accent: #fafafa;
-  --background-light-item: rgb(230 230 230);
+  --background-light-accent: rgba(248, 247, 247, 0.854);
+  --background-light-item: rgba(230, 230, 230, 0.884);
   --background-light: #ffffff;
   --border-active-dark: rgb(232 232 232);
   --border-active-light: rgb(0 145 255);

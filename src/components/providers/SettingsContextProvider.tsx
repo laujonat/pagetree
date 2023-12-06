@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 
+import { MessageContent } from "@/constants";
 import { ISettings } from "@/types";
 
 interface ITheme {
@@ -29,9 +30,25 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   const [settings, setSettings] = useState<ISettings>(defaultSettings);
 
   useEffect(() => {
+    const messageListener = (message) => {
+      if (message.action === MessageContent.firstTimeResponse) {
+        const { firstTime, dark } = message.data;
+        if (firstTime) {
+          updateSetting("darkMode", dark);
+        }
+      }
+    };
+    chrome.runtime.onMessage.addListener(messageListener);
+    return () => {
+      chrome.runtime.onMessage.removeListener(messageListener);
+    };
+  }, []);
+
+  useEffect(() => {
     chrome.storage.sync.get(["settings"], (result) => {
-      // Ensure that result.settings is of type ISettings
+      console.log("result result", result);
       if (result.settings && typeof result.settings === "object") {
+        console.warn("result", result);
         const updatedSettings: ISettings = {
           ...defaultSettings,
           ...result.settings,

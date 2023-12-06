@@ -1,4 +1,6 @@
+import { CleanWebpackPlugin } from "clean-webpack-plugin";
 import CopyPlugin from "copy-webpack-plugin";
+import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import path from "path";
@@ -15,7 +17,6 @@ const resolveModules = [
 const config: WebpackConfiguration = {
   entry: {
     background: path.join(srcDir, "extension/background/main.ts"),
-    colorscheme: path.join(srcDir, "extension/background/colorscheme.ts"),
     content_script: path.join(srcDir, "extension/content_script.tsx"),
     sidepanel: path.join(srcDir, "extension/sidepanel.tsx"),
     script: path.join(srcDir, "extension/scripts/inspector.ts"),
@@ -67,8 +68,8 @@ const config: WebpackConfiguration = {
     ],
   },
   plugins: [
-    // new CleanWebpackPlugin(),
-    // new ForkTsCheckerWebpackPlugin(),
+    new CleanWebpackPlugin(),
+    new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: "css/[name].css",
     }),

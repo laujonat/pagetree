@@ -69,12 +69,6 @@ async function handleSidepanelMessages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
-  console.log(
-    chrome.storage.sync.get(["settings"], (result) => {
-      console.log("here");
-      console.log(result.key);
-    })
-  );
   // Return early if this message isn't meant for the sidepanel document.
   if (message.target !== MessageTarget.Sidepanel) {
     return false;
@@ -105,20 +99,24 @@ async function handleSidepanelMessages(
         data: { url: message.data.url },
       });
       break;
-    case MessageContent.toggleDark:
-      chrome.storage.sync.set({ darkMode: "enabled" }).then(() => {
-        document.documentElement.setAttribute("data-theme", "dark");
-      });
-      break;
-    case MessageContent.colorScheme:
-      console.log("color scheme", message.data);
-      chrome.storage.sync.set({ darkMode: message.data }).then(() => {
-        const prefersDark = message.data === "enabled";
-        if (prefersDark) {
-          document.documentElement.setAttribute("data-theme", "dark");
-        } else {
-          document.documentElement.removeAttribute("data-theme");
+    case MessageContent.checkFirstTime:
+      // Check if it's the first time opening the extension
+      chrome.storage.sync.get(["colorschemeScriptRun"], (result) => {
+        const colorschemeScriptRun = result.colorschemeScriptRun || false;
+        if (!colorschemeScriptRun) {
+          chrome.storage.sync.set({ colorschemeScriptRun: true });
         }
+        const perfersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        relayMessageToExtension({
+          type: MessageContent.firstTimeResponse,
+          target: MessageTarget.Runtime,
+          data: {
+            dark: perfersDark ? "enabled" : "disabled",
+            firstTime: !colorschemeScriptRun,
+          },
+        });
       });
       break;
     case MessageContent.scanPage:
@@ -163,11 +161,6 @@ async function handleSidepanelMessages(
       toggleInspector();
       break;
     case MessageContent.inspectorStatus:
-      console.log("checking inspector status");
-      console.log(
-        "checking inspector status",
-        Inspector?.instance?.isActiveStatus
-      );
       relayMessageToExtension({
         type: MessageContent.inspectorStatus,
         data: {
