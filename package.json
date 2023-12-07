@@ -23,11 +23,14 @@
     },
     "dependencies": {
         "@babel/runtime": "^7.23.5",
+        "@types/d3": "^7.4.3",
+        "clone": "^2.1.2",
         "d3": "^7.8.5",
         "prismjs": "^1.29.0",
         "react": "^18.2.0",
         "react-d3-tree": "^3.6.1",
         "react-dom": "^18.2.0",
+        "react-svg-text": "^0.1.2",
         "use-events": "^1.4.2"
     },
     "chromeExtension": {

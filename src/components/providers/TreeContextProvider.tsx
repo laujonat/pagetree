@@ -1,33 +1,14 @@
-/* eslint-disable no-inner-declarations */
-import { HierarchyPointNode } from "d3";
-import {
-  createContext,
-  LegacyRef,
-  Ref,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import {
-  Orientation,
-  Point,
-  Tree,
-  TreeNodeDatum,
-  TreeProps,
-} from "react-d3-tree";
+import { createContext, LegacyRef, Ref, useEffect, useRef, useState } from "react";
+import { Orientation, Point, Tree, TreeNodeDatum, TreeProps } from "react-d3-tree";
 
 import { MessageContent, MessageTarget } from "@/constants";
 import useChrome from "@/hooks/useChrome";
-import { Dimension, ISettings, TreeHierarchyNode, TreeNode } from "@/types";
-import { genTreeData } from "@/utils/genTreeNodesHelper";
-import {
-  renderForeignObjectNode,
-  sortPaths,
-  updateCurrentNode,
-} from "@/utils/genTreePathsHelper";
+import { Dimension, ISettings, PageTreeHierarchyNode, TreeNode } from "@/types";
+import { findNodesById, genTreeData } from "@/utils/genTreeNodesHelper";
+import { renderForeignObjectNode, sortPaths, updateCurrentNode } from "@/utils/genTreePathsHelper";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
-type UpdateNodeFunction = (a: HierarchyPointNode<TreeNodeDatum>) => void;
+type UpdateNodeFunction = (a: PageTreeHierarchyNode<TreeNodeDatum>) => void;
 type UpdateTreeRef = (e: Ref<Tree>) => void;
 type HighlightPathFunction = (
   rd3tNode: TreeNode,
@@ -37,27 +18,30 @@ type HighlightPathFunction = (
 type RemoveHighlightPathFunction = (evt: React.MouseEvent) => void;
 type SetLoadedFunction = (a: boolean) => void;
 type HandleExpandFunction = (e: React.MouseEvent) => void;
+type HandleExpandChildrenFunction = (node: string) => void;
 type OnNodeClickFunction = (
-  a: HierarchyPointNode<TreeNodeDatum>,
+  a: PageTreeHierarchyNode<TreeNodeDatum>,
   event: React.MouseEvent
 ) => void;
 type SetNodeClickFunction = (func: OnNodeClickFunction) => void;
 
 export type ProviderValue = {
-  isExpanded: boolean;
   expandAllNodes: HandleExpandFunction;
-  treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
-  selectedNode?: TreeHierarchyNode;
-  loaded: boolean;
-  setLoaded: SetLoadedFunction;
-  treeRef: LegacyRef<SVGElement> | undefined;
+  expandChildNodes: HandleExpandChildrenFunction;
   highlightPathToNode: HighlightPathFunction;
-  removeHighlightPathToNode: RemoveHighlightPathFunction;
+  isExpanded: boolean;
+  loaded: boolean;
+  nodeCount: number;
   onNodeClick: OnNodeClickFunction;
+  removeHighlightPathToNode: RemoveHighlightPathFunction;
+  selectedNode?: PageTreeHierarchyNode<TreeNodeDatum>;
+  setLoaded: SetLoadedFunction;
   setOnNodeClick: SetNodeClickFunction;
-  updateTreeState: UpdateTreeFunction;
-  updateTreeRef: UpdateTreeRef;
+  treeRef: LegacyRef<SVGElement> | undefined;
+  treeState: Partial<TreeProps>; // since you know this is what the provider will be passing
   updateSelectedNode: UpdateNodeFunction;
+  updateTreeRef: UpdateTreeRef;
+  updateTreeState: UpdateTreeFunction;
 };
 
 export type DefaultValue = undefined;
@@ -90,9 +74,10 @@ export const TreeProvider = ({
   const [loaded, setLoaded] = useState(false);
   const { messageToSend, tabId } = useChrome();
   const [expandNodes, setExpandNodes] = useState(false);
-
+  const [nodeCount, setNodeCount] = useState<number>(0);
+  const [shouldDispatchClick, setShouldDispatchClick] = useState(false);
   const [selectedNode, setSelectedNode] =
-    useState<HierarchyPointNode<TreeNodeDatum>>();
+    useState<PageTreeHierarchyNode<TreeNodeDatum>>();
   const treeRef = useRef<Tree>();
 
   const [onNodeClick, setOnNodeClick] = useState<OnNodeClickFunction>(
@@ -116,8 +101,8 @@ export const TreeProvider = ({
     branchNodeClassName: "tree__branch",
     leafNodeClassName: "tree__leaf",
     pathFunc: settings.pathFunc,
-    scaleExtent: { min: 0.25, max: 2 },
-    separation: { siblings: 0.5, nonSiblings: 0 },
+    scaleExtent: { max: 10, min: 0.01 },
+    separation: { siblings: 1, nonSiblings: 0.75 },
     shouldCollapseNeighborNodes: settings.shouldCollapseNeighborNodes,
     svgClassName: "pageTree__root",
     transitionDuration: 500,
@@ -143,12 +128,16 @@ export const TreeProvider = ({
       renderForeignObjectNode({
         ...rd3tProps,
       }),
-    onNodeClick: (...args) => {
+    onNodeClick: async (...args) => {
       const [node] = args;
-      updateSelectedNode(node);
-      setOnNodeClick(() => () => {
-        updateSelectedNode(node);
-      });
+      try {
+        await updateSelectedNode(node);
+        setOnNodeClick(async () => {
+          await updateSelectedNode(node);
+        });
+      } catch (error) {
+        console.error(error);
+      }
     },
     pathClassFunc: ({ source, target }) => {
       updateCurrentNode(source, target);
@@ -161,82 +150,6 @@ export const TreeProvider = ({
       return classes;
     },
   });
-
-  useEffect(() => {
-    // signal to content script react is ready to accept data
-    if (tabId) {
-      messageToSend({
-        action: MessageContent.checkDocStatus,
-        target: MessageTarget.Sidepanel,
-      });
-    }
-  }, [tabId]);
-
-  useEffect(() => {
-    if (treeRef.current instanceof Tree) {
-      const tElement = document.getElementsByClassName(
-        treeRef.current.gInstanceRef
-      )[0] as SVGElement;
-      setTreeElement(tElement);
-    } else {
-      setLoaded(false);
-    }
-  }, [treeRef.current, setLoaded]);
-
-  const updateTreeRef = (ref) => {
-    treeRef.current = ref;
-  };
-
-  const updateTreeState = async (
-    newState: Partial<TreeProps>,
-    isNewTree: boolean = false
-  ) => {
-    setTreeState((prevState) => ({
-      ...prevState,
-      ...newState,
-      dataKey: isNewTree ? `tree-${Date.now()}` : prevState.dataKey,
-    }));
-  };
-
-  const updateSelectedNode = (newState: HierarchyPointNode<TreeNodeDatum>) => {
-    setSelectedNode(newState);
-  };
-
-  useEffect(() => {
-    if (loaded) {
-      updateTreeState({
-        orientation: settings.orientation,
-        separation:
-          settings.orientation === "vertical"
-            ? { siblings: 0.75, nonSiblings: 1.5 }
-            : { siblings: 0.5, nonSiblings: 0 },
-        dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
-        translate: translate, // Use calculated translate
-        zoom: 1.5,
-      });
-    }
-  }, [settings.orientation, translate, loaded]);
-
-  useEffect(() => {
-    console.log({ ...settings });
-    setTreeState((prevState) => ({
-      ...prevState,
-      orientation: settings.orientation,
-      pathFunc: settings.pathFunc,
-      shouldCollapseNeighborNodes: settings.shouldCollapseNeighborNodes,
-    }));
-  }, [settings]);
-
-  const [shouldDispatchClick, setShouldDispatchClick] = useState(false);
-
-  useEffect(() => {
-    if (!expandNodes) {
-      if (shouldDispatchClick && treeRef.current) {
-        getRootForeignObject().dispatchEvent(clickEvent);
-        setShouldDispatchClick(false); // Reset the flag
-      }
-    }
-  }, [treeState.data, shouldDispatchClick, expandNodes]); // Run when tree data or shouldDispatchClick changes
 
   useEffect(() => {
     const handleMessage = async (message) => {
@@ -256,10 +169,122 @@ export const TreeProvider = ({
     };
   }, [updateTreeState, setLoaded, setShouldDispatchClick]);
 
-  const handleExpandAllEvent = (e) => {
-    console.log(e);
+  useEffect(() => {
+    if (Object.hasOwn(treeState.data, "children")) {
+      const len = countNodes(
+        0,
+        Array.isArray(treeState.data) ? treeState.data[0] : treeState.data
+      );
+      setNodeCount(len);
+    }
+  }, [treeState.data]);
+
+  useEffect(() => {
+    // signal to content script react is ready to accept data
+    if (tabId) {
+      messageToSend({
+        action: MessageContent.checkDocStatus,
+        target: MessageTarget.Sidepanel,
+      });
+    }
+  }, [tabId]);
+
+  useEffect(() => {
+    console.log("ts data", treeState.data);
+  }, [treeState.data]);
+
+  useEffect(() => {
+    if (treeRef.current instanceof Tree) {
+      const tElement = document.getElementsByClassName(
+        treeRef.current.gInstanceRef
+      )[0] as SVGElement;
+      setTreeElement(tElement);
+    } else {
+      setLoaded(false);
+    }
+  }, [treeRef.current, setLoaded]);
+
+  useEffect(() => {
+    if (loaded) {
+      updateTreeState({
+        orientation: settings.orientation,
+        separation:
+          settings.orientation === "vertical"
+            ? { siblings: 1, nonSiblings: 1.5 }
+            : { siblings: 0.5, nonSiblings: 0 },
+        dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
+        translate: translate, // Use calculated translate
+        zoom: 1.5,
+      });
+    }
+  }, [settings.orientation, translate, loaded]);
+
+  useEffect(() => {
+    setTreeState((prevState) => ({
+      ...prevState,
+      orientation: settings.orientation,
+      pathFunc: settings.pathFunc,
+      shouldCollapseNeighborNodes: settings.shouldCollapseNeighborNodes,
+    }));
+  }, [settings]);
+
+  useEffect(() => {
+    if (!expandNodes) {
+      if (shouldDispatchClick && treeRef.current) {
+        getRootForeignObject().dispatchEvent(clickEvent);
+        setShouldDispatchClick(false); // Reset the flag
+      }
+    }
+  }, [treeState.data, shouldDispatchClick, expandNodes]); // Run when tree data or shouldDispatchClick changes
+
+  function countNodes(count: number = 0, node) {
+    count += 1;
+    if (!children) {
+      return count;
+    }
+
+    return node.children.reduce((sum, child) => countNodes(sum, child), count);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const expandAllNodes = (_e) => {
     setExpandNodes(!expandNodes);
   };
+
+  const updateTreeRef = (ref) => {
+    treeRef.current = ref;
+  };
+
+  async function updateTreeState(
+    newState: Partial<TreeProps>,
+    isNewTree: boolean = false
+  ) {
+    console.log("NEW STATE", newState);
+    setTreeState((prevState) => ({
+      ...prevState,
+      ...newState,
+      dataKey: isNewTree ? `tree-${Date.now()}` : prevState.dataKey,
+    }));
+  }
+
+  const expandChildNodes = async (node: string) => {
+    console.log("here", node, selectedNode);
+    if (selectedNode?.children) {
+      const hits = findNodesById(node, selectedNode.children, [])[0];
+      console.log("HITS", hits);
+      // @ts-ignore wip
+      const result = await expandNodeDescendants(hits.data);
+
+      console.log("expand result", result);
+      console.log("node", selectedNode);
+    }
+  };
+
+  async function updateSelectedNode(
+    newState: PageTreeHierarchyNode<TreeNodeDatum>
+  ) {
+    await setSelectedNode(newState);
+  }
 
   function getTreeElement(): SVGElement {
     if (!treeRef.current) {
@@ -291,14 +316,16 @@ export const TreeProvider = ({
     if (!(treeElement instanceof SVGElement)) {
       throw new Error("TreeReferenceError");
     }
-
-    const selectedNodeChildCount = selectedNode.data.children.length;
-    // Retrieve the last 'selectedNodeChildCount' number of link paths
-    const linkPaths = Array.from(
-      treeElement.querySelectorAll("path.rd3t-link")
-    );
-    const relevantPaths = linkPaths.slice(-selectedNodeChildCount);
-    return relevantPaths;
+    if (selectedNode?.data && selectedNode?.data.children) {
+      const selectedNodeChildCount = selectedNode.data.children.length;
+      // Retrieve the last 'selectedNodeChildCount' number of link paths
+      const linkPaths = Array.from(
+        treeElement.querySelectorAll("path.rd3t-link")
+      );
+      const relevantPaths = linkPaths.slice(-selectedNodeChildCount);
+      return relevantPaths;
+    }
+    return [];
   }
 
   function removeDescendantPathStyles(): Element[] {
@@ -361,8 +388,10 @@ export const TreeProvider = ({
   };
 
   const value = {
+    nodeCount,
     expandNodes,
-    expandAllNodes: handleExpandAllEvent,
+    expandAllNodes,
+    expandChildNodes,
     highlightPathToNode,
     loaded,
     onNodeClick,
@@ -382,9 +411,11 @@ export const TreeProvider = ({
       value={{
         isExpanded: value.expandNodes,
         expandAllNodes: value.expandAllNodes,
+        expandChildNodes: value.expandChildNodes,
         highlightPathToNode: value.highlightPathToNode,
         loaded: value.loaded,
         onNodeClick: value.onNodeClick,
+        nodeCount: value.nodeCount,
         removeHighlightPathToNode: value.removeHighlightPathToNode,
         selectedNode: value.selectedNode,
         setLoaded: value.setLoaded,
@@ -393,7 +424,7 @@ export const TreeProvider = ({
           | React.LegacyRef<SVGElement>
           | undefined,
         treeState: value.treeState,
-        updateSelectedNode: value.updateSelectedNode as UpdateNodeFunction,
+        updateSelectedNode: value.updateSelectedNode,
         updateTreeRef: value.updateTreeRef,
         updateTreeState: value.updateTreeState,
       }}

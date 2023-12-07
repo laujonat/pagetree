@@ -1,8 +1,9 @@
 import { useId } from "react";
-import { Orientation } from "react-d3-tree";
+import { Orientation, TreeNodeDatum } from "react-d3-tree";
 
 import { useThrottle } from "@/hooks/useThrottle";
 import { useTree } from "@/hooks/useTree";
+import { PageTreeHierarchyNode } from "@/types";
 import { sanitizeId } from "@/utils/genTreePathsHelper";
 
 import { DevToolsElement } from "./Element";
@@ -13,10 +14,19 @@ const clickEvent = new MouseEvent("click", {
   cancelable: true,
 });
 
-export function NodeListItem(props) {
-  const { highlightPathToNode, removeHighlightPathToNode, treeState } =
-    useTree();
+interface NodeListItemProps {
+  node: PageTreeHierarchyNode<TreeNodeDatum>;
+}
+
+export function NodeListItem(props: NodeListItemProps) {
+  const {
+    highlightPathToNode,
+    removeHighlightPathToNode,
+    treeState,
+    expandChildNodes,
+  } = useTree();
   const id = useId();
+  const { node } = props;
 
   function getForeignObjectElement(id: string): SVGElement {
     const selector = `#${sanitizeId(id)} foreignObject`;
@@ -25,9 +35,11 @@ export function NodeListItem(props) {
     return foreignObject as SVGElement;
   }
 
-  const handleClick = () => {
-    if (props.__rd3t.id) {
-      const fObjElement: SVGElement = getForeignObjectElement(props.__rd3t.id);
+  const handleVisitClick = () => {
+    if (node.data.__rd3t.id) {
+      const fObjElement: SVGElement = getForeignObjectElement(
+        node.data.__rd3t.id
+      );
       fObjElement.dispatchEvent(clickEvent);
     }
   };
@@ -42,18 +54,27 @@ export function NodeListItem(props) {
       key={id}
       tabIndex={0}
       className="details__item"
-      onMouseEnter={(evt) =>
-        throttledHighlightPathToNode(props, evt, orientation as Orientation)
+      onMouseEnter={async (evt) =>
+        await throttledHighlightPathToNode(
+          node.data,
+          evt,
+          orientation as Orientation
+        )
       }
       onMouseLeave={removeHighlightPathToNode}
     >
-      <DevToolsElement {...props} />
+      <DevToolsElement {...node.data} />
       <div className="slider-rotate">
         <div className="slider-rotate__selector">
-          <div className="slider-rotate__button" onClick={handleClick}>
+          <div className="slider-rotate__button" onClick={handleVisitClick}>
             Visit
           </div>
-          <div className="slider-rotate__button">Expand</div>
+          {/* <div
+            className="slider-rotate__button"
+            onClick={() => expandChildNodes(node.data.__rd3t.id)}
+          >
+            Expand
+          </div> */}
         </div>
       </div>
     </li>

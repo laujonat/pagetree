@@ -21,7 +21,7 @@ interface WindowProviderProps {
   children: ReactNode;
 }
 
-const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
+export const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const refsHandlers = useRef<RefHandler[]>([]);
   const { messageToSend, tabId } = useChrome();
 

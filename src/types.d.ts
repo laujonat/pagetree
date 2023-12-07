@@ -1,5 +1,10 @@
 import { MutableRefObject } from "react";
-import { Orientation, PathFunctionOption, RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
+import {
+  Orientation,
+  PathFunctionOption,
+  RawNodeDatum,
+  TreeNodeDatum,
+} from "react-d3-tree";
 
 import { MessageContent, MessageTarget } from "./constants";
 
@@ -18,6 +23,34 @@ interface TreeNode extends RawNodeDatum {
 
 interface TreeHierarchyNode extends TreeNode {
   data: TreeNodeDatum;
+}
+
+interface PageTreeHierarchyNode<Datum> {
+  data: Datum;
+  depth: number;
+  height: number;
+  parent: MyHierarchyNode<Datum> | null;
+  children?: MyHierarchyNode<Datum>[] | undefined;
+  value?: number | undefined;
+  id?: string | undefined;
+  ancestors(): MyHierarchyNode<Datum>[];
+  descendants(): MyHierarchyNode<Datum>[];
+  leaves(): MyHierarchyNode<Datum>[];
+  path(target: MyHierarchyNode<Datum>): MyHierarchyNode<Datum>[];
+  links(): Array<HierarchyLink<Datum>>;
+  sum(value: (d: Datum) => number): MyHierarchyNode<Datum>;
+  count(): MyHierarchyNode<Datum>;
+  sort(
+    compare: (a: MyHierarchyNode<Datum>, b: MyHierarchyNode<Datum>) => number
+  ): MyHierarchyNode<Datum>;
+  each(func: (node: MyHierarchyNode<Datum>) => void): MyHierarchyNode<Datum>;
+  eachAfter(
+    func: (node: MyHierarchyNode<Datum>) => void
+  ): MyHierarchyNode<Datum>;
+  eachBefore(
+    func: (node: MyHierarchyNode<Datum>) => void
+  ): MyHierarchyNode<Datum>;
+  copy(): MyHierarchyNode<Datum>;
 }
 
 interface RefHandler {

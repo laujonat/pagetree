@@ -3,11 +3,11 @@ import { Orientation } from "react-d3-tree";
 import { createRoot } from "react-dom/client";
 
 import { ErrorBoundary } from "../components/errorBoundary/ErrorBoundary";
-import HeaderComponent from "../components/features/Navbar";
+import { NodeListContainer } from "../components/features/NodeListContainer";
 import { SettingsProvider } from "../components/providers/SettingsContextProvider";
 import { TreeProvider } from "../components/providers/TreeContextProvider";
-import WindowProvider from "../components/providers/WindowContextProvider";
-import TreeLayout from "../components/tree/TreeLayout";
+import { WindowProvider } from "../components/providers/WindowContextProvider";
+import { TreeLayout } from "../components/tree/TreeLayout";
 import { useCenteredTree } from "../hooks/useCenteredTree";
 import { useSettings } from "../hooks/useSettings";
 
@@ -25,10 +25,9 @@ const Sidepanel = () => {
       settings={settings}
       setTranslate={setTranslate}
     >
-      {/* <Header /> */}
       <main className="container">
         <section className="inspector__container">
-          <HeaderComponent />
+          <NodeListContainer />
           <div className="inspector">
             <div id="treecanvas__container" ref={containerRef}>
               <TreeLayout />

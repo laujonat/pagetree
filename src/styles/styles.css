@@ -24,8 +24,8 @@
   --node-light: rgb(211 227 253/100%);
   --node-path-to-branch-dark: rgb(138 180 248);
   --node-path-to-branch-light: rgb(0 145 255);
-  --node-path-to-leaf-dark: #929292c7;
-  --node-path-to-leaf-light: rgb(0 0 0/50%);
+  --node-path-to-leaf-dark: rgba(145, 145, 145, 0.78);
+  --node-path-to-leaf-light: rgba(124, 124, 124, 0.75);
   --node-select-light: rgb(142 0 75);
   --node-select: rgb(0 99 155);
   --text-color-dark: #e0e0e0;
@@ -189,7 +189,8 @@ strong.nodelen__text {
   background-color: transparent;
 }
 
-.spinner {
+.spinner,
+.spinner-text {
   --clr: rgb(74, 179, 191);
   --gap: 6px;
   margin: 20px auto;
@@ -239,7 +240,8 @@ strong.nodelen__text {
   justify-content: space-between;
   width: 100%;
   padding: 0 5px;
-  font-family: "Lucida Grande", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   text-align: center;
   border-bottom: 1px solid var(--border);
 }
@@ -286,6 +288,14 @@ strong.nodelen__text {
   user-select: none;
 }
 
+.tree-actions.pnode {
+  margin: -3px 0 auto;
+  padding: 0;
+  border-bottom: none;
+  min-height: 0;
+  z-index: 3;
+}
+
 .tree-toolbar__left,
 .tree-actions__left {
   display: flex;
@@ -312,7 +322,7 @@ strong.nodelen__text {
   position: absolute;
   top: 50px;
   left: calc(50% + 11px);
-  z-index: 999;
+  z-index: 3;
   color: var(--icon-color);
   line-height: 16px;
   background: var(--bg-1);
@@ -323,6 +333,9 @@ strong.nodelen__text {
   transition-delay: 200ms;
   content: "Expand tree elements";
   user-select: none;
+}
+.tree-actions__left > div.tree-actions__action.pnode::before {
+  content: "Select parent node";
 }
 
 .tree-actions__left > div.tree-actions__action.toggle-inspector::before {
@@ -341,6 +354,11 @@ strong.nodelen__text {
   visibility: visible;
   opacity: 0.9;
   transition-delay: 200ms;
+}
+
+.tree-actions__left > div.tree-actions__action.pnode:hover::before {
+  left: 28px;
+  z-index: 100;
 }
 
 .tree-actions__left > div.tree-actions__action:hover::after {
@@ -390,7 +408,7 @@ strong.nodelen__text {
   float: left;
   margin: auto;
   overflow: hidden;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .tree-actions > div.tree-actions__right > p {
@@ -448,8 +466,17 @@ section.tree-settings__container {
   padding: 4px 0;
   white-space: pre;
   overflow-wrap: normal;
+  width: calc(100% - 20px);
+  color: var(--webkit-tag-name);
+  overflow: auto;
   outline: none;
   user-select: none;
+}
+
+.webkit-element > div:first-child {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
 }
 
 div.webkit-element__scrollable {
@@ -503,6 +530,12 @@ div.webkit-element span.children-placeholder span.expand-button > .dot {
   height: 65vh;
 }
 
+.rd3t-link {
+  fill: none;
+  stroke: rgb(8, 52, 66);
+  stroke-width: 2px;
+}
+
 #treecanvas__container path.link__to-leaf {
   stroke: var(--path-to-leaf);
 }
@@ -528,17 +561,6 @@ path.link--crisp-edges {
   cursor: pointer;
 }
 
-g > foreignObject > div > p.tree__text {
-  overflow: hidden;
-  font-size: 0.8em;
-  white-space: nowrap;
-  text-align: center;
-  text-decoration: none;
-  text-overflow: ellipsis;
-  background-color: var(--bg-1);
-  user-select: none;
-}
-
 #treecanvas__container path {
   stroke-width: 0.5;
   stroke-linecap: round !important;
@@ -561,7 +583,7 @@ g > foreignObject > div > p.tree__text {
 
 div.tree__layout_element {
   position: relative;
-  z-index: 999;
+  z-index: 2;
   float: right;
   max-width: 60%;
   padding: 3px 10px;
@@ -577,7 +599,7 @@ div.tree__layout_element {
   }
 }
 
-.details__wrapper {
+.nodelist__container {
   position: relative;
   display: flex;
   flex-basis: calc(100% - 14vh);
@@ -606,9 +628,11 @@ div#details__children-count {
   display: grid;
   grid-template-columns: auto;
   align-items: center;
-  height: calc(100% - 18px);
+  height: calc(100% - 25px);
+
   background-color: var(--background-light);
   border-radius: 5px;
+  z-index: 2;
 }
 
 div::-webkit-scrollbar {
@@ -701,20 +725,26 @@ li.details__item:hover .slider-rotate {
   background-color: var(--bg-1);
 }
 
-div.details__article {
+div.nodelist__article {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: flex-start;
+  gap: 1em;
+  padding: 5px 0;
+}
+
+div.nodelist__article-wrapper {
   display: flex;
   flex-shrink: 0;
   justify-content: space-between;
   width: 100%;
   padding: 5px 0;
 
-  /* flex-basis: 40%; */
-  overflow: hidden auto;
   font-size: 11.5px;
   border-color: rgb(190 190 190 / 50%);
 }
 
-div.details__header {
+div.nodelist__header {
   display: flex;
   flex: 0 0 auto;
   align-items: center;

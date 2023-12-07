@@ -1,4 +1,4 @@
-import { useId, useRef } from "react";
+import { useRef } from "react";
 import { TreeNodeDatum } from "react-d3-tree";
 
 import { useDraggable } from "@/hooks/useDraggable";
@@ -8,10 +8,12 @@ export const DevToolsElement = (props: TreeNodeDatum & TreeNode) => {
   const { attrs, children, name } = props;
   const elementStyle = {
     color: "var(--webkit-tag-name)",
+    overflow: "auto", // Ensure that the container is scrollable
+    maxHeight: "200px", // Adjust the max height as needed
   };
   const elementContainer = useRef(null);
   useDraggable(elementContainer);
-  const key = useId();
+
   const renderAttributes = () => {
     return Object.entries(attrs)?.map(([attrName, attrValue], idx) => (
       <span key={idx}>
@@ -37,21 +39,18 @@ export const DevToolsElement = (props: TreeNodeDatum & TreeNode) => {
   };
 
   return (
-    <div
-      style={elementStyle}
-      className="webkit-element"
-      key={key}
-      ref={elementContainer}
-    >
-      <code style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</code>
-      {renderAttributes()}
-      <code style={{ color: "var(--webkit-tag-name)" }}>
-        {`>`}
-        <span className="children-placeholder">
-          {children?.length ? expandElement() : ""}
-        </span>
-        {`</${name}>`}
-      </code>
+    <div style={elementStyle} className="webkit-element">
+      <div ref={elementContainer}>
+        <code style={{ color: "var(--webkit-tag-name)" }}>{`<${name}`}</code>
+        {renderAttributes()}
+        <code style={{ color: "var(--webkit-tag-name)" }}>
+          {`>`}
+          <span className="children-placeholder">
+            {children?.length ? expandElement() : ""}
+          </span>
+          {`</${name}>`}
+        </code>
+      </div>
     </div>
   );
 };

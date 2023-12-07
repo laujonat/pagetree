@@ -1,5 +1,7 @@
-import { HierarchyPointNode } from "d3";
+import { HierarchyPointNode, select } from "d3";
 import Tree, { CustomNodeElementProps, TreeNodeDatum } from "react-d3-tree";
+
+import { PageTreeHierarchyNode } from "@/types";
 
 interface ForeignObjectProps {
   width: number;
@@ -67,6 +69,25 @@ export function collapseNodeDescendants(node: TreeNodeDatum) {
   }
 }
 
+export function expandNodeDescendants(
+  node: PageTreeHierarchyNode<TreeNodeDatum>
+) {
+  console.log(node);
+  // @ts-ignore
+  node.__rd3t.collapsed = false;
+  if (node.children && node.children.length > 0) {
+    node.children.forEach((child) => {
+      // If the child is not already collapsed, collapse it
+      if (child.__rd3t.collapsed) {
+        Tree.expandNode(child);
+        expandNodeDescendants(child); // Recursively collapse its children
+      }
+    });
+  }
+  console.log("expanidng", node);
+  return node;
+}
+
 /**
  * Updates the styling of the currently selected node in the tree.
  * Adds the 'link__selected' class to the source and target node elements
@@ -92,6 +113,18 @@ export const updateCurrentNode = (
   addClassToNodeElement(target);
 };
 
+function wrapTextWithEllipsis(textElement, containerWidth) {
+  const self = select(textElement);
+  let text = self.text();
+
+  while (
+    self.node().getComputedTextLength() > containerWidth * 1.25 &&
+    text.length > 0
+  ) {
+    text = text.slice(0, -1);
+    self.text(text + "...");
+  }
+}
 /**
  * Renders a foreignObject SVG node for the given React D3 Tree node props.
  * This allows rendering HTML content inside the SVG tree nodes.
@@ -110,20 +143,20 @@ export const renderForeignObjectNode = (
   const { nodeDatum, toggleNode, onNodeClick } =
     rd3tProps as CustomNodeElementProps;
 
-  const handleClick = (evt) => {
+  const handleClick = async (evt) => {
     evt.preventDefault();
     // If the node is not collapsed, expand it
     if (!nodeDatum?.__rd3t.collapsed) {
-      Tree.expandNode(nodeDatum as TreeNodeDatum);
+      await Tree.expandNode(nodeDatum as TreeNodeDatum);
     } else {
       toggleNode();
     }
     // Collapse all children of the node
-    collapseNodeDescendants(nodeDatum as TreeNodeDatum);
+    await collapseNodeDescendants(nodeDatum as TreeNodeDatum);
     // Notify about the node click
     onNodeClick(evt);
     // Expand the node again
-    Tree.expandNode(nodeDatum);
+    await Tree.expandNode(nodeDatum);
   };
 
   return (
@@ -145,6 +178,36 @@ export const renderForeignObjectNode = (
             : "var(--leaf)"
         }
       ></circle>
+      <defs>
+        <filter x="0" y="0" width="1" height="1" id="solid">
+          <feFlood floodColor="var(--bg-1)" result="bg" />
+          <feMerge>
+            <feMergeNode in="bg" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <text
+        filter="url(#solid)"
+        strokeWidth={0}
+        fontFamily="monospace"
+        fill="var(--icon-fill)"
+        fontWeight={500}
+        fontSize="0.75rem"
+        textRendering="optimizeLegibility"
+        textAnchor="middle" // Center the text horizontally
+        alignmentBaseline="middle" // Center the text vertically
+        x={0}
+        y={-20}
+        ref={(textElement) => {
+          if (textElement) {
+            // Call the wrapTextWithEllipsis function with the text element and container width
+            wrapTextWithEllipsis(textElement, foreignObjectProps.width);
+          }
+        }}
+      >
+        {`<${nodeDatum.name}>`}
+      </text>
       <foreignObject
         {...foreignObjectProps}
         style={{ overflow: "hidden", margin: "0 auto" }}
@@ -152,11 +215,7 @@ export const renderForeignObjectNode = (
         onMouseDown={(e) => {
           e.preventDefault();
         }}
-      >
-        <div>
-          <p className="tree__text">{`<${nodeDatum.name}>`}</p>
-        </div>
-      </foreignObject>
+      ></foreignObject>
     </>
   );
 };

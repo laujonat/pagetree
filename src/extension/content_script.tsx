@@ -63,6 +63,7 @@ function waitForDOMReady(callback) {
     subtree: true,
   });
 }
+
 async function handleSidepanelMessages(
   message: IMessage,
   sender: chrome.runtime.MessageSender,

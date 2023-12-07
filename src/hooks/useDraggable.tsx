@@ -7,7 +7,7 @@ export const useDraggable = (ref) => {
   useEffect(() => {
     const handleMouseDown = (event) => {
       if (ref.current) {
-        ref.current.style.cursor = "grabbing";
+        document.body.style.cursor = "grabbing"; // Change body cursor
       }
       setIsDragging(true);
       setOrigin({
@@ -30,14 +30,13 @@ export const useDraggable = (ref) => {
 
     const handleMouseUp = () => {
       if (ref.current) {
-        ref.current.style.cursor = "grab";
+        document.body.style.cursor = "default"; // Change body cursor back to default
       }
       setIsDragging(false);
     };
 
     if (ref.current) {
       ref.current.addEventListener("mousedown", handleMouseDown);
-      ref.current.style.cursor = "grab";
     }
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
@@ -45,7 +44,6 @@ export const useDraggable = (ref) => {
     return () => {
       if (ref.current) {
         ref.current.removeEventListener("mousedown", handleMouseDown);
-        ref.current.style.cursor = "default";
       }
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);

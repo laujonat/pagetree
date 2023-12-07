@@ -59,7 +59,7 @@ export function createTreeNodes(root: Element): TreeNode {
   function createAttributesObject(element) {
     const attributesObj = {};
     Array.from(element.attributes).forEach((attr) => {
-      // @ts-ignore
+      // @ts-ignore dom attributes
       attributesObj[attr.name] = attr.value;
     });
     return attributesObj;
@@ -74,7 +74,7 @@ export const genTreeData = (node: TreeNode) => {
     },
   };
   return {
-    name: node.tag,
+    name: node?.tag,
     attrs: node.attrs,
     attributes: {
       id: node.id,
@@ -89,11 +89,36 @@ export const genTreeData = (node: TreeNode) => {
   };
 };
 
-export const expand = (d: TreeNodeDatum) => {
-  if (d.children && d.__rd3t.level < 3) {
-    // or d.name.indexOf("SpecialNode") > -1 or d.category == "expandable" or d.parent.name == "somename"  etc
-    d.children = d._children;
-    d.children.forEach(expand);
-    d._children = null;
+export const findNodesById = (
+  nodeId: string,
+  nodeSet: TreeNodeDatum[],
+  hits: TreeNodeDatum[]
+) => {
+  if (hits.length > 0) {
+    return hits;
   }
+  hits = hits.concat(nodeSet.filter((node) => node.data.__rd3t.id === nodeId));
+  nodeSet.forEach((node) => {
+    if (node.children && node.children.length > 0) {
+      hits = this.findNodesById(nodeId, node.children, hits);
+    }
+  });
+  return hits;
 };
+
+export function getDefaultZoom(count) {
+  let factor = 1;
+  if (count <= 10) return factor;
+  if (count < 20) {
+    factor = 1;
+  } else if (count < 60) {
+    factor = 0.55;
+  } else if (count < 100) {
+    factor = 0.13;
+  } else if (count < 200) {
+    factor = 0.09;
+  } else {
+    factor = 0.04;
+  }
+  return factor;
+}

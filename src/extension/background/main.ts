@@ -194,10 +194,16 @@ async function handleBackgroundMessages(message, sender) {
       break;
     case MessageContent.inspectorSelect:
       try {
-        await chrome.tabs.sendMessage(tab.id, {
+        chrome.tabs.sendMessage(tab.id, {
           action: MessageContent.inspectorSelect,
           target: MessageTarget.Sidepanel,
           data: handleInspectorClick(message.data),
+        });
+      } catch (e) {
+        console.error(e);
+        chrome.tabs.sendMessage(tab.id, {
+          action: MessageContent.inspectorForceStop,
+          target: MessageTarget.Sidepanel,
         });
       } finally {
         badge.stop();
