@@ -9,6 +9,7 @@ type InspectorInstance = {
 
 let treeData;
 const Inspector: InspectorInstance = { instance: undefined };
+
 const port = chrome.runtime.connect({ name: "pagetree-panel-extension" });
 console.info("pagetree-connect", port);
 

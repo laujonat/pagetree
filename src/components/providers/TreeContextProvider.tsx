@@ -1,11 +1,28 @@
-import { createContext, LegacyRef, Ref, useEffect, useRef, useState } from "react";
-import { Orientation, Point, Tree, TreeNodeDatum, TreeProps } from "react-d3-tree";
+import {
+  createContext,
+  LegacyRef,
+  Ref,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Orientation,
+  Point,
+  Tree,
+  TreeNodeDatum,
+  TreeProps,
+} from "react-d3-tree";
 
 import { MessageContent, MessageTarget } from "@/constants";
 import useChrome from "@/hooks/useChrome";
 import { Dimension, ISettings, PageTreeHierarchyNode, TreeNode } from "@/types";
 import { findNodesById, genTreeData } from "@/utils/genTreeNodesHelper";
-import { renderForeignObjectNode, sortPaths, updateCurrentNode } from "@/utils/genTreePathsHelper";
+import {
+  renderForeignObjectNode,
+  sortPaths,
+  updateCurrentNode,
+} from "@/utils/genTreePathsHelper";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: PageTreeHierarchyNode<TreeNodeDatum>) => void;

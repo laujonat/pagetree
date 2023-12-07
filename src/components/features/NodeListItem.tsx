@@ -19,12 +19,8 @@ interface NodeListItemProps {
 }
 
 export function NodeListItem(props: NodeListItemProps) {
-  const {
-    highlightPathToNode,
-    removeHighlightPathToNode,
-    treeState,
-    expandChildNodes,
-  } = useTree();
+  const { highlightPathToNode, removeHighlightPathToNode, treeState } =
+    useTree();
   const id = useId();
   const { node } = props;
 
