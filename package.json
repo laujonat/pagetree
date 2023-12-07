@@ -4,7 +4,8 @@
     "description": "Visualize distribution of DOM nodes in the document tree",
     "scripts": {
         "watch": "cross-env NODE_ENV=development webpack --config build/webpack.config.dev.ts --watch",
-        "build": "cross-env NODE_ENV=production webpack --config build/webpack.config.prod.ts",
+        "build": "run-p clean webpack:bundle",
+        "webpack:bundle": "cross-env NODE_ENV=production webpack --config build/webpack.config.prod.ts",
         "stats": "cross-env NODE_ENV=production webpack --config build/webpack.analysis.ts",
         "clean": "rimraf dist",
         "test": "npx jest",
@@ -13,6 +14,7 @@
         "lint:style": "stylelint 'src/styles/**/*.css'",
         "lint:prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
         "lint:es": "eslint --config ./.eslintrc.cjs **/*.{ts,tsx}",
+        "precommit": "lint-staged",
         "prepare": "husky install"
     },
     "author": "Jonathan Lau",
