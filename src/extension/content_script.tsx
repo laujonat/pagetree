@@ -6,7 +6,8 @@ import { Inspector as InspectorScript } from "./scripts/inspector";
 type InspectorInstance = {
   instance: InspectorScript | undefined;
 };
-
+let previousObserver;
+let DOMRoot;
 let treeData;
 const Inspector: InspectorInstance = { instance: undefined };
 
@@ -46,6 +47,7 @@ document.addEventListener(
         // If not, use its parent
         lastRightClickedElement = targetElement.parentElement;
       }
+      DOMRoot = startObserver(lastRightClickedElement);
     }
   },
   true
@@ -127,6 +129,15 @@ async function handleSidepanelMessages(
     case MessageContent.resendScanPage:
       sendTreeData();
       break;
+    case MessageContent.reloadDomTree:
+      console.warn("reloading dom", DOMRoot);
+      treeData = createTreeNodes(DOMRoot);
+      relayMessageToExtension({
+        type: MessageContent.updateGenTree,
+        data: treeData,
+      });
+      DOMRoot = startObserver(DOMRoot);
+      break;
     case MessageContent.highlightTextOption:
       console.log(lastRightClickedElement);
       treeData = createTreeNodes(lastRightClickedElement);
@@ -134,6 +145,7 @@ async function handleSidepanelMessages(
         type: MessageContent.updateGenTree,
         data: treeData,
       });
+
       break;
     case MessageContent.fullPageOption:
       treeData = createTreeNodes(document.documentElement);
@@ -141,6 +153,7 @@ async function handleSidepanelMessages(
         type: MessageContent.updateGenTree,
         data: treeData,
       });
+      DOMRoot = startObserver(document.documentElement);
       break;
     case MessageContent.inspectorSelect:
       if (message.data) {
@@ -155,6 +168,7 @@ async function handleSidepanelMessages(
           type: MessageContent.updateGenTree,
           data: treeData,
         });
+        DOMRoot = startObserver(element);
       } else {
         console.error("No selected element to process");
       }
@@ -192,16 +206,17 @@ function toggleInspector() {
   try {
     if (Inspector.instance && Inspector.instance.isActiveStatus) {
       Inspector.instance.deactivate();
+      console.log("I called deactivated..");
     } else {
       if (!Inspector.instance) {
         Inspector.instance = new InspectorScript();
       }
       Inspector.instance.activate();
+      relayMessageToExtension({
+        type: MessageContent.inspectorBadgeActivate,
+        target: MessageTarget.Background,
+      });
     }
-    relayMessageToExtension({
-      type: MessageContent.inspectorBadgeActivate,
-      target: MessageTarget.Background,
-    });
     relayMessageToExtension({
       type: MessageContent.inspectorStatus,
       data: {
@@ -216,13 +231,16 @@ function toggleInspector() {
 
 function forceInspectorStop() {
   console.log("forcing stop");
+  console.log("instance check", Inspector.instance);
+  console.log("active status check", Inspector.instance?.isActiveStatus);
   try {
     if (Inspector.instance && Inspector.instance.isActiveStatus) {
       Inspector.instance.deactivate();
+      delete Inspector.instance;
       relayMessageToExtension({
         type: MessageContent.inspectorStatus,
         data: {
-          active: Inspector.instance.isActiveStatus,
+          active: Boolean(Inspector.instance),
         },
       });
     }
@@ -234,6 +252,19 @@ function forceInspectorStop() {
 function sendTreeData() {
   if (typeof document !== "undefined") {
     if (!treeData) {
+      DOMRoot = startObserver(document.documentElement);
+
+      console.log(
+        "🚀 ----------------------------------------------------------------------🚀"
+      );
+      console.log(
+        "🚀 ⚛︎ file: content_script.tsx:257 ⚛︎ sendTreeData ⚛︎ DOMRoot:",
+        DOMRoot
+      );
+      console.log(
+        "🚀 ----------------------------------------------------------------------🚀"
+      );
+
       treeData = createTreeNodes(document.documentElement);
     }
     relayMessageToExtension({
@@ -250,4 +281,30 @@ function relayMessageToExtension(options: IRelayMessageOptions): void {
     target,
     data,
   });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function handleMutations(mutationsList, observer) {
+  // Handle mutations here
+  console.log("DOM change detected:", mutationsList);
+}
+
+function startObserver(dom) {
+  // Check if there is a previous observer and disconnect it if exists
+  if (previousObserver) {
+    previousObserver.disconnect();
+  }
+
+  const observer = new MutationObserver(handleMutations);
+
+  const config = {
+    childList: true, // Watch for changes in child elements
+    subtree: true, // Watch all descendant elements
+  };
+
+  observer.observe(dom, config);
+
+  // Store the current observer as the previous observer
+  previousObserver = observer;
+  return dom;
 }

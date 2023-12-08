@@ -145,13 +145,11 @@ export const renderForeignObjectNode = (
 
   const handleClick = async (evt) => {
     evt.preventDefault();
-    // If the node is not collapsed, expand it
     if (!nodeDatum?.__rd3t.collapsed) {
       await Tree.expandNode(nodeDatum as TreeNodeDatum);
     } else {
       toggleNode();
     }
-    // Collapse all children of the node
     await collapseNodeDescendants(nodeDatum as TreeNodeDatum);
     // Notify about the node click
     onNodeClick(evt);

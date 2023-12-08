@@ -23,6 +23,7 @@ export const enum MessageContent {
   updateGenTree = "update-gentree-state",
   openSidePanel = "open-side-panel",
   treeReady = "document-tree-loaded",
+  reloadDomTree = "sync-dom-tree",
   // Script to background
   bgDocStatus = "document-status-response",
   bgFetchActiveTabUrl = "fetch-tab-url",
@@ -32,6 +33,7 @@ export const enum MessageContent {
   // Inspector actions
   inspectorSelect = "process-inspector-selected-element",
   inspectorBadgeActivate = "inspector-badge-activate",
+  inspectorBadgeDeactivate = "inspector-badge-deactivate",
   inspectorToggle = "script-toggle-inspector",
   inspectorStatus = "extension-inspector-status",
   //   updateGenTree = "update-gentree-state",

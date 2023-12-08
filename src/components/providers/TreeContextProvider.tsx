@@ -17,7 +17,11 @@ import {
 import { MessageContent, MessageTarget } from "@/constants";
 import useChrome from "@/hooks/useChrome";
 import { Dimension, ISettings, PageTreeHierarchyNode, TreeNode } from "@/types";
-import { findNodesById, genTreeData } from "@/utils/genTreeNodesHelper";
+import {
+  findNodesById,
+  genTreeData,
+  getDefaultZoom,
+} from "@/utils/genTreeNodesHelper";
 import {
   renderForeignObjectNode,
   sortPaths,
@@ -266,6 +270,17 @@ export const TreeProvider = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const expandAllNodes = (_e) => {
     setExpandNodes(!expandNodes);
+    if (!expandNodes) {
+      setTreeState((prevState) => ({
+        ...prevState,
+        zoom: getDefaultZoom(nodeCount),
+      }));
+    } else {
+      setTreeState((prevState) => ({
+        ...prevState,
+        zoom: 1.5,
+      }));
+    }
   };
 
   const updateTreeRef = (ref) => {

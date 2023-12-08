@@ -49,7 +49,9 @@ export function NodeList(props: NodeListProps) {
             <div>Child Elements</div>
             {selectedNode?.data?.children && (
               <div>
-                <b>&#40;{(selectedNode?.data?.children as []).length}&#41;</b>
+                <span>
+                  &#40;{(selectedNode?.data?.children as []).length}&#41;
+                </span>
               </div>
             )}
           </div>

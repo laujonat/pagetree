@@ -1,10 +1,10 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import { TreeNodeDatum } from "react-d3-tree";
 
 import { MessageContent } from "@/constants";
 import { useChrome } from "@/hooks/useChrome";
 import { useTree } from "@/hooks/useTree";
-import { ExpandAllIcon, InspectorIcon } from "@/icons";
+import { ExpandAllIcon, InspectorIcon, SyncTree } from "@/icons";
 import { PageTreeHierarchyNode } from "@/types";
 
 interface TreeActionsToolbarProps {
@@ -19,10 +19,24 @@ export const TreeActionsToolbar = forwardRef<
   const { messageToSend, isInspectorActive, tabUrl } = useChrome();
   const { expandAllNodes } = useTree();
 
+  useEffect(() => {
+    console.log("is inspector active", isInspectorActive);
+  }, [isInspectorActive]);
+
   const handleInspectorClick = async () => {
     try {
       messageToSend({
         action: MessageContent.inspectorToggle,
+      });
+    } catch (error) {
+      console.error("Error in handleClick:", error);
+    }
+  };
+
+  const handleSyncTreeClick = () => {
+    try {
+      messageToSend({
+        action: MessageContent.reloadDomTree,
       });
     } catch (error) {
       console.error("Error in handleClick:", error);
@@ -44,6 +58,11 @@ export const TreeActionsToolbar = forwardRef<
         <div className="tree-actions__action expand-elements">
           <button aria-label="Expand tree elements" onClick={expandAllNodes}>
             <ExpandAllIcon />
+          </button>
+        </div>
+        <div className="tree-actions__action synctree">
+          <button aria-label="Refresh DOM tree" onClick={handleSyncTreeClick}>
+            <SyncTree />
           </button>
         </div>
       </div>

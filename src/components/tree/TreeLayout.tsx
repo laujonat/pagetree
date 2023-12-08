@@ -1,8 +1,8 @@
 import { Ref, useEffect, useState } from "react";
-import Tree from "react-d3-tree";
+import { Tree } from "react-d3-tree";
 import Text from "react-svg-text";
 
-import useChrome from "@/hooks/useChrome";
+import { useChrome } from "@/hooks/useChrome";
 import { useSettings } from "@/hooks/useSettings";
 import { useTree } from "@/hooks/useTree";
 import { IconLoading } from "@/icons";
@@ -11,6 +11,25 @@ import { DevToolsElement } from "../features/Element";
 import { Tabs } from "../features/PanelTabs";
 import { TreeComponent } from "./TreeComponent";
 import { TreeSettings } from "./TreeSettings";
+
+const CountElement = ({ nodeCount }) => {
+  return (
+    <Text
+      strokeWidth={0}
+      fontFamily="monospace"
+      fill="var(--icon-fill)"
+      fontWeight={500}
+      fontSize="0.825rem"
+      textRendering="optimizeLegibility"
+      textAnchor="middle" // Center the text horizontally
+      alignmentBaseline="middle" // Center the text vertically
+      x={25}
+      y={-20}
+    >
+      {`Total Element Node in Tree: ${nodeCount}`}
+    </Text>
+  );
+};
 
 export const TreeLayout = () => {
   const { loaded, treeRef, selectedNode, nodeCount } = useTree();
@@ -22,25 +41,6 @@ export const TreeLayout = () => {
     setRef(treeRef as Ref<SVGElement>);
   }, []);
 
-  const CountElement = ({ nodeCount }) => {
-    return (
-      <Text
-        strokeWidth={0}
-        fontFamily="monospace"
-        fill="var(--icon-fill)"
-        fontWeight={500}
-        fontSize="0.825rem"
-        textRendering="optimizeLegibility"
-        textAnchor="middle" // Center the text horizontally
-        alignmentBaseline="middle" // Center the text vertically
-        x={25}
-        y={-20}
-      >
-        {`Total Element Node in Tree: ${nodeCount}`}
-      </Text>
-    );
-  };
-
   const renderContentBasedOnSource = () => {
     if (!loaded) {
       return <IconLoading />;
@@ -48,7 +48,7 @@ export const TreeLayout = () => {
       return <div>Select an element to visualize the tree.</div>;
     } else {
       return (
-        <div style={{ height: "87%", width: "100%" }}>
+        <div className="tree__layout">
           <div className="tree__layout_element">
             <div className="webkit-element__scrollable">
               {selectedNode?.data && <DevToolsElement {...selectedNode.data} />}

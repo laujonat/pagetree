@@ -23,7 +23,7 @@ interface WindowProviderProps {
 
 export const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
   const refsHandlers = useRef<RefHandler[]>([]);
-  const { messageToSend, tabId } = useChrome();
+  const { messageToSend, tabId, setTabId } = useChrome();
 
   useEffect(() => {
     chrome.tabs.query(
@@ -72,20 +72,17 @@ export const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
     chrome.tabs.query(
       { active: true, lastFocusedWindow: true },
       async (tabs) => {
-        const tab = tabs[0]?.id;
-        if (tabId || tab) {
-          console.log("tabid", tabId);
+        const tab = tabs[0]?.id || tabId;
+        setTabId(tab);
+        if (tab) {
+          messageToSend({ action: MessageContent.checkDocStatus }, tab);
+          messageToSend({ action: MessageContent.resendScanPage }, tab);
           messageToSend(
-            { action: MessageContent.checkDocStatus },
-            tabId || tab
-          );
-          messageToSend(
-            { action: MessageContent.resendScanPage },
-            tabId || tab
-          );
-          messageToSend(
-            { action: MessageContent.inspectorStatus },
-            tabId || tab
+            {
+              action: MessageContent.inspectorStatus,
+              target: MessageTarget.Background,
+            },
+            tab
           );
         }
       }

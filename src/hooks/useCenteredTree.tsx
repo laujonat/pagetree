@@ -25,7 +25,7 @@ export const useCenteredTree = (
         const { width, height } = containerRef.current.getBoundingClientRect();
         setDimensions({ width, height });
         setTranslate({
-          x: width / 2,
+          x: orientation === "vertical" ? width / 2 : width / 3,
           y: orientation === "vertical" ? 100 : height / 4,
         });
       }

@@ -10,13 +10,22 @@ import { Badge as BadgeAction } from "./badge";
 let activeTab;
 let connectedTab;
 let badge;
+let ORIGIN_URL;
 
 chrome.runtime.onConnect.addListener(function (port) {
   if (port && port.name === "pagetree-panel-extension") {
     connectedTab = port.sender?.tab?.id as number;
 
-    if (connectedTab === undefined) {
-      console.warn("Invalid tab ID");
+    const connectedTabUrl = port.sender?.tab?.url;
+    if (connectedTabUrl) {
+      const connectedTabOrigin = new URL(connectedTabUrl).origin;
+
+      if (connectedTab === undefined || !connectedTabOrigin) {
+        console.warn("Invalid tab ID or origin");
+      } else {
+        // Set GOOGLE_ORIGIN to the origin of the connected tab
+        ORIGIN_URL = connectedTabOrigin;
+      }
     }
     port.onDisconnect.addListener(() => {
       if (!connectedTab) return;
@@ -93,12 +102,15 @@ chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
   //   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
-
   if (changeInfo.status === "complete") {
     chrome.tabs.sendMessage(tabId, {
       action: MessageContent.checkDocStatus,
       target: MessageTarget.Sidepanel,
     });
+  }
+  if (tabId !== activeTab) {
+    activeTab = tabId;
+    updateSidePanelStatus(tabId);
   }
 });
 
@@ -153,6 +165,7 @@ function handleContextMenuClick(info, tab) {
 async function handleBackgroundMessages(message, sender) {
   const { tab } = sender;
   console.log("background action", message.action);
+
   // Return early if this message isn't meant for the background script
   if (message.target !== MessageTarget.Background) {
     return;
@@ -163,7 +176,6 @@ async function handleBackgroundMessages(message, sender) {
   }
   if (!badge) {
     badge = new BadgeAction(tab.id);
-    badge.stop();
   }
 
   // Dispatch the message to an appropriate handler.
@@ -178,6 +190,7 @@ async function handleBackgroundMessages(message, sender) {
       break;
     case MessageContent.bgDocStatus:
       if (message.data.isDocumentAvailable) {
+        badge.stop();
         chrome.tabs.sendMessage(tab.id, {
           action: MessageContent.scanPage,
           target: MessageTarget.Sidepanel,
@@ -192,7 +205,16 @@ async function handleBackgroundMessages(message, sender) {
       badge.start();
       badge.setText("ON");
       break;
+    case MessageContent.inspectorBadgeDeactivate:
+      console.log("deactivating inspctor badge");
+      badge.stop();
+      chrome.tabs.sendMessage(tab.id, {
+        action: MessageContent.inspectorForceStop,
+        target: MessageTarget.Sidepanel,
+      });
+      break;
     case MessageContent.inspectorSelect:
+      console.log("inspectorselect backgorund", message.data);
       try {
         chrome.tabs.sendMessage(tab.id, {
           action: MessageContent.inspectorSelect,
@@ -201,12 +223,6 @@ async function handleBackgroundMessages(message, sender) {
         });
       } catch (e) {
         console.error(e);
-        chrome.tabs.sendMessage(tab.id, {
-          action: MessageContent.inspectorForceStop,
-          target: MessageTarget.Sidepanel,
-        });
-      } finally {
-        badge.stop();
       }
       break;
     case MessageContent.colorScheme:
@@ -234,9 +250,9 @@ async function handleBackgroundMessages(message, sender) {
 
 async function handleOnTabUpdate(tabId) {
   try {
+    badge.pause();
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url) return;
-    badge.pause();
 
     const url = new URL(tab.url);
     const isEnabled = shouldEnableSidePanelForURL(url);
@@ -249,4 +265,32 @@ async function handleOnTabUpdate(tabId) {
   } catch (error) {
     console.error("Error updating side panel for tab:", error);
   }
+}
+
+function updateSidePanelStatus(activeTabId) {
+  chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
+    if (!tabs || tabs.length === 0 || !tabs[0].url) return;
+
+    const url = new URL(tabs[0].url);
+
+    // Set ORIGIN_URL if it's currently null or the URL origin has changed
+    if (ORIGIN_URL === null || ORIGIN_URL !== url.origin) {
+      ORIGIN_URL = url.origin;
+    }
+
+    // Enables the side panel on the active site
+    if (url.origin === ORIGIN_URL) {
+      await chrome.sidePanel.setOptions({
+        tabId: activeTabId,
+        path: "sidepanel.html",
+        enabled: true,
+      });
+    } else {
+      // Disables the side panel on all other sites
+      await chrome.sidePanel.setOptions({
+        tabId: activeTabId,
+        enabled: false,
+      });
+    }
+  });
 }

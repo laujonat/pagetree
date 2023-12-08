@@ -14,7 +14,7 @@
   --button-active: rgb(240 194 31);
   --button-active-hover: rgb(75 189 255 / 36.4%);
   --icon-fill-dark: #ffffff;
-  --icon-fill-light: #282828;
+  --icon-fill-light: #484848;
   --link-color: #005fcc;
   --node-dark-border: rgb(143 255 169);
   --node-dark: rgb(229 251 234);
@@ -70,7 +70,8 @@ body {
   /* min-width: 350px; */
   overflow: hidden;
   color: var(--text-color);
-  font-family: "Lucida Grande", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   /* background-color: var(--bg-1); */
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
@@ -233,50 +234,6 @@ strong.nodelen__text {
   }
 }
 
-.header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 5px;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  text-align: center;
-  border-bottom: 1px solid var(--border);
-}
-
-.header__icon {
-  margin-right: 10px;
-  margin-left: 5px;
-  vertical-align: middle;
-}
-
-.header__heading {
-  display: -webkit-box;
-  display: flexbox;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 10px;
-}
-
-.header__heading-events {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.header__heading .header__icon {
-  width: 1.375em;
-  height: 1.375em;
-  vertical-align: text-bottom;
-}
-
-.header__description {
-  color: #a0a0a0;
-}
-
 .tree-actions,
 .tree-toolbar {
   display: flex;
@@ -336,6 +293,10 @@ strong.nodelen__text {
 }
 .tree-actions__left > div.tree-actions__action.pnode::before {
   content: "Select parent node";
+}
+
+.tree-actions__left > div.tree-actions__action.synctree::before {
+  content: "Sync DOM tree";
 }
 
 .tree-actions__left > div.tree-actions__action.toggle-inspector::before {
@@ -462,6 +423,7 @@ section.tree-settings__container {
   flex-grow: 2;
   flex-shrink: 0;
   box-sizing: border-box;
+  font-family: var(--source-code-font-family);
   margin: 0;
   padding: 4px 0;
   white-space: pre;
@@ -541,7 +503,7 @@ div.webkit-element span.children-placeholder span.expand-button > .dot {
 }
 
 path.link--crisp-edges {
-  shape-rendering: crispedges;
+  shape-rendering: geometricPrecision;
 }
 
 .link__selected > circle {
@@ -581,6 +543,11 @@ path.link--crisp-edges {
   stroke: var(--path-to-branch);
 }
 
+div.tree__layout {
+  height: 87%;
+  width: 100%;
+}
+
 div.tree__layout_element {
   position: relative;
   z-index: 2;
@@ -593,6 +560,9 @@ div.tree__layout_element {
 }
 
 @media screen and (max-width: 450px) {
+  div.tree__layout {
+    height: 80%;
+  }
   div.tree__layout_element {
     float: none;
     max-width: 100%;

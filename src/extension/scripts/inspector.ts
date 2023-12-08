@@ -265,6 +265,10 @@ export class Inspector {
   }
 
   deactivate() {
+    chrome.runtime.sendMessage({
+      action: MessageContent.inspectorBadgeDeactivate,
+      target: MessageTarget.Background,
+    });
     this.$wrap.classList.add("-out");
     document.removeEventListener("click", this.selectElement);
     document.removeEventListener("mousemove", this.log);

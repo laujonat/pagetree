@@ -22,7 +22,6 @@ export const useChrome = () => {
         status: "complete",
       };
       const [tab] = await chrome.tabs.query(queryOptions);
-      console.log("URL", tabUrl, "tab url", tab?.url);
       if (tab?.id && tab?.url) {
         setTabId(tab.id);
         setTabUrl(tab.url || "");
@@ -36,6 +35,7 @@ export const useChrome = () => {
     fetchTabIdAndUrl();
 
     const onTabChange = async (activeInfo) => {
+      console.log("activeInfo tab", activeInfo);
       if (activeInfo.tabId !== tabId) {
         fetchTabIdAndUrl();
       }
@@ -84,6 +84,7 @@ export const useChrome = () => {
     isInspectorActive,
     messageToSend,
     setSidePanelSource,
+    setTabId,
     openedBy,
   };
 };

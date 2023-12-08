@@ -5,8 +5,13 @@ import { TreeNodeDatum } from "react-d3-tree";
 import { TreeNode } from "../types";
 
 export function createTreeNodes(root: Element): TreeNode {
-  return traverseNode(root);
-
+  try {
+    const treeNodes = traverseNode(root);
+    return treeNodes;
+  } catch (error) {
+    console.error(error);
+    console.trace(error);
+  }
   function traverseNode(
     domElement: Element, // Use Element type for general HTML elements
     parentInfo: {
@@ -110,15 +115,15 @@ export function getDefaultZoom(count) {
   let factor = 1;
   if (count <= 10) return factor;
   if (count < 20) {
-    factor = 1;
+    factor = 0.7;
   } else if (count < 60) {
-    factor = 0.55;
+    factor = 0.3;
   } else if (count < 100) {
-    factor = 0.13;
+    factor = 0.25;
   } else if (count < 200) {
-    factor = 0.09;
+    factor = 0.2;
   } else {
-    factor = 0.04;
+    factor = 0.15;
   }
   return factor;
 }
