@@ -9,10 +9,11 @@ import { NodeListItem } from "./NodeListItem";
 
 interface NodeListProps {
   selectedNode?: Partial<HierarchyPointNode<TreeNodeDatum>>;
+  isNodeListEmpty?: boolean;
 }
 
 export function NodeList(props: NodeListProps) {
-  const { selectedNode } = props;
+  const { selectedNode, isNodeListEmpty } = props;
 
   function getForeignObjectElement(id: string): SVGElement {
     const selector = `#${sanitizeId(id)} foreignObject`;
@@ -40,9 +41,6 @@ export function NodeList(props: NodeListProps) {
       }
     });
   };
-  const isNodeListEmpty = !(
-    selectedNode?.children && selectedNode.children.length > 0
-  );
 
   return (
     <>

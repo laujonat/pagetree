@@ -192,11 +192,10 @@ async function handleBackgroundMessages(message, sender) {
         target: MessageTarget.Sidepanel,
         data: { url: tab?.url },
       });
+      badge.stop();
       break;
     case MessageContent.bgDocStatus:
       if (message.data.isDocumentAvailable) {
-        badge.stop();
-
         chrome.tabs.sendMessage(tab.id, {
           action: MessageContent.scanPage,
           target: MessageTarget.Sidepanel,
@@ -248,6 +247,9 @@ async function handleBackgroundMessages(message, sender) {
       chrome.tabs.reload(tab?.id as number).then((result) => {
         console.log("background task -> reload-active-tab", result);
       });
+      if (badge) {
+        badge.pause();
+      }
       break;
     default:
       console.warn(`Unexpected message type received: '${message.action}'.`);
@@ -257,9 +259,6 @@ async function handleBackgroundMessages(message, sender) {
 async function handleOnTabUpdate(tabId) {
   console.log("handleOnTabUpdate", tabId);
   try {
-    if (badge) {
-      badge.pause();
-    }
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url) return;
 

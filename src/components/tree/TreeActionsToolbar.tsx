@@ -16,7 +16,13 @@ export const TreeActionsToolbar = forwardRef<
   TreeActionsToolbarProps
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
 >((props: TreeActionsToolbarProps, ref) => {
-  const { messageToSend, isInspectorActive, tabUrl } = useChrome();
+  const {
+    messageToSend,
+    isInspectorActive,
+    tabUrl,
+    domObservable,
+    setDomObservable,
+  } = useChrome();
   const { expandAllNodes } = useTree();
 
   useEffect(() => {
@@ -38,6 +44,7 @@ export const TreeActionsToolbar = forwardRef<
       messageToSend({
         action: MessageContent.reloadDomTree,
       });
+      setDomObservable(false);
     } catch (error) {
       console.error("Error in handleClick:", error);
     }
@@ -60,8 +67,13 @@ export const TreeActionsToolbar = forwardRef<
             <ExpandAllIcon />
           </button>
         </div>
-        <div className="tree-actions__action synctree">
+        <div
+          className={`tree-actions__action synctree ${
+            domObservable ? "pending" : ""
+          }`}
+        >
           <button aria-label="Refresh DOM tree" onClick={handleSyncTreeClick}>
+            {domObservable && <div className="synctree__active"></div>}
             <SyncTree />
           </button>
         </div>

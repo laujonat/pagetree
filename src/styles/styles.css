@@ -295,8 +295,25 @@ strong.nodelen__text {
   content: "Select parent node";
 }
 
+.tree-actions__left
+  > div.tree-actions__action.synctree
+  > button
+  > div.synctree__active {
+  position: absolute;
+  right: 2px;
+  top: 1px;
+  border-radius: 50%;
+  height: 5px;
+  width: 5px;
+  background-color: var(--button-active);
+}
+
 .tree-actions__left > div.tree-actions__action.synctree::before {
   content: "Reload Tree";
+}
+
+.tree-actions__left > div.tree-actions__action.synctree.pending::before {
+  content: "DOM changes detected";
 }
 
 .tree-actions__left > div.tree-actions__action.toggle-inspector::before {
@@ -341,6 +358,18 @@ strong.nodelen__text {
   border-radius: 5px;
   box-shadow: none !important;
   padding-inline: 3px;
+  transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+  touch-action: manipulation;
+}
+
+.tree-actions__left > div.tree-actions__action > button:focus {
+  outline: 1px transparent;
+}
+
+.tree-actions__left > div.tree-actions__action > button:active {
+  opacity: 0.92;
+  box-shadow: rgba(225, 228, 232, 0.2) 0 1px 0 inset;
+  transition: none 0s;
 }
 
 .tree-actions__left > div.tree-actions__action.active > button {
@@ -354,6 +383,7 @@ strong.nodelen__text {
 .tree-actions__left > div.tree-actions__action button {
   min-height: 30px;
   padding: 5px;
+  position: relative;
   line-height: 0;
   white-space: nowrap;
   background-color: var(--bg-1);

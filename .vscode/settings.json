@@ -15,5 +15,6 @@
     "editor.formatOnSave": true,
     "autoimport.doubleQuotes": false,
     "importSorter.importStringConfiguration.quoteMark": "double",
-    "stylelint.configFile": ".stylelintrc.json"
+    "stylelint.configFile": ".stylelintrc.json",
+    "editor.foldingImportsByDefault": true
 }

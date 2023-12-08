@@ -8,6 +8,7 @@ type InspectorInstance = {
 };
 let previousObserver;
 let DOMRoot: Element;
+let previousDOMRoot: Element;
 let treeData;
 const Inspector: InspectorInstance = { instance: undefined };
 
@@ -165,17 +166,32 @@ async function handleSidepanelMessages(
           type: MessageContent.openSidePanel,
           target: MessageTarget.Background,
         });
+        if (Inspector.instance?.isActiveStatus) {
+          // Inspector is active, store the previous DOM state
+          previousDOMRoot = DOMRoot;
+        }
         toggleInspector();
         relayMessageToExtension({
           type: MessageContent.updateGenTree,
           data: treeData,
         });
-        DOMRoot = startObserver(element);
+        if (!Inspector.instance?.isActiveStatus) {
+          // Inspector is not active, update the observer
+          DOMRoot = startObserver(element);
+        }
       } else {
         console.error("No selected element to process");
       }
       break;
     case MessageContent.inspectorToggle:
+      if (!Inspector.instance?.isActiveStatus) {
+        // Inspector is not active, update the observer
+        if (previousDOMRoot) {
+          DOMRoot = startObserver(previousDOMRoot);
+        } else {
+          DOMRoot = startObserver(document.documentElement);
+        }
+      }
       toggleInspector();
       break;
     case MessageContent.inspectorStatus:
@@ -253,13 +269,14 @@ function forceInspectorStop() {
 
 function sendTreeData() {
   if (typeof document !== "undefined") {
-    if (!DOMRoot && lastRightClickedElement) {
-      DOMRoot = startObserver(lastRightClickedElement);
-    } else if (!DOMRoot && !lastRightClickedElement) {
-      DOMRoot = startObserver(document.documentElement);
-    } else {
-      DOMRoot = startObserver(document.documentElement);
+    if (!DOMRoot) {
+      if (lastRightClickedElement) {
+        DOMRoot = startObserver(lastRightClickedElement);
+      } else {
+        DOMRoot = startObserver(document.documentElement);
+      }
     }
+    console.log("DOMROOT", DOMRoot);
     treeData = createTreeNodes(DOMRoot);
     relayMessageToExtension({
       type: MessageContent.updateGenTree,
@@ -279,8 +296,14 @@ function relayMessageToExtension(options: IRelayMessageOptions): void {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function handleMutations(mutationsList, observer) {
-  // Handle mutations here
-  console.log("DOM change detected:", mutationsList);
+  if (Inspector.instance?.isActiveStatus) {
+    return;
+  }
+  console.warn("DOM change detected:", mutationsList);
+  relayMessageToExtension({
+    type: MessageContent.domChangesDetected,
+    target: MessageTarget.Runtime,
+  });
 }
 
 function startObserver(dom) {

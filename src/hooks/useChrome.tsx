@@ -6,6 +6,7 @@ export const useChrome = () => {
   const [tabId, setTabId] = useState<number | null>(null);
   const [tabUrl, setTabUrl] = useState<string>("");
   const [isInspectorActive, setIsInspectorActive] = useState<boolean>(false);
+  const [domObservable, setDomObservable] = useState<boolean>(false);
   const [openedBy, setOpenedBy] = useState<
     "contextMenu" | "buttonClick" | null
   >(null);
@@ -69,6 +70,9 @@ export const useChrome = () => {
           case MessageContent.inspectorStatus:
             setIsInspectorActive(message.data.active);
             break;
+          case MessageContent.domChangesDetected:
+            setDomObservable(true);
+            break;
           default:
             break;
         }
@@ -79,6 +83,8 @@ export const useChrome = () => {
   }, []);
 
   return {
+    domObservable,
+    setDomObservable,
     tabId,
     tabUrl,
     isInspectorActive,

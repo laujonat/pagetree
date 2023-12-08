@@ -16,6 +16,7 @@ import {
 
 import { MessageContent, MessageTarget } from "@/constants";
 import useChrome from "@/hooks/useChrome";
+import { useData } from "@/hooks/useData";
 import { Dimension, ISettings, PageTreeHierarchyNode, TreeNode } from "@/types";
 import {
   findNodesById,
@@ -105,7 +106,7 @@ export const TreeProvider = ({
     () => () => {}
   );
   const [treeElement, setTreeElement] = useState<Element>();
-  const [treeState, setTreeState] = useState<TreeProps>({
+  const [state, setProperty] = useData({
     centeringTransitionDuration: 500,
     collapsible: true,
     data: [],
@@ -180,6 +181,7 @@ export const TreeProvider = ({
             const r3dtNodes = await genTreeData(message.data);
             await updateTreeState({ data: r3dtNodes }, true);
             setShouldDispatchClick(true);
+            setLoaded(true);
           }
         }
       } catch (error) {
@@ -195,14 +197,14 @@ export const TreeProvider = ({
   }, [updateTreeState, setLoaded, setShouldDispatchClick]);
 
   useEffect(() => {
-    if (Object.hasOwn(treeState.data, "children")) {
+    if (Object.hasOwn(state.data, "children")) {
       const len = countNodes(
         0,
-        Array.isArray(treeState.data) ? treeState.data[0] : treeState.data
+        Array.isArray(state.data) ? state.data[0] : state.data
       );
       setNodeCount(len);
     }
-  }, [treeState.data]);
+  }, [state.data]);
 
   useEffect(() => {
     // signal to content script react is ready to accept data
@@ -215,12 +217,19 @@ export const TreeProvider = ({
   }, [tabId]);
 
   useEffect(() => {
-    if (Object.hasOwn(treeState.data, "children")) {
+    console.log(state.data);
+    console.log(Object.hasOwn(state.data, "children"));
+    if (Object.hasOwn(state.data, "children")) {
       setLoaded(true);
     } else {
       setLoaded(false);
     }
-  }, [treeState.data, setLoaded]);
+    console.log("LOADED", loaded);
+  }, [state.data, treeElement]);
+
+  useEffect(() => {
+    console.log("LOADED", loaded);
+  }, [loaded]);
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {
@@ -229,30 +238,34 @@ export const TreeProvider = ({
       )[0] as SVGElement;
       setTreeElement(tElement);
     }
-  }, [treeRef.current, setLoaded]);
+  }, [treeRef.current, setTreeElement]);
 
   useEffect(() => {
     if (loaded) {
-      updateTreeState({
-        orientation: settings.orientation,
-        separation:
-          settings.orientation === "vertical"
-            ? { siblings: 1, nonSiblings: 1.5 }
-            : { siblings: 0.5, nonSiblings: 0 },
-        dimensions: { width: translate.x * 2, height: translate.y * 2 }, // Assuming full container dimensions
-        translate: translate, // Use calculated translate
-        zoom: 1.5,
+      setProperty("orientation", settings.orientation);
+      setProperty(
+        "separation",
+        settings.orientation === "vertical"
+          ? { siblings: 1, nonSiblings: 1.5 }
+          : { siblings: 0.5, nonSiblings: 0 }
+      );
+      setProperty("dimensions", {
+        width: translate.x * 2,
+        height: translate.y * 2,
       });
+      setProperty("translate", translate);
+      setProperty("zoom", 1.5);
     }
   }, [settings.orientation, translate, loaded]);
 
   useEffect(() => {
-    setTreeState((prevState) => ({
-      ...prevState,
-      orientation: settings.orientation,
-      pathFunc: settings.pathFunc,
-      shouldCollapseNeighborNodes: settings.shouldCollapseNeighborNodes,
-    }));
+    setProperty("orientation", settings.orientation);
+    setProperty("pathFunc", settings.pathFunc);
+    setProperty(
+      "shouldCollapseNeighborNodes",
+      settings.shouldCollapseNeighborNodes
+    );
+    setProperty("orientation", settings.orientation);
   }, [settings]);
 
   useEffect(() => {
@@ -262,7 +275,7 @@ export const TreeProvider = ({
         setShouldDispatchClick(false); // Reset the flag
       }
     }
-  }, [treeState.data, shouldDispatchClick, expandNodes]); // Run when tree data or shouldDispatchClick changes
+  }, [state.data, shouldDispatchClick, expandNodes]); // Run when tree data or shouldDispatchClick changes
 
   function countNodes(count: number = 0, node) {
     count += 1;
@@ -277,15 +290,9 @@ export const TreeProvider = ({
   const expandAllNodes = (_e) => {
     setExpandNodes(!expandNodes);
     if (!expandNodes) {
-      setTreeState((prevState) => ({
-        ...prevState,
-        zoom: getDefaultZoom(nodeCount),
-      }));
+      setProperty("zoom", getDefaultZoom(nodeCount));
     } else {
-      setTreeState((prevState) => ({
-        ...prevState,
-        zoom: 1.5,
-      }));
+      setProperty("zoom", 1.5);
     }
   };
 
@@ -297,12 +304,13 @@ export const TreeProvider = ({
     newState: Partial<TreeProps>,
     isNewTree: boolean = false
   ) {
-    console.log("NEW STATE", newState);
-    setTreeState((prevState) => ({
-      ...prevState,
-      ...newState,
-      dataKey: isNewTree ? `tree-${Date.now()}` : prevState.dataKey,
-    }));
+    for (const key in newState) {
+      if (Object.prototype.hasOwnProperty.call(newState, key)) {
+        setProperty(key as keyof TreeProps, newState[key]); // Use setProperty to update each property in newState
+      }
+    }
+
+    setProperty("dataKey", isNewTree ? `tree-${Date.now()}` : state.dataKey); // Update 'dataKey' separately if needed
   }
 
   const expandChildNodes = async (node: string) => {
@@ -438,7 +446,7 @@ export const TreeProvider = ({
     setLoaded,
     setOnNodeClick,
     treeRef,
-    treeState,
+    treeState: state,
     updateSelectedNode,
     updateTreeRef,
     updateTreeState,

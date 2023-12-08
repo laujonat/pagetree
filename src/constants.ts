@@ -24,6 +24,7 @@ export const enum MessageContent {
   openSidePanel = "open-side-panel",
   treeReady = "document-tree-loaded",
   reloadDomTree = "sync-dom-tree",
+  domChangesDetected = "dom-tree-changes-detected",
   // Script to background
   bgDocStatus = "document-status-response",
   bgFetchActiveTabUrl = "fetch-tab-url",
