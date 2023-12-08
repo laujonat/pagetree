@@ -40,6 +40,9 @@ export function NodeList(props: NodeListProps) {
       }
     });
   };
+  const isNodeListEmpty = !(
+    selectedNode?.children && selectedNode.children.length > 0
+  );
 
   return (
     <>
@@ -68,7 +71,10 @@ export function NodeList(props: NodeListProps) {
           )}
         </div>
       </div>
-      <section id="details">
+      <section
+        id="details"
+        style={{ pointerEvents: isNodeListEmpty ? "none" : "auto" }}
+      >
         <ul className="details__list">
           {selectedNode?.children && renderChildren(selectedNode.children)}
         </ul>

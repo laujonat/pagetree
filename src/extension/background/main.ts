@@ -1,30 +1,28 @@
-import {
-  ContextMenuId,
-  contexts,
-  MessageContent,
-  MessageTarget,
-} from "../../constants";
+import { ContextMenuId, MessageContent, MessageTarget } from "../../constants";
 import { Badge as BadgeAction } from "./badge";
+import { createSelector, getMenuOptions } from "./userfunctions";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 let activeTab;
 let connectedTab;
 let badge;
-let ORIGIN_URL;
+const activeTabs = new Set(); // Track tabs where the extension is active
+
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
 
 chrome.runtime.onConnect.addListener(function (port) {
   if (port && port.name === "pagetree-panel-extension") {
     connectedTab = port.sender?.tab?.id as number;
 
     const connectedTabUrl = port.sender?.tab?.url;
+
     if (connectedTabUrl) {
       const connectedTabOrigin = new URL(connectedTabUrl).origin;
 
       if (connectedTab === undefined || !connectedTabOrigin) {
         console.warn("Invalid tab ID or origin");
-      } else {
-        // Set GOOGLE_ORIGIN to the origin of the connected tab
-        ORIGIN_URL = connectedTabOrigin;
       }
     }
     port.onDisconnect.addListener(() => {
@@ -35,6 +33,7 @@ chrome.runtime.onConnect.addListener(function (port) {
           action: MessageContent.inspectorStatus,
           target: MessageTarget.Sidepanel,
         });
+        activeTabs.delete(connectedTab);
       } catch (e) {
         console.error(e);
         if (connectedTab) {
@@ -52,37 +51,21 @@ chrome.runtime.onConnect.addListener(function (port) {
   }
 });
 
-chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    chrome.runtime.setUninstallURL("https://example.com/extension-survey");
-  }
-  chrome.contextMenus.create({
-    title: "Element Selector",
-    contexts: ["all"],
-    id: ContextMenuId.selector,
-  });
+chrome.runtime.onInstalled.addListener(getMenuOptions);
 
-  chrome.contextMenus.create({
-    title: "Visualize '%s' Element Tree",
-    contexts: contexts,
-    id: ContextMenuId.element,
-  });
-
-  chrome.contextMenus.create({
-    title: "Visualize Page Document Tree",
-    contexts: ["all"],
-    id: ContextMenuId.page,
-  });
-});
-
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
-
+/**
+ * Fires when the active tab in a window changes.
+ * Note that the tab's URL may not be set at the time this event fired, but you can listen to onUpdated events so as to be notified when a URL is set.
+ */
 chrome.tabs.onActivated.addListener((activeInfo) => {
-  activeTab = activeInfo.tabId;
   badge = new BadgeAction(activeTab);
-  handleOnTabUpdate(activeTab);
+  activeTab = activeInfo.tabId;
+  if (!activeTabs.has(activeTab)) {
+    chrome.sidePanel.setOptions({
+      tabId: activeTab,
+      enabled: false,
+    });
+  }
   badge.stop();
 });
 
@@ -100,40 +83,48 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 
 chrome.contextMenus.onClicked.addListener(handleContextMenuClick);
 
+chrome.action.onClicked.addListener(function (tab) {
+  if (tab.id) {
+    activeTabs.add(tab.id);
+
+    chrome.sidePanel.setOptions({
+      tabId: tab.id,
+      path: "sidepanel.html",
+      enabled: true,
+    });
+    // @ts-ignore
+    chrome.sidePanel.open({ tabId: tab.id });
+  }
+});
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo) {
-  //   console.log("Tab ID:", tabId, "Change Info:", changeInfo);
-  if (changeInfo.status === "complete") {
+  console.log("Tab ID:", tabId, "Change Info:", changeInfo);
+  handleOnTabUpdate(tabId);
+  if (activeTabs.has(tabId) && changeInfo.status === "complete") {
     chrome.tabs.sendMessage(tabId, {
       action: MessageContent.checkDocStatus,
       target: MessageTarget.Sidepanel,
     });
   }
-  if (tabId !== activeTab) {
-    activeTab = tabId;
-    updateSidePanelStatus(tabId);
-  }
 });
 
 chrome.runtime.onMessage.addListener(handleBackgroundMessages);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function shouldEnableSidePanelForURL(url) {
-  return true; // Currently, it's enabled for all URLs
-}
-
-function handleInspectorClick(info) {
-  let selector = info.tagName.toLowerCase();
-  if (info.id) {
-    selector += `#${info.id}`;
-  }
-  if (info.classes) {
-    selector += `.${info.classes.split(" ").join(".")}`;
-  }
-
-  return selector;
+function shouldEnableSidePanelTab(tab) {
+  return activeTabs.has(tab); // Currently, it's enabled for all URLs
 }
 
 function handleContextMenuClick(info, tab) {
-  //   console.log("Tab ID:", tab.id, "clickinfo:", info);
+  if (tab.id) {
+    activeTabs.add(tab.id);
+
+    // Open the side panel and send a message to the content script
+    chrome.sidePanel.setOptions({
+      tabId: tab.id,
+      path: "sidepanel.html",
+      enabled: true,
+    });
+  }
+
   switch (info.menuItemId) {
     case ContextMenuId.selector:
       chrome.tabs.sendMessage(tab.id, {
@@ -163,6 +154,19 @@ function handleContextMenuClick(info, tab) {
 }
 
 async function handleBackgroundMessages(message, sender) {
+  // The callback for runtime.onMessage must return falsy if we're not sending a response
+  (async () => {
+    if (message.type === "open_side_panel") {
+      // @ts-ignore
+      await chrome.sidePanel.open({ tabId: sender.tab.id });
+      await chrome.sidePanel.setOptions({
+        tabId: sender.tab.id,
+        path: "sidepanel.html",
+        enabled: true,
+      });
+    }
+  })();
+  if (!connectedTab) return;
   const { tab } = sender;
   console.log("background action", message.action);
 
@@ -177,6 +181,7 @@ async function handleBackgroundMessages(message, sender) {
   if (!badge) {
     badge = new BadgeAction(tab.id);
   }
+  activeTab = tab.id;
 
   // Dispatch the message to an appropriate handler.
   switch (message.action) {
@@ -191,6 +196,7 @@ async function handleBackgroundMessages(message, sender) {
     case MessageContent.bgDocStatus:
       if (message.data.isDocumentAvailable) {
         badge.stop();
+
         chrome.tabs.sendMessage(tab.id, {
           action: MessageContent.scanPage,
           target: MessageTarget.Sidepanel,
@@ -219,7 +225,7 @@ async function handleBackgroundMessages(message, sender) {
         chrome.tabs.sendMessage(tab.id, {
           action: MessageContent.inspectorSelect,
           target: MessageTarget.Sidepanel,
-          data: handleInspectorClick(message.data),
+          data: createSelector(message.data),
         });
       } catch (e) {
         console.error(e);
@@ -249,48 +255,32 @@ async function handleBackgroundMessages(message, sender) {
 }
 
 async function handleOnTabUpdate(tabId) {
+  console.log("handleOnTabUpdate", tabId);
   try {
-    badge.pause();
+    if (badge) {
+      badge.pause();
+    }
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url) return;
 
-    const url = new URL(tab.url);
-    const isEnabled = shouldEnableSidePanelForURL(url);
-
-    await chrome.sidePanel.setOptions({
-      tabId,
-      path: "sidepanel.html",
-      enabled: isEnabled,
-    });
+    if (!activeTabs.has(activeTab)) {
+      chrome.sidePanel.setOptions({
+        tabId: activeTab,
+        enabled: false,
+      });
+    }
   } catch (error) {
     console.error("Error updating side panel for tab:", error);
   }
 }
+// async function getCurrentTab() {
+//   const queryOptions = { active: true, lastFocusedWindow: true };
+//   // `tab` will either be a `tabs.Tab` instance or `undefined`.
+//   const [tab] = await chrome.tabs.query(queryOptions);
+//   return tab;
+// }
 
-function updateSidePanelStatus(activeTabId) {
-  chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
-    if (!tabs || tabs.length === 0 || !tabs[0].url) return;
-
-    const url = new URL(tabs[0].url);
-
-    // Set ORIGIN_URL if it's currently null or the URL origin has changed
-    if (ORIGIN_URL === null || ORIGIN_URL !== url.origin) {
-      ORIGIN_URL = url.origin;
-    }
-
-    // Enables the side panel on the active site
-    if (url.origin === ORIGIN_URL) {
-      await chrome.sidePanel.setOptions({
-        tabId: activeTabId,
-        path: "sidepanel.html",
-        enabled: true,
-      });
-    } else {
-      // Disables the side panel on all other sites
-      await chrome.sidePanel.setOptions({
-        tabId: activeTabId,
-        enabled: false,
-      });
-    }
-  });
-}
+chrome.tabs.onRemoved.addListener((tabId) => {
+  activeTabs.delete(tabId);
+  console.warn("onremoved result", activeTabs);
+});

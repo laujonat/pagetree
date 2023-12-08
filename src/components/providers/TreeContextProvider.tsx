@@ -174,13 +174,17 @@ export const TreeProvider = ({
 
   useEffect(() => {
     const handleMessage = async (message) => {
-      if (message.target === MessageTarget.Runtime) {
-        if (message.action === MessageContent.updateGenTree) {
-          const r3dtNodes = await genTreeData(message.data);
-          await updateTreeState({ data: r3dtNodes }, true);
-          setLoaded(true);
-          setShouldDispatchClick(true);
+      try {
+        if (message.target === MessageTarget.Runtime) {
+          if (message.action === MessageContent.updateGenTree) {
+            const r3dtNodes = await genTreeData(message.data);
+            await updateTreeState({ data: r3dtNodes }, true);
+            setShouldDispatchClick(true);
+          }
         }
+      } catch (error) {
+        console.error(error);
+        console.trace(error);
       }
     };
 
@@ -211,8 +215,12 @@ export const TreeProvider = ({
   }, [tabId]);
 
   useEffect(() => {
-    console.log("ts data", treeState.data);
-  }, [treeState.data]);
+    if (Object.hasOwn(treeState.data, "children")) {
+      setLoaded(true);
+    } else {
+      setLoaded(false);
+    }
+  }, [treeState.data, setLoaded]);
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {
@@ -220,8 +228,6 @@ export const TreeProvider = ({
         treeRef.current.gInstanceRef
       )[0] as SVGElement;
       setTreeElement(tElement);
-    } else {
-      setLoaded(false);
     }
   }, [treeRef.current, setLoaded]);
 

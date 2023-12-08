@@ -7,7 +7,7 @@ type InspectorInstance = {
   instance: InspectorScript | undefined;
 };
 let previousObserver;
-let DOMRoot;
+let DOMRoot: Element;
 let treeData;
 const Inspector: InspectorInstance = { instance: undefined };
 
@@ -47,11 +47,12 @@ document.addEventListener(
         // If not, use its parent
         lastRightClickedElement = targetElement.parentElement;
       }
-      DOMRoot = startObserver(lastRightClickedElement);
+      DOMRoot = startObserver(targetElement);
     }
   },
   true
 );
+
 function waitForDOMReady(callback) {
   let timer;
   const observer = new MutationObserver(() => {
@@ -61,6 +62,7 @@ function waitForDOMReady(callback) {
       callback();
     }, 500); // Adjust the timeout to suit the page's load characteristics
   });
+  console.log("wait dom ready");
   observer.observe(document, {
     childList: true,
     subtree: true,
@@ -73,6 +75,8 @@ async function handleSidepanelMessages(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   sendResponse: (response?: any) => void
 ) {
+  console.log("content script action", message.action);
+
   // Return early if this message isn't meant for the sidepanel document.
   if (message.target !== MessageTarget.Sidepanel) {
     return false;
@@ -113,6 +117,7 @@ async function handleSidepanelMessages(
         const perfersDark = window.matchMedia(
           "(prefers-color-scheme: dark)"
         ).matches;
+
         relayMessageToExtension({
           type: MessageContent.firstTimeResponse,
           target: MessageTarget.Runtime,
@@ -139,13 +144,11 @@ async function handleSidepanelMessages(
       DOMRoot = startObserver(DOMRoot);
       break;
     case MessageContent.highlightTextOption:
-      console.log(lastRightClickedElement);
       treeData = createTreeNodes(lastRightClickedElement);
       relayMessageToExtension({
         type: MessageContent.updateGenTree,
         data: treeData,
       });
-
       break;
     case MessageContent.fullPageOption:
       treeData = createTreeNodes(document.documentElement);
@@ -153,7 +156,6 @@ async function handleSidepanelMessages(
         type: MessageContent.updateGenTree,
         data: treeData,
       });
-      DOMRoot = startObserver(document.documentElement);
       break;
     case MessageContent.inspectorSelect:
       if (message.data) {
@@ -251,22 +253,14 @@ function forceInspectorStop() {
 
 function sendTreeData() {
   if (typeof document !== "undefined") {
-    if (!treeData) {
+    if (!DOMRoot && lastRightClickedElement) {
+      DOMRoot = startObserver(lastRightClickedElement);
+    } else if (!DOMRoot && !lastRightClickedElement) {
       DOMRoot = startObserver(document.documentElement);
-
-      console.log(
-        "🚀 ----------------------------------------------------------------------🚀"
-      );
-      console.log(
-        "🚀 ⚛︎ file: content_script.tsx:257 ⚛︎ sendTreeData ⚛︎ DOMRoot:",
-        DOMRoot
-      );
-      console.log(
-        "🚀 ----------------------------------------------------------------------🚀"
-      );
-
-      treeData = createTreeNodes(document.documentElement);
+    } else {
+      DOMRoot = startObserver(document.documentElement);
     }
+    treeData = createTreeNodes(DOMRoot);
     relayMessageToExtension({
       type: MessageContent.updateGenTree,
       data: treeData,
@@ -290,21 +284,23 @@ function handleMutations(mutationsList, observer) {
 }
 
 function startObserver(dom) {
-  // Check if there is a previous observer and disconnect it if exists
-  if (previousObserver) {
-    previousObserver.disconnect();
+  try {
+    // Check if there is a previous observer and disconnect it if exists
+    if (previousObserver) {
+      previousObserver.disconnect();
+    }
+
+    const observer = new MutationObserver(handleMutations);
+
+    const config = {
+      childList: true, // Watch for changes in child elements
+      subtree: true, // Watch all descendant elements
+    };
+
+    observer.observe(dom, config);
+    previousObserver = observer;
+  } catch (error) {
+    console.error(error);
   }
-
-  const observer = new MutationObserver(handleMutations);
-
-  const config = {
-    childList: true, // Watch for changes in child elements
-    subtree: true, // Watch all descendant elements
-  };
-
-  observer.observe(dom, config);
-
-  // Store the current observer as the previous observer
-  previousObserver = observer;
   return dom;
 }

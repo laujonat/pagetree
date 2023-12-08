@@ -91,8 +91,10 @@ export const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
 
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
+      console.log("window context visible", tabId);
       onUpdateRender();
     } else if (document.visibilityState === "hidden") {
+      console.log("window context hidden", tabId);
       console.log("hidden");
     }
   };

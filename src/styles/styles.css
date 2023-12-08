@@ -296,7 +296,7 @@ strong.nodelen__text {
 }
 
 .tree-actions__left > div.tree-actions__action.synctree::before {
-  content: "Sync DOM tree";
+  content: "Reload Tree";
 }
 
 .tree-actions__left > div.tree-actions__action.toggle-inspector::before {

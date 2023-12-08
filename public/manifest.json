@@ -29,7 +29,7 @@
     },
     "action": {
         "default_title": "Visualize Document Tree",
-        "default_sidepanel": "sidepanel.html",
+        "default_side_panel": "sidepanel.html",
         "default_icon": {
             "16": "assets/icon16.png",
             "48": "assets/icon48.png",
