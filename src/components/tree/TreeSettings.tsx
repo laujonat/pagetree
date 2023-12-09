@@ -114,31 +114,80 @@ export function TreeSettings({ settings, updateSetting }) {
   ];
 
   return (
-    <section className="tree-settings__container">
-      <SettingsOption
-        label="Extension theme"
-        options={themeOptions}
-        active={settings.darkMode}
-        onChange={handleThemeUpdate}
-      />
-      <SettingsOption
-        label="Tree orientation"
-        options={orientationOptions}
-        active={settings.orientation}
-        onChange={handleUpdateOrientation}
-      />
-      <SettingsOption
-        label="Collapse neighbor nodes"
-        active={settings.shouldCollapseNeighborNodes}
-        options={collapseNeighborOptions}
-        onChange={handleUpdateShouldCollapseNeighborNodes}
-      />
-      <SettingsDropdownOption
-        label="Path Function"
-        active={settings.pathFunc}
-        options={pathFunctionOptions}
-        onChange={handleUpdatePathFunc}
-      />
-    </section>
+    <>
+      <section className="tree-settings__container">
+        <div>
+          <SettingsOption
+            label="Extension theme"
+            options={themeOptions}
+            active={settings.darkMode}
+            onChange={handleThemeUpdate}
+          />
+          <SettingsOption
+            label="Tree orientation"
+            options={orientationOptions}
+            active={settings.orientation}
+            onChange={handleUpdateOrientation}
+          />
+          <SettingsOption
+            label="Collapse neighbor nodes"
+            active={settings.shouldCollapseNeighborNodes}
+            options={collapseNeighborOptions}
+            onChange={handleUpdateShouldCollapseNeighborNodes}
+          />
+          <SettingsDropdownOption
+            label="Path Function"
+            active={settings.pathFunc}
+            options={pathFunctionOptions}
+            onChange={handleUpdatePathFunc}
+          />
+        </div>
+        <div>
+          <LicenseAndDisclaimer />
+        </div>
+      </section>
+    </>
+  );
+}
+function LicenseAndDisclaimer() {
+  return (
+    <div className="footer-text">
+      <p>
+        Pagetree Inspector is based on{" "}
+        <a target="_blank" href="https://github.com/ilyashubin/hover-inspect">
+          ilyashubin/hover-inspect
+        </a>{" "}
+        and{" "}
+        <a
+          target="_blank"
+          href="https://github.com/joelsaupe/html-tree-generator__chrome-extension"
+        >
+          joelsaupe/html-tree-generator
+        </a>{" "}
+        . Icons made from{" "}
+        <a target="_blank" href="https://iconduck.com">
+          IconDuck
+        </a>{" "}
+        License by{" "}
+        <a target="_blank" href="https://spdx.org/licenses/Apache-2.0.html">
+          Apache-2.0
+        </a>{" "}
+        . Icons from{" "}
+        <a
+          target="_blank"
+          href="https://www.figma.com/community/file/1181666037672124687/blueprint-icons?searchSessionId=lpxyy9f9-o7haeghx4cj"
+        >
+          Blueprint
+        </a>{" "}
+        made by{" "}
+        <a target="_blank" href="https://www.pnnl.gov/">
+          Pnnl.
+        </a>{" "}
+        License by{" "}
+        <a target="_blank" href="https://spdx.org/licenses/BSD-3-Clause.html">
+          BSD-3-Clause
+        </a>
+      </p>
+    </div>
   );
 }
