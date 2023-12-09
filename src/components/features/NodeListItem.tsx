@@ -57,7 +57,7 @@ export function NodeListItem(props: NodeListItemProps) {
           orientation as Orientation
         )
       }
-      onMouseLeave={removeHighlightPathToNode}
+      onMouseOut={removeHighlightPathToNode}
     >
       <DevToolsElement {...node.data} />
       <div className="slider-rotate">
