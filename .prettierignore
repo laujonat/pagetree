@@ -2,5 +2,4 @@ node_modules/
 dist/
 build/
 public/
-src/__tests__/
 *.json

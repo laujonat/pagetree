@@ -1,0 +1,19 @@
+module.exports = {
+    extends: [
+        "stylelint-config-standard",
+        "stylelint-config-rational-order"
+    ],
+    rules: {
+        "color-hex-length": "long",
+        "max-nesting-depth": 3,
+        'selector-id-pattern': null,
+        'selector-class-pattern': null,
+        'no-descending-specificity': null,
+        'at-rule-no-unknown': null,
+        'value-keyword-case': null,
+    },
+    ignoreFiles: [
+        "public",
+        "dist"
+    ]
+};
