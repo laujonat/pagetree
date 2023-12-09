@@ -18,16 +18,12 @@ import { MessageContent, MessageTarget } from "@/constants";
 import useChrome from "@/hooks/useChrome";
 import { useData } from "@/hooks/useData";
 import { Dimension, ISettings, PageTreeHierarchyNode, TreeNode } from "@/types";
-import {
-  findNodesById,
-  genTreeData,
-  getDefaultZoom,
-} from "@/utils/genTreeNodesHelper";
+import { findNodesById, genTreeData, getDefaultZoom } from "@/utils/treenode";
 import {
   renderForeignObjectNode,
   sortPaths,
   updateCurrentNode,
-} from "@/utils/genTreePathsHelper";
+} from "@/utils/treepath";
 
 type UpdateTreeFunction = (a: Partial<TreeProps>) => void;
 type UpdateNodeFunction = (a: PageTreeHierarchyNode<TreeNodeDatum>) => void;
@@ -70,7 +66,7 @@ export type DefaultValue = undefined;
 
 export type ContextValue = DefaultValue | ProviderValue;
 
-interface TreeProviderProps {
+export interface TreeProviderProps {
   children: React.ReactNode;
   settings: ISettings;
   translate: Point;

@@ -2,8 +2,8 @@ import { HierarchyPointNode } from "d3";
 import { TreeNodeDatum } from "react-d3-tree";
 
 import { ParentNode } from "@/icons";
-import { nodeClickEvent } from "@/utils/event";
-import { sanitizeId } from "@/utils/genTreePathsHelper";
+import { nodeClickEvent } from "@/utils/events";
+import { sanitizeId } from "@/utils/treepath";
 
 import { NodeListItem } from "./NodeListItem";
 

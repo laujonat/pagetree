@@ -1,23 +1,24 @@
-import { MessageContent, MessageTarget } from "../constants";
-import { IMessage, IRelayMessageOptions } from "../types";
-import { createTreeNodes } from "../utils/genTreeNodesHelper";
-import { Inspector as InspectorScript } from "./scripts/inspector";
+import { MessageContent, MessageTarget } from "../../constants";
+import { IMessage } from "../../types";
+import { createTreeNodes } from "../../utils/treenode";
+import { Inspector as InspectorScript } from "../scripts/inspector";
+import { relayMessageToExtension, waitForDOMReady } from "./content-utils";
 
 type InspectorInstance = {
   instance: InspectorScript | undefined;
 };
+const Inspector: InspectorInstance = { instance: undefined };
+
 let previousObserver;
+let lastRightClickedElement: Element;
 let DOMRoot: Element;
 let previousDOMRoot: Element;
 let treeData;
-const Inspector: InspectorInstance = { instance: undefined };
 
 const port = chrome.runtime.connect({ name: "pagetree-panel-extension" });
 console.info("pagetree-connect", port);
 
 chrome.runtime.onMessage.addListener(handleSidepanelMessages);
-
-let lastRightClickedElement;
 
 document.addEventListener(
   "contextmenu",
@@ -53,22 +54,6 @@ document.addEventListener(
   },
   true
 );
-
-function waitForDOMReady(callback) {
-  let timer;
-  const observer = new MutationObserver(() => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      observer.disconnect();
-      callback();
-    }, 500); // Adjust the timeout to suit the page's load characteristics
-  });
-  console.log("wait dom ready");
-  observer.observe(document, {
-    childList: true,
-    subtree: true,
-  });
-}
 
 async function handleSidepanelMessages(
   message: IMessage,
@@ -249,9 +234,6 @@ function toggleInspector() {
 }
 
 function forceInspectorStop() {
-  console.log("forcing stop");
-  console.log("instance check", Inspector.instance);
-  console.log("active status check", Inspector.instance?.isActiveStatus);
   try {
     if (Inspector.instance && Inspector.instance.isActiveStatus) {
       Inspector.instance.deactivate();
@@ -284,15 +266,6 @@ function sendTreeData() {
       data: treeData,
     });
   }
-}
-
-function relayMessageToExtension(options: IRelayMessageOptions): void {
-  const { type, data, target = MessageTarget.Runtime } = options;
-  chrome.runtime.sendMessage({
-    action: type,
-    target,
-    data,
-  });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

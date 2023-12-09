@@ -21,7 +21,7 @@ export const TreeComponent = forwardRef<TreeComponentRef, TreeComponentProps>(
     return !loaded ? (
       <span className="loading">Loading..</span>
     ) : (
-      <article className="container">
+      <section className="container">
         {!isExpanded && (
           <Tree ref={treeRef1 as Ref<Tree>} {...treeState} initialDepth={1} />
         )}
@@ -32,7 +32,7 @@ export const TreeComponent = forwardRef<TreeComponentRef, TreeComponentProps>(
             initialDepth={undefined}
           />
         )}
-      </article>
+      </section>
     );
   }
 );

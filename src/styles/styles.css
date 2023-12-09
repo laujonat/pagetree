@@ -177,7 +177,7 @@ section.inspector__container {
   flex-grow: 1;
 }
 
-article.container {
+section.container {
   position: relative;
   height: 100%;
 }

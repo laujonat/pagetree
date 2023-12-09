@@ -12,5 +12,15 @@ module.exports = {
             'warn',
             { 'ts-ignore': 'allow-with-description' },
         ]
-    }
+    },
+    overrides: [
+        {
+            files: [
+                "**/*.test.{ts,tsx}"
+            ],
+            env: {
+                jest: true
+            }
+        },
+    ]
 };

@@ -1,5 +1,5 @@
 import { ContextMenuId, MessageContent, MessageTarget } from "../../constants";
-import { Badge as BadgeAction } from "./badge";
+import { Badge as BadgeAction } from "../scripts/badge";
 import { createSelector, getMenuOptions } from "./userfunctions";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */

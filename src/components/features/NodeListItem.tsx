@@ -4,7 +4,7 @@ import { Orientation, TreeNodeDatum } from "react-d3-tree";
 import { useThrottle } from "@/hooks/useThrottle";
 import { useTree } from "@/hooks/useTree";
 import { PageTreeHierarchyNode } from "@/types";
-import { sanitizeId } from "@/utils/genTreePathsHelper";
+import { sanitizeId } from "@/utils/treepath";
 
 import { DevToolsElement } from "./Element";
 

@@ -17,7 +17,7 @@ const resolveModules = [
 const config: WebpackConfiguration = {
   entry: {
     background: path.join(srcDir, "extension/background/main.ts"),
-    content_script: path.join(srcDir, "extension/content_script.tsx"),
+    content: path.join(srcDir, "extension/content/main.ts"),
     sidepanel: path.join(srcDir, "extension/sidepanel.tsx"),
     script: path.join(srcDir, "extension/scripts/inspector.ts"),
     options: path.join(srcDir, "extension/options.tsx"),

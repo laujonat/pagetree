@@ -12,7 +12,7 @@ export interface SettingsContextType {
   updateSetting: (key: keyof ISettings, value: ISettings) => void;
 }
 
-const defaultSettings: ISettings & ITheme = {
+export const defaultSettings: ISettings & ITheme = {
   orientation: "vertical",
   shouldCollapseNeighborNodes: true,
   pathFunc: "step",

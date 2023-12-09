@@ -1,4 +1,4 @@
-import { createTreeNodes } from "../utils/genTreeNodesHelper";
+import { createTreeNodes } from "../utils/treenode";
 
 describe("createTreeNodes", () => {
   it("returns a tree node object with correct structure", () => {
