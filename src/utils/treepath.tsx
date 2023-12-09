@@ -217,3 +217,10 @@ export const renderForeignObjectNode = (
     </>
   );
 };
+
+export function getForeignObjectElement(id: string): SVGElement {
+  const selector = `#${sanitizeId(id)} foreignObject`;
+  const foreignObject = document.querySelector(String(selector));
+  if (!foreignObject) throw new Error("SvgElementQueryErr..");
+  return foreignObject as SVGElement;
+}

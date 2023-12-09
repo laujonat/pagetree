@@ -5,15 +5,25 @@ export const useDraggable = (ref) => {
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
+    console.log("REF CURRENT", ref.current);
     const handleMouseDown = (event) => {
       if (ref.current) {
-        document.body.style.cursor = "grabbing"; // Change body cursor
+        ref.current.style.cursor = "grabbing"; // Change body cursor
       }
       setIsDragging(true);
       setOrigin({
         x: event.clientX,
         y: event.clientY,
       });
+    };
+
+    const handleMouseOver = (event) => {
+      if (ref.current) return;
+      event.stopPropagation();
+    };
+    const handleMouseOut = (event) => {
+      if (ref.current) return;
+      event.stopPropagation();
     };
 
     const handleMouseMove = (event) => {
@@ -28,25 +38,30 @@ export const useDraggable = (ref) => {
       }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (event) => {
       if (ref.current) {
-        document.body.style.cursor = "default"; // Change body cursor back to default
+        ref.current.style.cursor = "default"; // Change body cursor back to default
       }
       setIsDragging(false);
+      event.stopPropagation();
     };
 
     if (ref.current) {
-      ref.current.addEventListener("mousedown", handleMouseDown);
+      ref.current.addEventListener("mousedown", handleMouseDown, true);
     }
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    ref.current.addEventListener("mousemove", handleMouseMove, true);
+    ref.current.addEventListener("mouseup", handleMouseUp, true);
+    ref.current.addEventListener("mouseover", handleMouseOver, true);
+    ref.current.addEventListener("mouseout", handleMouseOut, true);
 
     return () => {
       if (ref.current) {
-        ref.current.removeEventListener("mousedown", handleMouseDown);
+        ref.current.removeEventListener("mousedown", handleMouseDown, true);
+        ref.current.removeEventListener("mousemove", handleMouseMove, true);
+        ref.current.removeEventListener("mouseup", handleMouseUp, true);
+        ref.current.removeEventListener("mouseover", handleMouseOver, true);
+        ref.current.removeEventListener("mouseout", handleMouseOut, true);
       }
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [ref, isDragging, origin]);
 

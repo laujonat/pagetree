@@ -11,11 +11,12 @@
         "test": "npx jest --silent",
         "lint": "run-p lint:ts lint:es lint:style lint:prettier",
         "lint:ts": "tsc --noEmit --skipLibCheck",
-        "lint:style": "stylelint 'src/styles/**/*.css'",
+        "lint:style": "stylelint \"**/*.css\"",
         "lint:prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
         "lint:es": "eslint --config ./.eslintrc.cjs **/*.{ts,tsx}",
         "precommit": "lint-staged",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "release": "semantic-release"
     },
     "author": "Jonathan Lau",
     "license": "MIT",

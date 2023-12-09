@@ -30,10 +30,11 @@ type UpdateNodeFunction = (a: PageTreeHierarchyNode<TreeNodeDatum>) => void;
 type UpdateTreeRef = (e: Ref<Tree>) => void;
 type HighlightPathFunction = (
   rd3tNode: TreeNode,
-  evt: React.MouseEvent,
+  evt: MouseEvent,
   orientation: Orientation
 ) => void;
-type RemoveHighlightPathFunction = (evt: React.MouseEvent) => void;
+
+type RemoveHighlightPathFunction = (evt: MouseEvent) => void;
 type SetLoadedFunction = (a: boolean) => void;
 type HandleExpandFunction = (e: React.MouseEvent) => void;
 type HandleExpandChildrenFunction = (node: string) => void;
@@ -213,19 +214,12 @@ export const TreeProvider = ({
   }, [tabId]);
 
   useEffect(() => {
-    console.log(state.data);
-    console.log(Object.hasOwn(state.data, "children"));
     if (Object.hasOwn(state.data, "children")) {
       setLoaded(true);
     } else {
       setLoaded(false);
     }
-    console.log("LOADED", loaded);
   }, [state.data, treeElement]);
-
-  useEffect(() => {
-    console.log("LOADED", loaded);
-  }, [loaded]);
 
   useEffect(() => {
     if (treeRef.current instanceof Tree) {
@@ -313,10 +307,8 @@ export const TreeProvider = ({
     console.log("here", node, selectedNode);
     if (selectedNode?.children) {
       const hits = findNodesById(node, selectedNode.children, [])[0];
-      console.log("HITS", hits);
       // @ts-ignore wip
       const result = await expandNodeDescendants(hits.data);
-
       console.log("expand result", result);
       console.log("node", selectedNode);
     }
@@ -381,6 +373,7 @@ export const TreeProvider = ({
   }
 
   const highlightPathToNode = (rd3tNode, evt, orientation): boolean => {
+    console.log("highlightpathtonode", evt);
     if (!settings.shouldCollapseNeighborNodes) return false;
     // Ensure treeElement is an SVGElement before proceeding
     if (treeElement instanceof SVGElement) {

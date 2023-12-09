@@ -1,10 +1,11 @@
-import { useId } from "react";
+import { useId, useRef } from "react";
 import { Orientation, TreeNodeDatum } from "react-d3-tree";
 
 import { useThrottle } from "@/hooks/useThrottle";
 import { useTree } from "@/hooks/useTree";
 import { PageTreeHierarchyNode } from "@/types";
-import { sanitizeId } from "@/utils/treepath";
+import { pathMouseEnterEvent, pathMouseOutEvent } from "@/utils/events";
+import { getForeignObjectElement } from "@/utils/treepath";
 
 import { DevToolsElement } from "./Element";
 
@@ -21,15 +22,31 @@ interface NodeListItemProps {
 export function NodeListItem(props: NodeListItemProps) {
   const { highlightPathToNode, removeHighlightPathToNode, treeState } =
     useTree();
+  const liRef = useRef<HTMLLIElement | null>(null); // Add the correct type here
   const id = useId();
   const { node } = props;
 
-  function getForeignObjectElement(id: string): SVGElement {
-    const selector = `#${sanitizeId(id)} foreignObject`;
-    const foreignObject = document.querySelector(String(selector));
-    if (!foreignObject) throw new Error("SvgElementQueryErr..");
-    return foreignObject as SVGElement;
-  }
+  const triggerMouseEnter = (event) => {
+    if (liRef.current && event.target === liRef.current) {
+      liRef.current.dispatchEvent(pathMouseEnterEvent);
+      throttledHighlightPathToNode(
+        node.data,
+        pathMouseEnterEvent,
+        orientation as Orientation
+      );
+    }
+    event.stopPropagation();
+  };
+
+  const triggerMouseOut = (event) => {
+    if (liRef.current && event.target === liRef.current) {
+      console.log("triggerMouseOut", event.currentTarget);
+      console.log("triggerMouseOut", event.target);
+      liRef.current.dispatchEvent(pathMouseOutEvent);
+      removeHighlightPathToNode(pathMouseOutEvent);
+    }
+    event.stopPropagation();
+  };
 
   const handleVisitClick = () => {
     if (node.data.__rd3t.id) {
@@ -46,18 +63,13 @@ export function NodeListItem(props: NodeListItemProps) {
 
   return (
     <li
+      ref={liRef}
       role="button"
       key={id}
       tabIndex={0}
       className="details__item"
-      onMouseEnter={async (evt) =>
-        await throttledHighlightPathToNode(
-          node.data,
-          evt,
-          orientation as Orientation
-        )
-      }
-      onMouseOut={removeHighlightPathToNode}
+      onMouseEnter={triggerMouseEnter}
+      onMouseLeave={triggerMouseOut}
     >
       <DevToolsElement {...node.data} />
       <div className="slider-rotate">

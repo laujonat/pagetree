@@ -2,8 +2,8 @@
   --background-dark-accent: #222222;
   --background-dark-item: #282828;
   --background-dark: #121212;
-  --background-light-accent: rgba(248, 247, 247, 0.854);
-  --background-light-item: rgba(230, 230, 230, 0.884);
+  --background-light-accent: rgb(248 247 247 / 85.4%);
+  --background-light-item: rgb(230 230 230 / 88.4%);
   --background-light: #ffffff;
   --border-active-dark: rgb(232 232 232);
   --border-active-light: rgb(0 145 255);
@@ -24,8 +24,8 @@
   --node-light: rgb(211 227 253/100%);
   --node-path-to-branch-dark: rgb(138 180 248);
   --node-path-to-branch-light: rgb(0 145 255);
-  --node-path-to-leaf-dark: rgba(145, 145, 145, 0.78);
-  --node-path-to-leaf-light: rgba(124, 124, 124, 0.75);
+  --node-path-to-leaf-dark: rgb(145 145 145 / 78%);
+  --node-path-to-leaf-light: rgb(124 124 124 / 75%);
   --node-select-light: rgb(142 0 75);
   --node-select: rgb(0 99 155);
   --text-color-dark: #e0e0e0;
@@ -72,6 +72,7 @@ body {
   color: var(--text-color);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
   /* background-color: var(--bg-1); */
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
@@ -124,6 +125,8 @@ html[data-theme="dark"] {
   --webkit-tag-name: var(--webkit-tag-name-dark);
   --webkit-tag-attribute-key: var(--webkit-tag-attribute-key-dark);
   --webkit-tag-attribute-value: var(--webkit-tag-attribute-value-dark);
+  color: var(--text-color-dark);
+  background-color: var(--background-dark);
 }
 
 html:not([data-theme="dark"]) {
@@ -143,11 +146,6 @@ html:not([data-theme="dark"]) {
   --webkit-tag-name: var(--webkit-tag-name-light);
   --webkit-tag-attribute-key: var(--webkit-tag-attribute-key-light);
   --webkit-tag-attribute-value: var(--webkit-tag-attribute-value-light);
-}
-
-html[data-theme="dark"] {
-  color: var(--text-color-dark);
-  background-color: var(--background-dark);
 }
 
 html[data-theme="dark"] a {
@@ -192,22 +190,23 @@ strong.nodelen__text {
 
 .spinner,
 .spinner-text {
-  --clr: rgb(74, 179, 191);
+  --clr: rgb(74 179 191);
   --gap: 6px;
-  margin: 20px auto;
+
+  display: flex;
+  gap: var(--gap);
+  align-items: center;
+  justify-content: center;
   width: 100px;
   height: 100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--gap);
+  margin: 20px auto;
 }
 
 .spinner span {
   width: 20px;
   height: 20px;
-  border-radius: 100%;
   background-color: var(--clr);
+  border-radius: 100%;
   opacity: 0;
 }
 
@@ -246,11 +245,11 @@ strong.nodelen__text {
 }
 
 .tree-actions.pnode {
+  z-index: 3;
+  min-height: 0;
   margin: -3px 0 auto;
   padding: 0;
   border-bottom: none;
-  min-height: 0;
-  z-index: 3;
 }
 
 .tree-toolbar__left,
@@ -291,6 +290,7 @@ strong.nodelen__text {
   content: "Expand tree elements";
   user-select: none;
 }
+
 .tree-actions__left > div.tree-actions__action.pnode::before {
   content: "Select parent node";
 }
@@ -300,12 +300,12 @@ strong.nodelen__text {
   > button
   > div.synctree__active {
   position: absolute;
-  right: 2px;
   top: 1px;
-  border-radius: 50%;
-  height: 5px;
+  right: 2px;
   width: 5px;
+  height: 5px;
   background-color: var(--button-active);
+  border-radius: 50%;
 }
 
 .tree-actions__left > div.tree-actions__action.synctree::before {
@@ -367,8 +367,8 @@ strong.nodelen__text {
 }
 
 .tree-actions__left > div.tree-actions__action > button:active {
+  box-shadow: rgb(225 228 232 / 20%) 0 1px 0 inset;
   opacity: 0.92;
-  box-shadow: rgba(225, 228, 232, 0.2) 0 1px 0 inset;
   transition: none 0s;
 }
 
@@ -381,9 +381,9 @@ strong.nodelen__text {
 }
 
 .tree-actions__left > div.tree-actions__action button {
+  position: relative;
   min-height: 30px;
   padding: 5px;
-  position: relative;
   line-height: 0;
   white-space: nowrap;
   background-color: var(--bg-1);
@@ -405,9 +405,9 @@ strong.nodelen__text {
 .tree-actions > div.tree-actions__right > p {
   max-width: 65%;
   overflow: hidden;
+  font-family: ui-monospace;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: ui-monospace;
 }
 
 .tree-toolbar > div.tree-toolbar__right {
@@ -453,14 +453,14 @@ section.tree-settings__container {
   flex-grow: 2;
   flex-shrink: 0;
   box-sizing: border-box;
-  font-family: var(--source-code-font-family);
+  width: calc(100% - 20px);
   margin: 0;
   padding: 4px 0;
+  overflow: auto;
+  color: var(--webkit-tag-name);
+  font-family: var(--source-code-font-family);
   white-space: pre;
   overflow-wrap: normal;
-  width: calc(100% - 20px);
-  color: var(--webkit-tag-name);
-  overflow: auto;
   outline: none;
   user-select: none;
 }
@@ -524,7 +524,7 @@ div.webkit-element span.children-placeholder span.expand-button > .dot {
 
 .rd3t-link {
   fill: none;
-  stroke: rgb(8, 52, 66);
+  stroke: rgb(8 52 66);
   stroke-width: 2px;
 }
 
@@ -574,8 +574,8 @@ path.link--crisp-edges {
 }
 
 div.tree__layout {
-  height: 87%;
   width: 100%;
+  height: 87%;
 }
 
 div.tree__layout_element {
@@ -593,6 +593,7 @@ div.tree__layout_element {
   div.tree__layout {
     height: 80%;
   }
+
   div.tree__layout_element {
     float: none;
     max-width: 100%;
@@ -625,14 +626,13 @@ div#details__children-count {
 
 #details {
   position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: auto;
   align-items: center;
   height: calc(100% - 25px);
-
   background-color: var(--background-light);
   border-radius: 5px;
-  z-index: 2;
 }
 
 div::-webkit-scrollbar {
@@ -721,15 +721,15 @@ li.details__item:hover .slider-rotate {
 }
 
 .slider-rotate__button:hover {
-  cursor: pointer;
   background-color: var(--bg-1);
+  cursor: pointer;
 }
 
 div.nodelist__article {
   display: flex;
   flex-shrink: 0;
-  justify-content: flex-start;
   gap: 1em;
+  justify-content: flex-start;
   padding: 5px 0;
 }
 
@@ -739,7 +739,6 @@ div.nodelist__article-wrapper {
   justify-content: space-between;
   width: 100%;
   padding: 5px 0;
-
   font-size: 11.5px;
   border-color: rgb(190 190 190 / 50%);
 }
@@ -833,11 +832,8 @@ section.wrapper {
   letter-spacing: 0.3px;
   background-color: var(--bg-0);
   outline: 0;
-  transition: all 0.2s ease 0s;
-}
-
-.tabs > div button {
   cursor: pointer;
+  transition: all 0.2s ease 0s;
 }
 
 .tabs > div button:hover {
