@@ -195,6 +195,7 @@ async function handleSidepanelMessages(
       toggleInspector();
       break;
     case MessageContent.inspectorStatus:
+      console.log("checking status", Inspector.instance?.isActiveStatus);
       relayMessageToExtension({
         type: MessageContent.inspectorStatus,
         data: {

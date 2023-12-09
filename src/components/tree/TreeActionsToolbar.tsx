@@ -20,14 +20,19 @@ export const TreeActionsToolbar = forwardRef<
     messageToSend,
     isInspectorActive,
     tabUrl,
+    tabId,
     domObservable,
     setDomObservable,
   } = useChrome();
   const { expandAllNodes } = useTree();
 
   useEffect(() => {
-    console.log("is inspector active", isInspectorActive);
-  }, [isInspectorActive]);
+    if (tabId) {
+      messageToSend({
+        action: MessageContent.inspectorStatus,
+      });
+    }
+  }, [isInspectorActive, tabId]);
 
   const handleInspectorClick = async () => {
     try {

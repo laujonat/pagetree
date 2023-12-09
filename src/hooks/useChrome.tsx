@@ -63,11 +63,13 @@ export const useChrome = () => {
   };
 
   useEffect(() => {
+    fetchTabIdAndUrl();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleMessage = (message, sender, sendResponse) => {
       if (message.target === MessageTarget.Runtime) {
         switch (message.action) {
           case MessageContent.inspectorStatus:
+            console.log("MESSAGE", message.data);
             setIsInspectorActive(message.data.active);
             break;
           case MessageContent.domChangesDetected:
