@@ -1,9 +1,10 @@
 name: Create Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["build"]
+    types:
+      - completed
 
 jobs:
   release:
@@ -15,6 +16,12 @@ jobs:
 
       - name: Install Dependencies
         run: npm install # Or use yarn if you prefer
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: my-artifacts # Match the artifact name from build.yml
+          path: dist # Replace with the path where you want to download the artifacts
 
       - name: Run Semantic Release
         run: npx semantic-release
