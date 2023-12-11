@@ -1,0 +1,27 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: npm install # Or use yarn if you prefer
+
+      - name: Run Semantic Release
+        run: npx semantic-release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/* # Replace with the path to your release files
+        env:
+          GITHUB_TOKEN: ${{ secrets.PT_GITHUB_TOKEN }}
