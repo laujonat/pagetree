@@ -48,9 +48,9 @@ export function InspectorIcon() {
 export function ExpandAllIcon() {
   return (
     <svg
-      width="19"
-      height="18"
-      viewBox="0 0 20 19"
+      width="17"
+      height="17"
+      viewBox="0 0 17 17"
       strokeLinecap="round"
       strokeLinejoin="round"
       fill="none"

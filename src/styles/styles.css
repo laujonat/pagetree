@@ -376,6 +376,10 @@ strong.nodelen__text {
   background-color: var(--button-active);
 }
 
+.tree-actions__left > div.tree-actions__action > button.btn-active {
+  background-color: var(--button-active-hover) !important;
+}
+
 .tree-actions__left > div.tree-actions__action > button:hover {
   background-color: var(--button-active-hover) !important;
 }
@@ -749,6 +753,12 @@ div.nodelist__article {
   padding: 5px 0;
 }
 
+div.nodelist__article > h5 {
+  font-weight: 500;
+  font-size: var(--source-code-font-size);
+  margin: 0;
+}
+
 div.nodelist__article-wrapper {
   display: flex;
   flex-shrink: 0;
@@ -821,6 +831,8 @@ section.wrapper {
   justify-content: center;
   width: 100%;
   padding: 6px 0;
+  font-weight: 500;
+  font-size: var(--source-code-font-size);
 }
 
 .tabs > div {

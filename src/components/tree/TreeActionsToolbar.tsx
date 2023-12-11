@@ -24,7 +24,7 @@ export const TreeActionsToolbar = forwardRef<
     domObservable,
     setDomObservable,
   } = useChrome();
-  const { expandAllNodes } = useTree();
+  const { expandAllNodes, isExpanded } = useTree();
 
   useEffect(() => {
     if (tabId) {
@@ -68,7 +68,11 @@ export const TreeActionsToolbar = forwardRef<
           </button>
         </div>
         <div className="tree-actions__action expand-elements">
-          <button aria-label="Expand tree elements" onClick={expandAllNodes}>
+          <button
+            aria-label="Expand tree elements"
+            onClick={expandAllNodes}
+            className={isExpanded ? "btn-active" : ""}
+          >
             <ExpandAllIcon />
           </button>
         </div>

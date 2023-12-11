@@ -47,7 +47,7 @@ export function NodeList(props: NodeListProps) {
       <div className="nodelist__header">
         <div className="nodelist__article-wrapper">
           <div className="nodelist__article">
-            <div>Child Elements</div>
+            <h5>Child Elements</h5>
             {selectedNode?.data?.children && (
               <div>
                 <span>

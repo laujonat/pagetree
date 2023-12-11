@@ -40,8 +40,6 @@ export function NodeListItem(props: NodeListItemProps) {
 
   const triggerMouseOut = (event) => {
     if (liRef.current && event.target === liRef.current) {
-      console.log("triggerMouseOut", event.currentTarget);
-      console.log("triggerMouseOut", event.target);
       liRef.current.dispatchEvent(pathMouseOutEvent);
       removeHighlightPathToNode(pathMouseOutEvent);
     }

@@ -1,12 +1,5 @@
 import {
-  createContext,
-  FC,
-  MutableRefObject,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
+    createContext, FC, MutableRefObject, ReactNode, useCallback, useEffect, useLayoutEffect, useRef
 } from "react";
 import { useClickOutside } from "use-events";
 
@@ -91,7 +84,7 @@ export const WindowProvider: FC<WindowProviderProps> = ({ children }) => {
 
   const onVisibilityChange = () => {
     if (document.visibilityState === "visible") {
-      console.log("window context visible", tabId);
+      // console.log("window context visible", tabId);
       onUpdateRender();
     } else if (document.visibilityState === "hidden") {
       console.log("window context hidden", tabId);
