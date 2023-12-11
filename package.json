@@ -45,7 +45,8 @@
     },
     "lint-staged": {
         "*.{ts,tsx}": "eslint --fix",
-        "*.{ts,tsx,html,css,md}": "prettier --write"
+        "*.{ts,tsx,html,md}": "prettier --write --fix",
+        "*.{css}": "stylelint \"**/*.css\" --fix"
     },
     "devDependencies": {
         "@babel/core": "^7.23.5",

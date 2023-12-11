@@ -23,6 +23,7 @@ const CountElement = ({ nodeCount }) => {
       textRendering="optimizeLegibility"
       textAnchor="middle" // Center the text horizontally
       alignmentBaseline="middle" // Center the text vertically
+      style={{ marginLeft: "1em" }}
       x={25}
       y={-20}
     >

@@ -38,10 +38,11 @@
   --webkit-tag-attribute-value-light: rgb(8 66 160);
   --webkit-tag-name-dark: rgb(73 166 210);
   --webkit-tag-name-light: rgb(142 0 75);
+  --small-font-size: 0.7rem;
   --monospace-font-size: 11px;
   --monospace-font-family: menlo, monospace;
+  --source-code-font-family: ui-monospace, monospace;
   --source-code-font-size: 11.5px;
-  --source-code-font-family: menlo, monospace;
 }
 
 * {
@@ -125,6 +126,7 @@ html[data-theme="dark"] {
   --webkit-tag-name: var(--webkit-tag-name-dark);
   --webkit-tag-attribute-key: var(--webkit-tag-attribute-key-dark);
   --webkit-tag-attribute-value: var(--webkit-tag-attribute-value-dark);
+
   color: var(--text-color-dark);
   background-color: var(--background-dark);
 }
@@ -154,12 +156,10 @@ html[data-theme="dark"] a {
 
 body:not(.dark-mode) a:hover {
   color: rgb(214 0 0);
-  font-weight: 500;
 }
 
 html[data-theme="dark"] a:hover {
   color: #4db8ff;
-  font-weight: 500;
 }
 
 section.inspector__container {
@@ -444,6 +444,10 @@ select.tree-toolbar__select > option {
 }
 
 section.tree-settings__container {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+  height: 85%;
   padding: 5px 10px;
   font-size: 12px;
 }
@@ -600,7 +604,19 @@ div.tree__layout_element {
   }
 }
 
+.resizable {
+  resize: both;
+  overflow: scroll;
+  border: 1px solid black;
+}
+
 .nodelist__container {
+  pointer-events: auto;
+  resize: vertical;
+  overflow: auto;
+  width: 100%;
+  min-height: var(--nodelist-header-height);
+  height: 25vh;
   position: relative;
   display: flex;
   flex-basis: calc(100% - 14vh);
@@ -744,6 +760,7 @@ div.nodelist__article-wrapper {
 }
 
 div.nodelist__header {
+  --nodelist-header-height: auto;
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -899,4 +916,21 @@ section.wrapper {
 .tab_panel.active {
   display: block;
   height: 100%;
+}
+
+.footer-text {
+  font-size: var(--small-font-size);
+  max-width: 90%;
+  margin: auto auto 0;
+  line-height: 15px;
+  white-space: initial;
+  text-align: center;
+  word-wrap: break-word;
+  user-select: none;
+
+  position: fixed;
+  bottom: 12px;
+}
+.footer-text a {
+  white-space: nowrap;
 }

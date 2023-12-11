@@ -17,15 +17,30 @@ export function NodeListContainer() {
     setIsNodeListEmpty(
       !(loaded && selectedNode?.children && selectedNode.children.length > 0)
     );
+
+    // Calculate and set the --nodelist-header-height custom property
+    const nodelistHeader = document.querySelector(".nodelist__header");
+    const nodelistContainer = document.querySelector(".nodelist__container");
+
+    if (nodelistHeader && nodelistContainer instanceof HTMLElement) {
+      const headerHeight = getComputedStyle(nodelistHeader).height;
+      nodelistContainer.style.setProperty(
+        "--nodelist-header-height",
+        headerHeight
+      );
+    }
   }, [loaded, selectedNode?.children]);
+
   return (
     <>
       <TreeActionsToolbar selectedNode={selectedNode} />
-      <div className="nodelist__container">
-        <NodeList
-          selectedNode={selectedNode}
-          isNodeListEmpty={isNodeListEmpty}
-        />
+      <div className="resizeable">
+        <div className="nodelist__container">
+          <NodeList
+            selectedNode={selectedNode}
+            isNodeListEmpty={isNodeListEmpty}
+          />
+        </div>
       </div>
     </>
   );

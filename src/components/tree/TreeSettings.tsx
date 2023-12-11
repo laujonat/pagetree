@@ -163,7 +163,7 @@ function LicenseAndDisclaimer() {
           href="https://github.com/joelsaupe/html-tree-generator__chrome-extension"
         >
           joelsaupe/html-tree-generator
-        </a>{" "}
+        </a>
         . Icons made from{" "}
         <a target="_blank" href="https://iconduck.com">
           IconDuck
@@ -171,7 +171,7 @@ function LicenseAndDisclaimer() {
         License by{" "}
         <a target="_blank" href="https://spdx.org/licenses/Apache-2.0.html">
           Apache-2.0
-        </a>{" "}
+        </a>
         . Icons from{" "}
         <a
           target="_blank"
@@ -181,12 +181,13 @@ function LicenseAndDisclaimer() {
         </a>{" "}
         made by{" "}
         <a target="_blank" href="https://www.pnnl.gov/">
-          Pnnl.
-        </a>{" "}
-        License by{" "}
+          Pnnl
+        </a>
+        . License by{" "}
         <a target="_blank" href="https://spdx.org/licenses/BSD-3-Clause.html">
           BSD-3-Clause
         </a>
+        .
       </p>
     </div>
   );
