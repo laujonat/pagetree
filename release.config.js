@@ -1,5 +1,6 @@
 module.exports = {
-  branches: ["main"], // The branch to release from
+  branches: ["main"],
+  repositoryUrl: "git@github.com:laujonat/pagetree.git",
   plugins: [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
@@ -9,4 +10,3 @@ module.exports = {
     "@semantic-release/git",
   ],
 };
-

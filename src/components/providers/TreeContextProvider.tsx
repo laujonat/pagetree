@@ -237,7 +237,7 @@ export const TreeProvider = ({
         "separation",
         settings.orientation === "vertical"
           ? { siblings: 1, nonSiblings: 1.5 }
-          : { siblings: 0.5, nonSiblings: 0 }
+          : { siblings: 1, nonSiblings: 0.75 }
       );
       setProperty("dimensions", {
         width: translate.x * 2,

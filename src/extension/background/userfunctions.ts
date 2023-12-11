@@ -2,22 +2,22 @@ import { ContextMenuId, contexts } from "@/constants";
 
 export const getMenuOptions = (details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    chrome.runtime.setUninstallURL("https://example.com/extension-survey");
+    chrome.runtime.setUninstallURL("https://forms.gle/tqNnEoyqLroBZfLX9");
   }
   chrome.contextMenus.create({
-    title: "Element Selector",
+    title: "🔍 Element Selector",
     contexts: ["all"],
     id: ContextMenuId.selector,
   });
 
   chrome.contextMenus.create({
-    title: "Visualize '%s' Element Tree",
+    title: "🎯 Visualize '%s' Element Tree",
     contexts: contexts,
     id: ContextMenuId.element,
   });
 
   chrome.contextMenus.create({
-    title: "Visualize Page Document Tree",
+    title: "🌲 Visualize Page Document Tree",
     contexts: ["all"],
     id: ContextMenuId.page,
   });

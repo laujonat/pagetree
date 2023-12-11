@@ -42,7 +42,7 @@
         "node_modules",
         ".git",
         "webpack",
-        "jest.config.js", // Exclude the Jest config file
+        "jest.config.cjs", // Exclude the Jest config file
         "**/*.test.ts",
     ]
 }
