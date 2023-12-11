@@ -273,7 +273,6 @@ function handleMutations(mutationsList, observer) {
   if (Inspector.instance?.isActiveStatus) {
     return;
   }
-  console.warn("DOM change detected:", mutationsList);
   relayMessageToExtension({
     type: MessageContent.domChangesDetected,
     target: MessageTarget.Runtime,
