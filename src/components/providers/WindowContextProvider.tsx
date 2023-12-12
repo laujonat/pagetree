@@ -1,5 +1,12 @@
 import {
-    createContext, FC, MutableRefObject, ReactNode, useCallback, useEffect, useLayoutEffect, useRef
+  createContext,
+  FC,
+  MutableRefObject,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
 } from "react";
 import { useClickOutside } from "use-events";
 
