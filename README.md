@@ -2,7 +2,9 @@
 
 ![build](https://github.com/laujonat/pagetree/actions/workflows/build/badge.svg)
 
-Chrome Extension, TypeScript and Visual Studio Code
+This is a Chrome extension that allows you to visualize the distribution of DOM nodes in the document tree.
+
+![extension sample screenshot](https://cdn8.nyc3.digitaloceanspaces.com/pagetree-ss-1.png)
 
 ## Prerequisites
 
@@ -12,7 +14,7 @@ Chrome Extension, TypeScript and Visual Studio Code
 
 - [Visual Studio Code](https://code.visualstudio.com/)
 
-## Includes the following
+## Features
 
 - TypeScript
 - Webpack
@@ -31,6 +33,8 @@ Chrome Extension, TypeScript and Visual Studio Code
 
 ## Setup
 
+To set up the project, run the following command:
+
 ```bash
 npm install
 ```
@@ -41,28 +45,42 @@ npm install
 
 ## Build
 
+To build the project, run the following command:
+
 ```bash
 npm run build
 ```
 
 ## Build in watch mode
 
-### terminal
+To build the project in watch mode, you have two options:
 
-```
+### Terminal
+
+```bash
 npm run watch
 ```
 
 ### Visual Studio Code
 
-Run watch mode.
+- Run watch mode by pressing `Ctrl + Shift + B` in Visual Studio Code.
 
-type `Ctrl + Shift + B`
+## Load extension to Chrome
 
-## Load extension to chrome
-
-Load `dist` directory
+Load the `dist` directory as the Chrome extension.
 
 ## Test
 
-`npx jest` or `npm run test`
+To run the tests, use the following command:
+
+```bash
+npx jest
+```
+
+Alternatively, you can use `npm run test`.
+
+## License
+
+This project is licensed under the MIT License.
+
+Please update the Readme with any additional information you feel is relevant to the project.
